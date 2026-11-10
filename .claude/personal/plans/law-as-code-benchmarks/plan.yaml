@@ -18,8 +18,10 @@ items:
     title: Model SARA in krrood and score it
     branch: krrood-sara
     track: krrood-benchmarks
+    pull_request_number: 4
+    session: local Claude Code session 9ddb84d5-82e1-41d7-868c-f2696b0634c5
     depends_on: []
-    status: not started
+    status: in progress
     notes: >
       Model SARA's nine Internal Revenue Code sections in krrood, load each case from its Prolog
       facts, and score the share of the 120 test-split cases answered as SARA's Prolog program

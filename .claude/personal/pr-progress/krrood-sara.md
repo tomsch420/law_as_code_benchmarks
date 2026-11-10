@@ -11,5 +11,5 @@
 - Timing per stage, krrood vs SARA's Prolog; pushed 0d1e211
 
 ### Next
-- Watch CI's first run on the PR (not yet seen)
+- CI green at c76f4c3 (casadi declared here, krrood lacks it)
 - User to install swi-prolog-nox locally for tests

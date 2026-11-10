@@ -15,7 +15,7 @@ tracks:
     wave: benchmarks
 items:
   - id: krrood-sara
-    title: Model SARA in krrood and score it
+    title: Load SARA's cases and model the exclusions from employment of section 3306(c)
     branch: krrood-sara
     track: krrood-benchmarks
     pull_request_number: 4
@@ -23,9 +23,11 @@ items:
     depends_on: []
     status: in progress
     notes: >
-      Model SARA's nine Internal Revenue Code sections in krrood, load each case from its Prolog
-      facts, and score the share of the 120 test-split cases answered as SARA's Prolog program
-      answers them, entailment and amounts scored apart.
+      Commit SARA's files, load each case from its Prolog facts (SWI-Prolog expands the facts
+      its rules generate; krrood decides every answer) and score cases against their test
+      goals. Model the exclusions from employment of section 3306(c) in krrood: (6), (7),
+      (10)(B), (11), (16), (B) and (1)(B), scored on their 14 test-split cases.
+
   - id: krrood-catala-family-benefits
     title: Model Catala's French family benefits in krrood and score them
     branch: krrood-catala-family-benefits
@@ -50,8 +52,19 @@ items:
     title: Report what krrood handles, works around or lacks on law as code
     branch: krrood-law-as-code-report
     track: krrood-benchmarks
-    depends_on: [krrood-sara, krrood-catala-family-benefits, krrood-openfisca-family-benefits]
+    depends_on: [krrood-sara-remaining-sections, krrood-catala-family-benefits, krrood-openfisca-family-benefits]
     status: not started
     notes: >
       Across the three benchmarks, what krrood states directly, what needed a workaround and
       what it lacks, with each gap filed as an issue on cram2/cognitive_robot_abstract_machine.
+
+  - id: krrood-sara-remaining-sections
+    title: Model SARA's remaining sections in krrood and score all 120 test cases
+    branch: krrood-sara-remaining-sections
+    track: krrood-benchmarks
+    depends_on: [krrood-sara]
+    status: not started
+    notes: >
+      Model the rest of SARA's nine Internal Revenue Code sections on krrood-sara's loading
+      and scoring, and score the share of the 120 test-split cases answered as SARA's Prolog
+      program answers them, entailment and amounts scored apart.

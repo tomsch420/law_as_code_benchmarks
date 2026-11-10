@@ -1,0 +1,63 @@
+name: CI
+
+on:
+  push:
+    branches:
+      - main
+  pull_request:
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Check out law_as_code_benchmarks
+        uses: actions/checkout@v4
+        with:
+          path: law_as_code_benchmarks
+
+      # krrood is developed alongside these experiments, so the run takes it from the tip of
+      # cram2/main, together with the two packages of that repository it is versioned with.
+      - name: Check out krrood from cram2/main
+        uses: actions/checkout@v4
+        with:
+          repository: cram2/cognitive_robot_abstract_machine
+          ref: main
+          path: cognitive_robot_abstract_machine
+          submodules: recursive
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+
+      - name: Install uv
+        run: pip install uv
+
+      # SWI-Prolog expands the facts SARA's cases generate by rules; krrood answers every case.
+      - name: Install system dependencies
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y swi-prolog-nox graphviz libgraphviz-dev build-essential
+
+      - name: Install krrood and its probabilistic stack from the checkout
+        run: |
+          for package in random_events probabilistic_model krrood; do
+            uv pip install --system -e "cognitive_robot_abstract_machine/$package"
+          done
+
+      - name: Install law_as_code_benchmarks
+        run: uv pip install --system -e "law_as_code_benchmarks[dev]"
+
+      - name: Run the tests
+        run: |
+          cd law_as_code_benchmarks
+          python -m pytest tests
+
+      - name: Score SARA's test split
+        run: |
+          cd law_as_code_benchmarks
+          python scripts/score_sara.py

@@ -7,7 +7,13 @@ name = "law_as_code_benchmarks"
 version = "0.1.0"
 description = "krrood tried on published law-as-code benchmarks"
 requires-python = ">=3.12"
-dependencies = ["krrood", "typing_extensions"]
+dependencies = [
+    "krrood",
+    # krrood's entity query language imports krrood.symbolic_math, which imports casadi, but
+    # krrood does not declare it; drop this once it does
+    "casadi",
+    "typing_extensions",
+]
 
 [project.optional-dependencies]
 dev = ["pytest", "pre-commit"]

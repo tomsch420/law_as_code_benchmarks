@@ -19,7 +19,7 @@ package-dir = {"" = "src"}
 where = ["src"]
 
 [tool.setuptools.package-data]
-"law_as_code_benchmarks.sara" = ["ground_case.pl"]
+"law_as_code_benchmarks.sara" = ["ground_case.pl", "answer_case.pl"]
 
 [tool.pytest.ini_options]
 testpaths = ["tests"]

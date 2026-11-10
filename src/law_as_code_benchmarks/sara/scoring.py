@@ -1,11 +1,13 @@
 """
 Scores the modelled provisions on a split of SARA's cases: the share of cases each
 answers as its test goal states, entailment and tax amounts apart, with how many cases
-are modelled at all.
+are modelled at all, and how long each stage of answering takes.
 """
 
 from __future__ import annotations
 
+import statistics
+import time
 from dataclasses import dataclass, field
 from enum import StrEnum
 
@@ -13,6 +15,7 @@ import law_as_code_benchmarks.sara.employment_exclusions  # noqa: F401, register
 from law_as_code_benchmarks.sara.case import SaraCase, SaraSplit
 from law_as_code_benchmarks.sara.case_reader import WorldReader
 from law_as_code_benchmarks.sara.provision import Provision
+from law_as_code_benchmarks.sara.reference import ReferenceRun
 
 # %% one case
 
@@ -50,6 +53,36 @@ class AnswerKind(StrEnum):
         return cls.AMOUNT if predicate_name in set(AmountPredicate) else cls.ENTAILMENT
 
 
+class TimedStage(StrEnum):
+    """The stages of answering a case that are timed, each named as the summary reports it."""
+
+    EXPANDING_FACTS = "expanding the case's facts (SWI-Prolog)"
+    """Expanding the facts the case states, those its rules generate included."""
+
+    READING_DOMAIN_MODEL = "reading the domain model"
+    """Building the domain model from the facts."""
+
+    ANSWERING_IN_KRROOD = "answering in krrood"
+    """Answering the test goal with the krrood rules."""
+
+    ANSWERING_IN_PROLOG = "answering in SARA's Prolog program"
+    """Answering the test goal with SARA's program, the statutes and the case loaded beforehand."""
+
+
+@dataclass
+class Stopwatch:
+    """Measures the wall-clock time between consecutive laps."""
+
+    last_lap: float = field(default_factory=time.perf_counter)
+    """When the last lap ended, by :func:`time.perf_counter`."""
+
+    def lap(self) -> float:
+        """:return: The seconds since the last lap, which ends now."""
+        now = time.perf_counter()
+        seconds, self.last_lap = now - self.last_lap, now
+        return seconds
+
+
 @dataclass(frozen=True)
 class CaseResult:
     """
@@ -77,27 +110,47 @@ class CaseResult:
     case.
     """
 
+    durations: dict[TimedStage, float | None] = field(default_factory=dict)
+    """The seconds each stage took, None where SARA's program found no test; empty for an unmodelled case."""
+
+    reference_passed: bool | None = None
+    """Whether SARA's program gives the case's reference answer; None for an unmodelled case."""
+
     @classmethod
-    def from_case(cls, case: SaraCase) -> CaseResult:
-        """:return: How the modelled provisions answer *case*."""
+    def from_identifier(cls, identifier: str, swipl: str = "swipl") -> CaseResult:
+        """
+        :param identifier: The case's identifier.
+        :param swipl: The SWI-Prolog executable that expands the case's facts and runs SARA's program.
+        :return: How the modelled provisions answer the case, and how long each stage took.
+        """
+        stopwatch = Stopwatch()
+        case = SaraCase.load(identifier, swipl)
+        expanding_facts = stopwatch.lap()
         goal = case.test.goal
         provision = Provision.modelling(goal.functor)
         kind = AnswerKind.from_predicate(goal.functor)
         if provision is None:
             return cls(
-                identifier=case.identifier,
-                kind=kind,
-                is_modelled=False,
-                is_correct=False,
+                identifier=identifier, kind=kind, is_modelled=False, is_correct=False
             )
-        holds = provision(
-            world=WorldReader.from_facts(case.facts).read(), goal=goal
-        ).holds()
+        stopwatch.lap()
+        world = WorldReader.from_facts(case.facts).read()
+        reading_domain_model = stopwatch.lap()
+        holds = provision(world=world, goal=goal).holds()
+        answering_in_krrood = stopwatch.lap()
+        reference = ReferenceRun.from_identifier(identifier, swipl)
         return cls(
-            identifier=case.identifier,
+            identifier=identifier,
             kind=kind,
             is_modelled=True,
             is_correct=holds == case.test.expected_to_hold,
+            durations={
+                TimedStage.EXPANDING_FACTS: expanding_facts,
+                TimedStage.READING_DOMAIN_MODEL: reading_domain_model,
+                TimedStage.ANSWERING_IN_KRROOD: answering_in_krrood,
+                TimedStage.ANSWERING_IN_PROLOG: reference.seconds,
+            },
+            reference_passed=reference.passed,
         )
 
 
@@ -135,19 +188,44 @@ class SplitScore:
                 f"{kind.value}: {len(correct)} of {len(modelled)} modelled cases correct; "
                 f"{len(modelled)} of {len(results)} cases modelled"
             )
-        return "\n".join(lines)
+        return "\n".join(lines + self.timing_summary())
+
+    def timing_summary(self) -> list[str]:
+        """:return: For each timed stage, the median, maximum and total time over the modelled cases."""
+        modelled = [result for result in self.results if result.is_modelled]
+        if not modelled:
+            return []
+        reference_passed = [result for result in modelled if result.reference_passed]
+        lines = [
+            (
+                f"SARA's Prolog program gives the reference answer in {len(reference_passed)} of "
+                f"{len(modelled)} modelled cases"
+            ),
+            f"time per modelled case, over {len(modelled)} cases:",
+        ]
+        for stage in TimedStage:
+            seconds = [
+                result.durations[stage]
+                for result in modelled
+                if result.durations[stage] is not None
+            ]
+            lines.append(
+                f"  {stage.value}: {statistics.median(seconds) * 1000:.3f} ms median, "
+                f"{max(seconds) * 1000:.3f} ms maximum, {sum(seconds) * 1000:.1f} ms total"
+            )
+        return lines
 
     @classmethod
     def from_split(cls, split: SaraSplit, swipl: str = "swipl") -> SplitScore:
         """
         :param split: The split to score.
-        :param swipl: The SWI-Prolog executable that expands the cases' rules into facts.
+        :param swipl: The SWI-Prolog executable that expands the cases' facts and runs SARA's program.
         :return: The score of every case of the split.
         """
         return cls(
             split=split,
             results=[
-                CaseResult.from_case(SaraCase.load(identifier, swipl))
+                CaseResult.from_identifier(identifier, swipl)
                 for identifier in split.case_identifiers()
             ],
         )

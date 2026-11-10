@@ -7,7 +7,7 @@ from __future__ import annotations
 
 import pytest
 
-from law_as_code_benchmarks.sara.case import SaraCase, SaraSplit
+from law_as_code_benchmarks.sara.case import SaraSplit
 from law_as_code_benchmarks.sara.domain import (
     AmericanEmployer,
     Country,
@@ -48,7 +48,7 @@ def test_a_case_is_answered_as_its_test_goal_states(
     """
     Each test case about a modelled provision is answered as its test goal states.
     """
-    result = CaseResult.from_case(SaraCase.load(identifier, swipl))
+    result = CaseResult.from_identifier(identifier, swipl)
     assert result.is_modelled
     assert result.is_correct
 

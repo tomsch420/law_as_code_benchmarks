@@ -23,3 +23,16 @@ python scripts/score_sara.py
 |---|---|---|---|---|
 | test | entailment | 14 | 14 | 100 |
 | test | amount | 0 | 0 | 20 |
+
+`score_sara.py` also times each stage of answering a modelled case, and SARA's own Prolog program
+answering the same test goal with its statutes and the case already loaded. On one local run:
+
+| Stage, per modelled case | Median | Maximum |
+|---|---|---|
+| expanding the case's facts (SWI-Prolog) | 88 ms | 101 ms |
+| reading the domain model | 0.17 ms | 29 ms |
+| answering in krrood | 1.7 ms | 1,875 ms |
+| answering in SARA's Prolog program | 0.005 ms | 0.03 ms |
+
+The maximum of the krrood stages is the first case, which pays krrood's one-off warm-up.
+

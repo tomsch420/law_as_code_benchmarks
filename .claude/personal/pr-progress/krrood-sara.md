@@ -1,14 +1,13 @@
 ## PR #4 krrood-sara
 
 ### Plan
-- Project skeleton: pyproject, pre-commit (ruff, docformatter), CI with krrood from cram2/main
-- Commit SARA's files verbatim under resources/sara/
-- Parse case facts and test goals (tests first)
-- Event dataclasses; sections 1, 2, 63, 68, 151, 152, 3301, 3306, 7703 as EQL rules
-- Score the test split: entailment and amounts apart
+- Narrowed in session: loading, scoring and the § 3306(c) exclusions; other sections are item krrood-sara-remaining-sections
 
 ### Done
-- Gathered context; opened draft PR #4; item recorded in progress
+- SARA archive committed; cases loaded via swipl (ground_case.pl); world model
+- § 3306(c)(6), (7), (10)(B), (11), (16), (B), (1)(B) as EQL rules: 14/14 test cases correct
+- Tests (33 pass), CI with swi-prolog, pre-commit hook, README score table; pushed b024bd8
 
 ### Next
-- Project skeleton and SARA's files
+- Watch CI's first run on the PR (not yet seen)
+- User to install swi-prolog-nox locally for tests

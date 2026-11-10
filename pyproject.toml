@@ -1,0 +1,29 @@
+[build-system]
+requires = ["setuptools>=68"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "law_as_code_benchmarks"
+version = "0.1.0"
+description = "krrood tried on published law-as-code benchmarks"
+requires-python = ">=3.12"
+dependencies = ["krrood", "typing_extensions"]
+
+[project.optional-dependencies]
+dev = ["pytest", "pre-commit"]
+
+[tool.setuptools]
+package-dir = {"" = "src"}
+
+[tool.setuptools.packages.find]
+where = ["src"]
+
+[tool.setuptools.package-data]
+"law_as_code_benchmarks.sara" = ["ground_case.pl"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+pythonpath = ["src"]
+
+[tool.ruff]
+line-length = 100

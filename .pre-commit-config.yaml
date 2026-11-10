@@ -1,0 +1,15 @@
+# krrood's development tools, run from the development environment, which installs
+# krrood[development-tools]; see krrood/doc/development_tools.md.
+repos:
+  - repo: local
+    hooks:
+      - id: krrood-format
+        name: Format Python (ruff, then docformatter where it doesn't conflict with ruff)
+        entry: krrood format
+        language: system
+        types: [python]
+      - id: krrood-check
+        name: Check the staged code against the rules that have a checker
+        entry: krrood check
+        language: system
+        types: [python]

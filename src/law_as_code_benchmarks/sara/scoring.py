@@ -11,8 +11,8 @@ from enum import StrEnum
 
 import law_as_code_benchmarks.sara.employment_exclusions  # noqa: F401, registers the provisions
 from law_as_code_benchmarks.sara.case import SaraCase, SaraSplit
+from law_as_code_benchmarks.sara.case_reader import WorldReader
 from law_as_code_benchmarks.sara.provision import Provision
-from law_as_code_benchmarks.sara.world import World
 
 # %% one case
 
@@ -90,7 +90,9 @@ class CaseResult:
                 is_modelled=False,
                 is_correct=False,
             )
-        holds = provision(world=World.from_facts(case.facts), goal=goal).holds()
+        holds = provision(
+            world=WorldReader.from_facts(case.facts).read(), goal=goal
+        ).holds()
         return cls(
             identifier=case.identifier,
             kind=kind,

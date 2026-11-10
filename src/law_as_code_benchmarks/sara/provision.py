@@ -20,8 +20,8 @@ from krrood.symbol_graph.symbol_graph import Symbol
 from krrood.utils import recursive_subclasses
 from typing_extensions import Generic, TypeVar
 
-from law_as_code_benchmarks.sara.prolog_term import CompoundTerm, Term
-from law_as_code_benchmarks.sara.world import World
+from law_as_code_benchmarks.sara.domain import World
+from law_as_code_benchmarks.sara.prolog_term import CompoundTerm, PrologText, Term
 
 # %% predicates
 
@@ -66,9 +66,14 @@ class SaraConclusion(Symbol, ABC):
         """:return: Whether the conclusion agrees with every argument *goal* binds."""
         arguments = self.prolog_arguments()
         return len(goal.arguments) == len(arguments) and all(
-            asked is None or asked == concluded
+            asked is None or self.text_of(asked) == self.text_of(concluded)
             for asked, concluded in zip(goal.arguments, arguments)
         )
+
+    @staticmethod
+    def text_of(term: Term) -> Term:
+        """:return: The characters of a Prolog string, as the domain model names things; any other term itself."""
+        return term.value if isinstance(term, PrologText) else term
 
 
 ConclusionType = TypeVar("ConclusionType", bound=SaraConclusion)
@@ -82,7 +87,7 @@ class Provision(Generic[ConclusionType], SubClassSafeGeneric, ABC):
     """A provision of the statutes, asked about a case by a goal."""
 
     world: World
-    """What the case states."""
+    """The circumstances of the case."""
 
     goal: CompoundTerm
     """The goal the provision is asked, naming its predicate."""

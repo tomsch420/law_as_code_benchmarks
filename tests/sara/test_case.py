@@ -5,8 +5,8 @@ Tests of loading SARA's cases, the facts their rules generate included.
 from __future__ import annotations
 
 from law_as_code_benchmarks.sara.case import SaraCase, SaraSplit
+from law_as_code_benchmarks.sara.case_reader import WorldReader
 from law_as_code_benchmarks.sara.prolog_term import CompoundTerm
-from law_as_code_benchmarks.sara.world import EventKind, World
 
 # %% splits
 
@@ -52,8 +52,6 @@ def test_rules_naming_their_events_are_expanded_for_every_event(swipl: str) -> N
     Role clauses that need their event's name bound are solved for every event the case
     names.
     """
-    world = World.from_facts(SaraCase.load("tax_case_33", swipl).facts)
-    services = world.events_of(EventKind.SERVICE)
-    payments = world.events_of(EventKind.PAYMENT)
-    assert (len(services), len(payments)) == (87 + 70, 87 + 70)
-    assert all(len(payment.purposes) == 1 for payment in payments)
+    world = WorldReader.from_facts(SaraCase.load("tax_case_33", swipl).facts).read()
+    assert len(world.services) == 87 + 70
+    assert {service.employer.name for service in world.services} == {"alice"}

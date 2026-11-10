@@ -8,14 +8,18 @@ from __future__ import annotations
 import pytest
 
 from law_as_code_benchmarks.sara.case import SaraCase, SaraSplit
-from law_as_code_benchmarks.sara.employment_exclusions import (
-    ServiceAbroadInclusion,
-    StatedName,
+from law_as_code_benchmarks.sara.domain import (
+    AmericanEmployer,
+    Country,
+    Party,
+    Place,
+    Service,
+    World,
 )
+from law_as_code_benchmarks.sara.employment_exclusions import ServiceAbroadInclusion
 from law_as_code_benchmarks.sara.prolog_term import CompoundTerm
 from law_as_code_benchmarks.sara.provision import Provision, SaraPredicate
 from law_as_code_benchmarks.sara.scoring import CaseResult
-from law_as_code_benchmarks.sara.world import Event, EventKind, World
 
 # %% SARA's cases
 
@@ -52,47 +56,43 @@ def test_a_case_is_answered_as_its_test_goal_states(
 # %% the place of service abroad
 
 
-def world_of_service_abroad() -> World:
-    """:return: Bob working for Alice, an American employer, Bob a citizen; no place in any country."""
-    world = World()
-    world.events["work"] = Event(
-        identifier="work", kinds={EventKind.SERVICE}, agents=["bob"], patients=["alice"]
+def world_of_service_abroad(place: Place) -> World:
+    """:return: Bob, a citizen, working at *place* for Alice, an American employer."""
+    united_states = Country(name="usa")
+    alice = Party(name="alice")
+    bob = Party(name="bob", citizenships=[united_states])
+    return World(
+        united_states=united_states,
+        services=[Service(name="work", employee=bob, employer=alice, places=[place])],
+        american_employers=[AmericanEmployer(role_taker=alice)],
     )
-    world.events["employer"] = Event(
-        identifier="employer", kinds={EventKind.AMERICAN_EMPLOYER}, agents=["alice"]
-    )
-    world.events["citizen"] = Event(
-        identifier="citizen",
-        kinds={EventKind.CITIZENSHIP},
-        agents=["bob"],
-        patients=[StatedName.UNITED_STATES.term()],
-    )
-    return world
 
 
-def test_an_unbound_place_passes_where_the_case_puts_no_place_in_a_country() -> None:
-    """
-    As in the program, an unbound place counts as abroad where no place is put in a
-    country.
-    """
-    goal = CompoundTerm(
+def goal_of_service_abroad() -> CompoundTerm:
+    """:return: The goal asking whether the service ``work`` is service abroad."""
+    return CompoundTerm(
         functor=ServiceAbroadInclusion.predicate, arguments=("work", None, None, None)
     )
-    assert ServiceAbroadInclusion(world=world_of_service_abroad(), goal=goal).holds()
 
 
-def test_a_place_in_the_united_states_is_not_abroad() -> None:
+def test_service_in_a_foreign_country_is_abroad() -> None:
     """
-    A place the case puts in the United States is not abroad.
+    Service at a place in a foreign country is service abroad.
     """
-    world = world_of_service_abroad()
-    world.events["baltimore"] = Event(
-        identifier="baltimore", countries=[StatedName.UNITED_STATES.term()]
+    world = world_of_service_abroad(
+        Place(name="caracas", country=Country(name="venezuela"))
     )
-    goal = CompoundTerm(
-        functor=ServiceAbroadInclusion.predicate, arguments=("work", None, None, None)
-    )
-    assert not ServiceAbroadInclusion(world=world, goal=goal).holds()
+    assert ServiceAbroadInclusion(world=world, goal=goal_of_service_abroad()).holds()
+
+
+def test_service_at_a_place_in_no_stated_country_is_not_abroad() -> None:
+    """
+    Service at a place the case puts in no country is not taken to be abroad.
+    """
+    world = world_of_service_abroad(Place(name="somewhere"))
+    assert not ServiceAbroadInclusion(
+        world=world, goal=goal_of_service_abroad()
+    ).holds()
 
 
 # %% finding provisions

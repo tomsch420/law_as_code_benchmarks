@@ -1,1 +1,3 @@
-"""krrood tried on published law-as-code benchmarks."""
+"""
+Krrood tried on published law-as-code benchmarks.
+"""

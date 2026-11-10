@@ -8,9 +8,9 @@ answer for each case.
 ## SARA
 
 `resources/sara/` holds SARA's archive (`sara.tar.gz`, SHA-256 `e4f1b845016fc38b…`) unchanged,
-under its MIT license. `src/law_as_code_benchmarks/sara/` loads each case and answers it with
-krrood rules: SWI-Prolog only expands the facts a case's own Prolog rules generate, and every
-answer comes from krrood. Modelled so far: the exclusions from employment of § 3306(c).
+under its MIT license. `src/law_as_code_benchmarks/sara/` reads each case into a domain model of
+parties, services and places, and answers it with krrood rules over that model. SWI-Prolog only
+expands the facts a case's own Prolog rules generate; SARA's Prolog statutes are never run. Modelled so far: the exclusions from employment of § 3306(c).
 
 Score the test split, with SWI-Prolog (`apt-get install swi-prolog-nox`) on the path:
 

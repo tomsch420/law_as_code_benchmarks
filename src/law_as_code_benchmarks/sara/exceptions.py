@@ -33,25 +33,48 @@ class UnexpectedTestDirectives(DataclassException):
         return "Check that the case file is one of SARA's, unchanged."
 
 
-# %% reading a case's world
+# %% reading a case into the domain model
 
 
 @dataclass
-class AmbiguousRole(DataclassException):
+class ConflictingFacts(DataclassException):
     """
-    An event the case relates to more than one value in a role that takes one.
+    A case relating an event to several values where the domain model takes one.
     """
 
-    identifier: Any
+    event: Any
     """The event's identifier."""
 
-    role: str
+    functor: str
     """
-    The role.
+    The functor of the facts, such as ``start_``.
     """
 
     def error_message(self) -> str:
-        return f"The event {self.identifier} holds more than one value in the role {self.role}."
+        return f"The case states several {self.functor} facts for {self.event}."
 
     def suggest_correction(self) -> str:
-        return "Read the role's values as a list where the case may state several."
+        return "Model the value as a list where a case may state several."
+
+
+@dataclass
+class MissingFact(DataclassException):
+    """
+    A case leaving out a fact the domain model needs to read an event.
+    """
+
+    event: Any
+    """The event's identifier."""
+
+    functor: str
+    """
+    The functor of the missing fact, such as ``agent_``.
+    """
+
+    def error_message(self) -> str:
+        return f"The case states no {self.functor} fact for {self.event}."
+
+    def suggest_correction(self) -> str:
+        return (
+            "Make the value optional in the domain model where a case may leave it out."
+        )

@@ -14,7 +14,7 @@ from enum import Enum, StrEnum, auto
 from krrood.entity_query_language.predicate import symbolic_function
 from krrood.patterns.role import Role
 from krrood.symbol_graph.symbol_graph import Symbol
-from typing_extensions import TYPE_CHECKING
+from typing_extensions import TYPE_CHECKING, Hashable
 
 if TYPE_CHECKING:
     from law_as_code_benchmarks.sara.provision import SaraConclusion
@@ -762,8 +762,10 @@ class World:
     calendar_years: list[CalendarYear] = field(default_factory=list)
     """The calendar years the case's days fall in, and each year after one of them."""
 
-    drawn_conclusions: dict[type, list[SaraConclusion]] = field(default_factory=dict)
-    """The conclusions each provision has drawn about the case, by the provision's class; emptied when the case changes."""
+    drawn_conclusions: dict[Hashable, list[SaraConclusion]] = field(
+        default_factory=dict
+    )
+    """The conclusions each provision has drawn about the case, by its key; emptied when the case changes."""
 
     @symbolic_function
     def lifetime(self, person: Party) -> Period:

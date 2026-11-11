@@ -21,7 +21,7 @@ from krrood.ormatic.utils import classproperty
 from krrood.patterns.subclass_safe_generic import SubClassSafeGeneric
 from krrood.symbol_graph.symbol_graph import Symbol
 from krrood.utils import recursive_subclasses
-from typing_extensions import Generic, TypeVar
+from typing_extensions import Generic, Hashable, TypeVar
 
 from law_as_code_benchmarks.sara.domain import Party, World
 from law_as_code_benchmarks.sara.prolog_term import (
@@ -457,6 +457,90 @@ class SaraPredicate(StrEnum):
     HIGHER_ADDITIONAL_AMOUNT = "s63_f_3"
     """`§ 63(f)(3) <https://www.law.cornell.edu/uscode/text/26/63#f_3>`__: the higher amount for unmarried individuals."""
 
+    JOINT_RETURN_OR_SURVIVOR_BRACKET_I = "s1_a_i"
+    """`§ 1(a) <https://www.law.cornell.edu/uscode/text/26/1#a>`__: bracket (i) of the rate schedule of a married individual making a joint return or a surviving spouse."""
+
+    JOINT_RETURN_OR_SURVIVOR_BRACKET_II = "s1_a_ii"
+    """`§ 1(a) <https://www.law.cornell.edu/uscode/text/26/1#a>`__: bracket (ii) of the rate schedule of a married individual making a joint return or a surviving spouse."""
+
+    JOINT_RETURN_OR_SURVIVOR_BRACKET_III = "s1_a_iii"
+    """`§ 1(a) <https://www.law.cornell.edu/uscode/text/26/1#a>`__: bracket (iii) of the rate schedule of a married individual making a joint return or a surviving spouse."""
+
+    JOINT_RETURN_OR_SURVIVOR_BRACKET_IV = "s1_a_iv"
+    """`§ 1(a) <https://www.law.cornell.edu/uscode/text/26/1#a>`__: bracket (iv) of the rate schedule of a married individual making a joint return or a surviving spouse."""
+
+    JOINT_RETURN_OR_SURVIVOR_BRACKET_V = "s1_a_v"
+    """`§ 1(a) <https://www.law.cornell.edu/uscode/text/26/1#a>`__: bracket (v) of the rate schedule of a married individual making a joint return or a surviving spouse."""
+
+    HEAD_OF_HOUSEHOLD_BRACKET_I = "s1_b_i"
+    """`§ 1(b) <https://www.law.cornell.edu/uscode/text/26/1#b>`__: bracket (i) of the rate schedule of a head of household."""
+
+    HEAD_OF_HOUSEHOLD_BRACKET_II = "s1_b_ii"
+    """`§ 1(b) <https://www.law.cornell.edu/uscode/text/26/1#b>`__: bracket (ii) of the rate schedule of a head of household."""
+
+    HEAD_OF_HOUSEHOLD_BRACKET_III = "s1_b_iii"
+    """`§ 1(b) <https://www.law.cornell.edu/uscode/text/26/1#b>`__: bracket (iii) of the rate schedule of a head of household."""
+
+    HEAD_OF_HOUSEHOLD_BRACKET_IV = "s1_b_iv"
+    """`§ 1(b) <https://www.law.cornell.edu/uscode/text/26/1#b>`__: bracket (iv) of the rate schedule of a head of household."""
+
+    HEAD_OF_HOUSEHOLD_BRACKET_V = "s1_b_v"
+    """`§ 1(b) <https://www.law.cornell.edu/uscode/text/26/1#b>`__: bracket (v) of the rate schedule of a head of household."""
+
+    UNMARRIED_BRACKET_I = "s1_c_i"
+    """`§ 1(c) <https://www.law.cornell.edu/uscode/text/26/1#c>`__: bracket (i) of the rate schedule of an unmarried individual."""
+
+    UNMARRIED_BRACKET_II = "s1_c_ii"
+    """`§ 1(c) <https://www.law.cornell.edu/uscode/text/26/1#c>`__: bracket (ii) of the rate schedule of an unmarried individual."""
+
+    UNMARRIED_BRACKET_III = "s1_c_iii"
+    """`§ 1(c) <https://www.law.cornell.edu/uscode/text/26/1#c>`__: bracket (iii) of the rate schedule of an unmarried individual."""
+
+    UNMARRIED_BRACKET_IV = "s1_c_iv"
+    """`§ 1(c) <https://www.law.cornell.edu/uscode/text/26/1#c>`__: bracket (iv) of the rate schedule of an unmarried individual."""
+
+    UNMARRIED_BRACKET_V = "s1_c_v"
+    """`§ 1(c) <https://www.law.cornell.edu/uscode/text/26/1#c>`__: bracket (v) of the rate schedule of an unmarried individual."""
+
+    SEPARATE_RETURN_BRACKET_I = "s1_d_i"
+    """`§ 1(d) <https://www.law.cornell.edu/uscode/text/26/1#d>`__: bracket (i) of the rate schedule of a married individual filing separately."""
+
+    SEPARATE_RETURN_BRACKET_II = "s1_d_ii"
+    """`§ 1(d) <https://www.law.cornell.edu/uscode/text/26/1#d>`__: bracket (ii) of the rate schedule of a married individual filing separately."""
+
+    SEPARATE_RETURN_BRACKET_III = "s1_d_iii"
+    """`§ 1(d) <https://www.law.cornell.edu/uscode/text/26/1#d>`__: bracket (iii) of the rate schedule of a married individual filing separately."""
+
+    SEPARATE_RETURN_BRACKET_IV = "s1_d_iv"
+    """`§ 1(d) <https://www.law.cornell.edu/uscode/text/26/1#d>`__: bracket (iv) of the rate schedule of a married individual filing separately."""
+
+    SEPARATE_RETURN_BRACKET_V = "s1_d_v"
+    """`§ 1(d) <https://www.law.cornell.edu/uscode/text/26/1#d>`__: bracket (v) of the rate schedule of a married individual filing separately."""
+
+    INCOME_TAX = "s1"
+    """`§ 1 <https://www.law.cornell.edu/uscode/text/26/1>`__: the income tax."""
+
+    JOINT_RETURN_OR_SURVIVOR_INCOME_TAX = "s1_a"
+    """`§ 1(a) <https://www.law.cornell.edu/uscode/text/26/1#a>`__: the tax on a married individual making a joint return or a surviving spouse."""
+
+    JOINT_RETURN_INCOME_TAX = "s1_a_1"
+    """`§ 1(a)(1) <https://www.law.cornell.edu/uscode/text/26/1#a_1>`__: the tax on a married individual making a joint return."""
+
+    SURVIVOR_INCOME_TAX = "s1_a_2"
+    """`§ 1(a)(2) <https://www.law.cornell.edu/uscode/text/26/1#a_2>`__: the tax on a surviving spouse."""
+
+    HEAD_OF_HOUSEHOLD_INCOME_TAX = "s1_b"
+    """`§ 1(b) <https://www.law.cornell.edu/uscode/text/26/1#b>`__: the tax on a head of household."""
+
+    UNMARRIED_INCOME_TAX = "s1_c"
+    """`§ 1(c) <https://www.law.cornell.edu/uscode/text/26/1#c>`__: the tax on an unmarried individual."""
+
+    SEPARATE_RETURN_INCOME_TAX = "s1_d"
+    """`§ 1(d) <https://www.law.cornell.edu/uscode/text/26/1#d>`__: the tax on a married individual filing separately."""
+
+    TAX_OWED = "tax"
+    """SARA's ``tax``: the income tax plus the employment tax a person owes for a year."""
+
 
 # %% bindings
 
@@ -576,17 +660,21 @@ class Provision(Generic[ConclusionType], SubClassSafeGeneric, ABC):
     @property
     def conclusions(self) -> list[ConclusionType]:
         """The conclusions the provision infers, followed by those of its kind the case states, drawn once per case."""
-        provision_type = type(self)
-        if provision_type not in self.world.drawn_conclusions:
+        key = self.drawn_conclusions_key()
+        if key not in self.world.drawn_conclusions:
             conclusion_type = self.get_type_of_generic_parameter(
                 parameter=ConclusionType
             )
-            self.world.drawn_conclusions[provision_type] = self.query().tolist() + [
+            self.world.drawn_conclusions[key] = self.query().tolist() + [
                 conclusion
                 for conclusion in self.world.stated_conclusions
                 if isinstance(conclusion, conclusion_type)
             ]
-        return self.world.drawn_conclusions[provision_type]
+        return self.world.drawn_conclusions[key]
+
+    def drawn_conclusions_key(self) -> Hashable:
+        """:return: What the provision's conclusions about the case are kept under: its class, as they depend on nothing else."""
+        return type(self)
 
     def solutions(self, goal: CompoundTerm, bindings: Bindings) -> list[Bindings]:
         """:return: The bindings each conclusion agreeing with *goal*, which names the predicate, extends *bindings* to."""

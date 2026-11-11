@@ -8,16 +8,27 @@
 
 :- initialization(main, main).
 :- dynamic test_goal/1.
+:- dynamic case_file/1.
 
-user:term_expansion((:- halt), []).
+% Only the case file's own directives are held back; those of the statutes and of the
+% libraries they autoload, module headers included, run as loaded.
+user:term_expansion((:- halt), []) :-
+    loading_case_file.
 user:term_expansion((:- Goal), []) :-
+    loading_case_file,
     Goal \= [_|_],
     Goal \= discontiguous(_),
     assertz(test_goal(Goal)).
 
+loading_case_file :-
+    prolog_load_context(source, Source),
+    case_file(Source).
+
 main :-
     current_prolog_flag(argv, [CaseFile]),
-    load_files(CaseFile, [silent(true)]),
+    absolute_file_name(CaseFile, AbsoluteCaseFile),
+    assertz(case_file(AbsoluteCaseFile)),
+    load_files(AbsoluteCaseFile, [silent(true)]),
     (   test_goal(Goal)
     ->  get_time(Start),
         (   catch(Goal, _, fail) -> Passed = true ; Passed = false ),

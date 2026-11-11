@@ -11,5 +11,5 @@
 
 ### Next
 - Review round 1 addressed in d382199 (law hyperlinks, EmployeeBenefitPlan/PaymentMedium, .value, CI keyword fix); threads replied and resolved
-- Await CI at d382199; reviewer's answer on extlinks role vs plain hyperlinks
+- Await CI at d382199
 - Left for later items: dependents/spouses in (b)(2), (b)(10), (c)(10)(A)(ii) (income-tax item); (a)(2)(B), (b)(7), day-only exclusions not modelled

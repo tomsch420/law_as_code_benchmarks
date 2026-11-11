@@ -11,5 +11,6 @@
 
 ### Next
 - Review round 1 addressed in d382199 (law hyperlinks, EmployeeBenefitPlan/PaymentMedium, .value, CI keyword fix); threads replied and resolved
-- Await CI at d382199
+- HasType keyword fix pushed in d893b9d (passes 69 tests against cram2/main locally); CI at d893b9d not yet read
+- #6 fails CI only because main has the same HasType call (from #4)
 - Left for later items: dependents/spouses in (b)(2), (b)(10), (c)(10)(A)(ii) (income-tax item); (a)(2)(B), (b)(7), day-only exclusions not modelled

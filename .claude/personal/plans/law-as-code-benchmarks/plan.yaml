@@ -56,8 +56,10 @@ items:
   title: Model SARA's employment tax, the rest of section 3306 and section 3301, in krrood
   branch: krrood-sara-remaining-sections
   track: krrood-benchmarks
+  pull_request_number: 5
+  session: local Claude Code session e2b662e5-977a-4e93-ada3-a49667dde994
   depends_on: []
-  status: not started
+  status: in progress
   notes: 'Model the rest of section 3306 (employer, wages and employment, its exclusions
     included) and the employment tax of section 3301, scored on their 8 test-split cases
     (s3306_a_1_B, s3306_a_3, s3306_b_2_C, s3301). The references of 3306(b)(2), (b)(10) and

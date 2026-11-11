@@ -1,13 +1,13 @@
 ## PR #7 krrood-sara-family-status
 
 ### Plan
-- §§ 7703, 152, 151, 2 in family_status.py (+ conclusions), one commit per section, tests first; 36 test cases, 62 train cases as check
-- § 68(b) applicable amount modelled here (151(d)(3) needs it); § 68(a) stays with taxable-income
-- Domain: residences, births, incomes, joint returns, legal separations, nonresident aliens, siblings; days on kinship/marriage; gross income
+- §§ 7703, 152, 151, 2 and 68(b) in family_status.py; conjunctive goals in goal.py
+- Next items stacked on this branch: krrood-sara-taxable-income, then krrood-sara-income-tax
 
 ### Done
-- Bootstrap, draft PR #7, item recorded in progress
+- 36/36 test cases, 57/58 train cases; test split 58/58 modelled entailment correct; 119 tests pass; pushed 8bca492; PR description updated
+- Filed cram2/cognitive_robot_abstract_machine#937 (variable reused in two exists)
 
 ### Next
-- § 7703 (a)(1), (a)(2), (b)(1)-(3)
-- Decide depth of § 152(b)(1) recursion; record it
+- Read the all-case error check (eval_all.log): timeouts or errors?
+- Open: s152_d_1_B_pos (party named only in the question); conclusion cache for speed

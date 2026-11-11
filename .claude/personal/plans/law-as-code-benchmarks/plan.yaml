@@ -57,8 +57,10 @@ items:
     in krrood
   branch: krrood-sara-family-status
   track: krrood-benchmarks
+  pull_request_number: 7
+  session: local Claude Code session f386fcc5-179d-4148-8ad3-a7db9ad9905c
   depends_on: []
-  status: not started
+  status: in progress
   notes: 'Model marital status (7703), dependents (152), personal exemptions (151) and surviving
     spouse and head of household (2), scored on their 36 test-split cases.
 

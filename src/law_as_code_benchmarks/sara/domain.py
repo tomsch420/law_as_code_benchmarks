@@ -32,12 +32,12 @@ class Period:
     end: datetime.date | None = None
     """The last day; None where it goes on."""
 
-    @classmethod
-    def overlap(cls, periods: list[Period]) -> Period:
-        """:return: The period from the latest stated start of *periods* to the earliest stated end."""
-        starts = [period.start for period in periods if period.start is not None]
-        ends = [period.end for period in periods if period.end is not None]
-        return cls(
+    @symbolic_function
+    def intersect(self, other: Period) -> Period:
+        """:return: The period from the later stated start of the two to the earlier stated end."""
+        starts = [start for start in (self.start, other.start) if start is not None]
+        ends = [end for end in (self.end, other.end) if end is not None]
+        return Period(
             start=max(starts) if starts else None, end=min(ends) if ends else None
         )
 
@@ -590,6 +590,9 @@ class CalendarYear(Symbol):
     opening_day_of_year_before_preceding: datetime.date = field(init=False)
     """January 1 of the year two years before."""
 
+    opening_day_of_last_six_months: datetime.date = field(init=False)
+    """July 2, the first day SARA counts in the last 6 months of the year, which end on January 1 of the next."""
+
     half_length: float = field(init=False)
     """Half the number of days from its first to its last day, which SARA compares half a year with."""
 
@@ -601,6 +604,7 @@ class CalendarYear(Symbol):
         self.opening_day_of_following_year = datetime.date(self.number + 1, 1, 1)
         self.closing_day_of_preceding_year = datetime.date(self.number - 1, 12, 31)
         self.opening_day_of_year_before_preceding = datetime.date(self.number - 2, 1, 1)
+        self.opening_day_of_last_six_months = datetime.date(self.number, 7, 2)
         self.half_length = (self.closing_day - self.opening_day).days / 2
 
     @symbolic_function
@@ -609,10 +613,23 @@ class CalendarYear(Symbol):
         :return: The number of days from the first to the last day the year shares with
             *period*, an open start or end bounded by the year; negative where they share none.
         """
-        shared = Period.overlap(
-            [Period(start=self.opening_day, end=self.closing_day), period]
-        )
+        shared = Period(start=self.opening_day, end=self.closing_day).intersect(period)
         return (shared.end - shared.start).days
+
+    @symbolic_function
+    def days_spanned(self, period: Period) -> int:
+        """:return: The number of days from the first to the last day of *period*, an open start or end taken as the year's."""
+        start = self.opening_day if period.start is None else period.start
+        end = self.closing_day if period.end is None else period.end
+        return (end - start).days
+
+    @symbolic_function
+    def counts_younger_than_25(self, birth_day: datetime.date) -> bool:
+        """:return: Whether someone born on *birth_day* is less than 25 years old at the close of the year, as SARA counts."""
+        close_25_years_later = datetime.date(self.number + 25, 12, 31)
+        return (self.closing_day - birth_day).days <= (
+            close_25_years_later - self.closing_day
+        ).days
 
 
 # %% the circumstances of a case
@@ -624,6 +641,9 @@ class World:
 
     united_states: Country
     """The United States, as the case's places and citizenships refer to it."""
+
+    parties: list[Party] = field(default_factory=list)
+    """Every party the case names."""
 
     services: list[Service] = field(default_factory=list)
     """The services performed."""
@@ -691,6 +711,18 @@ class World:
 
     calendar_years: list[CalendarYear] = field(default_factory=list)
     """The calendar years the case's days fall in, and each year after one of them."""
+
+    @symbolic_function
+    def lifetime(self, person: Party) -> Period:
+        """:return: The days up to *person*'s death, open where the case states no day of it."""
+        days = [
+            death.day for death in self.deaths if death.person is person and death.day
+        ]
+        return Period(end=days[0] if days else None)
+
+    def households(self) -> list[Household]:
+        """:return: The households parties reside in, each once."""
+        return list(dict.fromkeys(residence.household for residence in self.residences))
 
     def include_calendar_year(self, number: int) -> None:
         """Adds the calendar year numbered *number* to :attr:`calendar_years`, unless it is among them."""

@@ -34,11 +34,17 @@ def modelled_test_cases() -> list[str]:
     ]
 
 
-def test_every_modelled_provision_has_a_positive_and_a_negative_test_case() -> None:
+def test_every_modelled_test_case_is_a_positive_or_negative_one() -> None:
     """
-    SARA's test split asks each modelled provision once to hold and once to fail.
+    SARA's test split asks each provision it tests once to hold and once to fail.
     """
-    assert len(modelled_test_cases()) == 2 * len(SaraPredicate)
+    identifiers = modelled_test_cases()
+    assert sorted(identifiers) == sorted(
+        f"{identifier.removesuffix('_pos')}_{suffix}"
+        for identifier in identifiers
+        if identifier.endswith("_pos")
+        for suffix in ("pos", "neg")
+    )
 
 
 @pytest.mark.parametrize("identifier", modelled_test_cases())
@@ -82,7 +88,7 @@ def test_service_in_a_foreign_country_is_abroad() -> None:
     world = world_of_service_abroad(
         Place(name="caracas", country=Country(name="venezuela"))
     )
-    assert ServiceAbroadInclusion(world=world, goal=goal_of_service_abroad()).holds()
+    assert ServiceAbroadInclusion(world=world).holds(goal_of_service_abroad())
 
 
 def test_service_at_a_place_in_no_stated_country_is_not_abroad() -> None:
@@ -90,9 +96,7 @@ def test_service_at_a_place_in_no_stated_country_is_not_abroad() -> None:
     Service at a place the case puts in no country is not taken to be abroad.
     """
     world = world_of_service_abroad(Place(name="somewhere"))
-    assert not ServiceAbroadInclusion(
-        world=world, goal=goal_of_service_abroad()
-    ).holds()
+    assert not ServiceAbroadInclusion(world=world).holds(goal_of_service_abroad())
 
 
 # %% finding provisions

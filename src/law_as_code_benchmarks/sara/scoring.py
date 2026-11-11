@@ -11,7 +11,7 @@ import time
 from dataclasses import dataclass, field
 from enum import StrEnum
 
-import law_as_code_benchmarks.sara.employment_exclusions  # noqa: F401, registers the provisions
+import law_as_code_benchmarks.sara.employment_tax  # noqa: F401, registers the provisions
 from law_as_code_benchmarks.sara.case import SaraCase, SaraSplit
 from law_as_code_benchmarks.sara.case_reader import WorldReader
 from law_as_code_benchmarks.sara.provision import Provision
@@ -136,7 +136,7 @@ class CaseResult:
         stopwatch.lap()
         world = WorldReader.from_facts(case.facts).read()
         reading_domain_model = stopwatch.lap()
-        holds = provision(world=world, goal=goal).holds()
+        holds = provision(world=world).holds(goal)
         answering_in_krrood = stopwatch.lap()
         reference = ReferenceRun.from_identifier(identifier, swipl)
         return cls(

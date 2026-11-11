@@ -35,7 +35,7 @@ from law_as_code_benchmarks.sara.domain import (
     StateGovernment,
     UnitedStatesGovernment,
 )
-from law_as_code_benchmarks.sara.prolog_term import Term
+from law_as_code_benchmarks.sara.prolog_term import CompoundTerm, Term
 from law_as_code_benchmarks.sara.provision import (
     Provision,
     SaraConclusion,
@@ -76,24 +76,39 @@ class ExcludedServiceForEmployer(ExcludedService):
 @dataclass(eq=False)
 class ServiceOfHospitalPatient(ExcludedService):
     """
-    A service for a hospital by one of its patients, on a day of the patient's stay.
+    A service for a hospital by one of its patients, during the patient's stay.
     """
 
-    workday: Term
+    stay: HospitalStay
     """
-    The day it is performed on, as the goal states it.
+    The patient's stay in the hospital.
     """
 
     def prolog_arguments(self) -> tuple[Term, ...]:
         """
-        Extends :meth:`ExcludedService.prolog_arguments` by the hospital, the patient
-        and the day.
+        Extends :meth:`ExcludedService.prolog_arguments` by the hospital and the
+        patient, the day left open.
         """
         return (
             self.service.name,
             self.service.employer.name,
             self.service.employee.name,
-            self.workday,
+            None,
+        )
+
+    def answers(self, goal: CompoundTerm) -> bool:
+        """
+        Extends :meth:`SaraConclusion.answers`: the goal must name a day of the stay.
+
+        A goal naming no day has no answer, as in SARA.
+        """
+        *arguments, workday = goal.arguments
+        return (
+            workday is not None
+            and self.stay.includes(WorldReader.date(workday))
+            and super().answers(
+                CompoundTerm(functor=goal.functor, arguments=(*arguments, None))
+            )
         )
 
 
@@ -240,9 +255,7 @@ class InternationalOrganizationExclusion(Provision[ExcludedServiceForEmployer]):
 class HospitalPatientExclusion(Provision[ServiceOfHospitalPatient]):
     """
     § 3306(c)(10)(B): service performed in the employ of a hospital by a patient of that
-    hospital, on the day the goal names.
-
-    A goal naming no day has no solution, as in SARA.
+    hospital.
     """
 
     @classproperty
@@ -253,20 +266,16 @@ class HospitalPatientExclusion(Provision[ServiceOfHospitalPatient]):
         return SaraPredicate.SERVICE_BY_HOSPITAL_PATIENT
 
     def query(self) -> Query:
-        workday = self.goal.arguments[3]
-        service = variable(
-            Service, domain=[] if workday is None else self.world.services
-        )
+        service = variable(Service, domain=self.world.services)
         hospital = variable(Hospital, domain=self.world.hospitals)
         stay = variable(HospitalStay, domain=self.world.hospital_stays)
         return an(
             entity(
-                inference(ServiceOfHospitalPatient)(service=service, workday=workday)
+                inference(ServiceOfHospitalPatient)(service=service, stay=stay)
             ).where(
                 service.employer == hospital.role_taker,
                 stay.hospital == service.employer,
                 stay.patient == service.employee,
-                stay.includes(WorldReader.date(workday)),
             )
         )
 

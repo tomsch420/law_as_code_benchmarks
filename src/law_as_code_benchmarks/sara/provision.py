@@ -1,14 +1,15 @@
 """
 A provision of SARA's statutes as a krrood rule, and the conclusions it draws.
 
-A provision is asked as SARA's Prolog program is: by a goal naming its predicate, with
-each argument bound or left open. It holds where one of its conclusions agrees with
-every argument the goal binds.
+A provision is asked as SARA's Prolog program is, by a goal naming its predicate. It
+holds where one of its conclusions, inferred or stated by the case, agrees with every
+argument the goal binds.
 """
 
 from __future__ import annotations
 
 import inspect
+from functools import cached_property
 from abc import ABC, abstractmethod
 from dataclasses import dataclass
 from enum import StrEnum
@@ -50,6 +51,39 @@ class SaraPredicate(StrEnum):
     LABOR_NOT_BY_ADMITTED_ALIEN = "s3306_c_1_B"
     """§ 3306(c)(1)(B): agricultural labor not performed by an alien admitted to perform it."""
 
+    EMPLOYER_OF_AGRICULTURAL_LABOR = "s3306_c_1_A_i"
+    """§ 3306(c)(1)(A)(i): a person who paid $20,000 or more in cash for agricultural labor."""
+
+    EMPLOYMENT = "s3306_c"
+    """§ 3306(c): service that is *employment*."""
+
+    WAGES = "s3306_b"
+    """§ 3306(b): remuneration for employment that is *wages*."""
+
+    PLAN_FOR_DEATH = "s3306_b_2_C"
+    """§ 3306(b)(2)(C): a plan making provision for employees in case of death."""
+
+    EMPLOYER = "s3306_a"
+    """§ 3306(a): a person who is an *employer* for a calendar year."""
+
+    EMPLOYER_BY_WAGES = "s3306_a_1_A"
+    """§ 3306(a)(1)(A): a person who paid wages of $1,500 or more."""
+
+    EMPLOYER_BY_DAYS_OF_EMPLOYMENT = "s3306_a_1_B"
+    """§ 3306(a)(1)(B): a person who employed someone on 10 days, each in a different week."""
+
+    EMPLOYER_BY_AGRICULTURAL_WAGES = "s3306_a_2_A"
+    """§ 3306(a)(2)(A): a person who paid wages of $20,000 or more for agricultural labor."""
+
+    EMPLOYER_OF_DOMESTIC_SERVICE = "s3306_a_3"
+    """§ 3306(a)(3): a person who paid $1,000 or more in cash for domestic service."""
+
+    TOTAL_WAGES = "total_wages_employer"
+    """The wages an employer paid in a period, each employee's capped at $7,000 by § 3306(b)(1)."""
+
+    EXCISE_TAX = "s3301"
+    """§ 3301: the excise tax on an employer, 6 percent of the wages paid in a calendar year."""
+
 
 # %% conclusions
 
@@ -84,13 +118,10 @@ ConclusionType = TypeVar("ConclusionType", bound=SaraConclusion)
 
 @dataclass
 class Provision(Generic[ConclusionType], SubClassSafeGeneric, ABC):
-    """A provision of the statutes, asked about a case by a goal."""
+    """A provision of the statutes, drawing its conclusions about a case."""
 
     world: World
     """The circumstances of the case."""
-
-    goal: CompoundTerm
-    """The goal the provision is asked, naming its predicate."""
 
     @classproperty
     @abstractmethod
@@ -101,11 +132,19 @@ class Provision(Generic[ConclusionType], SubClassSafeGeneric, ABC):
     def query(self) -> Query:
         """:return: A query inferring the provision's conclusions about the case."""
 
-    def holds(self) -> bool:
-        """:return: Whether one of the provision's conclusions answers :attr:`goal`."""
-        return any(
-            conclusion.answers(self.goal) for conclusion in self.query().tolist()
-        )
+    @cached_property
+    def conclusions(self) -> list[ConclusionType]:
+        """The conclusions the provision infers, followed by those of its kind the case states."""
+        conclusion_type = self.get_type_of_generic_parameter(ConclusionType)
+        return self.query().tolist() + [
+            conclusion
+            for conclusion in self.world.stated_conclusions
+            if isinstance(conclusion, conclusion_type)
+        ]
+
+    def holds(self, goal: CompoundTerm) -> bool:
+        """:return: Whether one of the provision's conclusions answers *goal*, which names its predicate."""
+        return any(conclusion.answers(goal) for conclusion in self.conclusions)
 
     @classmethod
     def modelling(cls, predicate_name: str) -> type[Provision] | None:

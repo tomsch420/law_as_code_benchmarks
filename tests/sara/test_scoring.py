@@ -41,14 +41,21 @@ def test_a_case_about_an_unmodelled_provision_is_not_modelled(swipl: str) -> Non
 # %% the test split
 
 
-def test_the_test_split_models_two_cases_per_provision(swipl: str) -> None:
+def test_the_test_split_models_the_cases_of_the_modelled_provisions(
+    swipl: str,
+) -> None:
     """
     Scoring the test split models exactly the cases of the modelled provisions.
     """
     score = SplitScore.from_split(SaraSplit.TEST, swipl)
     modelled = [result for result in score.results if result.is_modelled]
+    predicates = {predicate.value for predicate in SaraPredicate}
     assert len(score.results) == len(SaraSplit.TEST.case_identifiers())
-    assert len(modelled) == 2 * len(SaraPredicate)
+    assert [result.identifier for result in modelled] == [
+        identifier
+        for identifier in SaraSplit.TEST.case_identifiers()
+        if identifier.removesuffix("_pos").removesuffix("_neg") in predicates
+    ]
     assert all(result.kind == AnswerKind.ENTAILMENT for result in modelled)
 
 

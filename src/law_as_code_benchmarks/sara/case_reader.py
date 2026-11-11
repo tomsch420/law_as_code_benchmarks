@@ -445,7 +445,7 @@ class WorldReader:
         return plan
 
     def payments_of(self, event: Term) -> list[Payment]:
-        """:return: The payments *event* is, one for each day it is made on; plans are read beforehand."""
+        """:return: The payments *event* is, one for each day and amount the case states of it; plans are read beforehand."""
         payer = self.facts.value(Relation.AGENT, event)
         recipient = self.facts.value(Relation.PATIENT, event)
         days = self.facts.values(Relation.START, event) or [None]
@@ -462,7 +462,7 @@ class WorldReader:
                 recipient=None
                 if recipient is None
                 else self.plans.get(self.text(recipient)) or self.party(recipient),
-                amount=self.facts.required_value(Relation.AMOUNT, event),
+                amount=amount,
                 day=None if day is None else self.date(day),
                 service=next(iter(services), None),
                 medium=None
@@ -473,8 +473,10 @@ class WorldReader:
                 else self.plans.get(self.text(means)),
             )
             for day in days
+            for amount in self.facts.values(Relation.AMOUNT, event)
         ]
-        self.payments[self.text(event)] = payments[0]
+        if payments:
+            self.payments[self.text(event)] = payments[0]
         return payments
 
     def termination(self, event: Term) -> Termination:

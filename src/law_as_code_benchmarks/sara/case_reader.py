@@ -17,19 +17,29 @@ from law_as_code_benchmarks.sara.domain import (
     AmericanEmployer,
     CalendarYear,
     Country,
+    Birth,
     Death,
     Disability,
     ForeignGovernment,
     Hospital,
     HospitalStay,
+    Household,
+    Income,
     InternationalOrganization,
+    JointReturn,
     Kinship,
     LaborKind,
+    LegalSeparation,
     Marriage,
     Migration,
+    NonresidentAlienStatus,
     Party,
     Payment,
+    Period,
     Place,
+    Residence,
+    SeparationDecree,
+    Siblinghood,
     EmployeeBenefitPlan,
     EmployeeBenefit,
     Service,
@@ -104,6 +114,30 @@ class EventType(StrEnum):
 
     MOTHER = "mother_"
     """That its agent is the mother of its patient."""
+
+    BROTHER = "brother_"
+    """That its agents and patients are brothers or sisters."""
+
+    SISTER = "sister_"
+    """That its agents and patients are brothers or sisters."""
+
+    BIRTH = "birth_"
+    """The birth of its agent."""
+
+    LEGAL_SEPARATION = "legal_separation_"
+    """The legal separation of the spouses of its patient, a marriage, under its agent, a decree."""
+
+    RESIDENCE = "residence_"
+    """Its agents living in its patient, a household."""
+
+    INCOME = "income_"
+    """Income its agent earns."""
+
+    JOINT_RETURN = "joint_return_"
+    """A joint return its agents make."""
+
+    NONRESIDENT_ALIEN = "nonresident_alien_"
+    """That its agent is a nonresident alien."""
 
 
 class Relation(StrEnum):
@@ -300,6 +334,15 @@ class WorldReader:
     payments: dict[str, Payment] = field(default_factory=dict)
     """The payments read so far, by name, those only a stated conclusion names included."""
 
+    households: dict[str, Household] = field(default_factory=dict)
+    """The households read so far, by name."""
+
+    residences: dict[str, Residence] = field(default_factory=dict)
+    """The residences, by name."""
+
+    marriages: dict[str, Marriage] = field(default_factory=dict)
+    """The marriages, by name."""
+
     @classmethod
     def from_facts(cls, facts: list[CompoundTerm]) -> WorldReader:
         """:return: A reader of the case stating *facts*."""
@@ -318,6 +361,14 @@ class WorldReader:
         ]
         benefit_plans = [
             self.benefit_plan(event) for event in self.facts.typed[EventType.PLAN]
+        ]
+        residences = [
+            self.residence(event) for event in self.facts.typed[EventType.RESIDENCE]
+        ]
+        marriages = [
+            marriage
+            for event in self.facts.typed[EventType.MARRIAGE]
+            for marriage in self.marriages_of(event)
         ]
         payments = [
             payment
@@ -354,10 +405,35 @@ class WorldReader:
                 for event in self.facts.typed[EventType.TERMINATION]
             ],
             deaths=[self.death(event) for event in self.facts.typed[EventType.DEATH]],
-            marriages=[
-                self.marriage(event) for event in self.facts.typed[EventType.MARRIAGE]
+            marriages=marriages,
+            legal_separations=[
+                self.legal_separation(event)
+                for event in self.facts.typed[EventType.LEGAL_SEPARATION]
             ],
             kinships=self.kinships(),
+            siblinghoods=[
+                self.siblinghood(event)
+                for event_type in (EventType.BROTHER, EventType.SISTER)
+                for event in self.facts.typed[event_type]
+            ],
+            births=[self.birth(event) for event in self.facts.typed[EventType.BIRTH]],
+            residences=residences,
+            incomes=[
+                income
+                for event in self.facts.typed[EventType.INCOME]
+                for income in self.incomes_of(event)
+            ],
+            joint_returns=[
+                self.joint_return(event)
+                for event in self.facts.typed[EventType.JOINT_RETURN]
+            ],
+            nonresident_alien_statuses=[
+                NonresidentAlienStatus(
+                    person=self.party(self.facts.required_value(Relation.AGENT, event)),
+                    period=self.period(event),
+                )
+                for event in self.facts.typed[EventType.NONRESIDENT_ALIEN]
+            ],
             stated_conclusions=stated_conclusions,
             calendar_years=self.calendar_years(
                 [payment.day for payment in payments]
@@ -447,7 +523,7 @@ class WorldReader:
         return plan
 
     def payments_of(self, event: Term) -> list[Payment]:
-        """:return: The payments *event* is, one for each day and amount the case states of it; plans are read beforehand."""
+        """:return: The payments *event* is, one for each day and amount the case states of it; plans and residences are read beforehand."""
         payer = self.facts.value(Relation.AGENT, event)
         recipient = self.facts.value(Relation.PATIENT, event)
         days = self.facts.values(Relation.START, event) or [None]
@@ -456,6 +532,11 @@ class WorldReader:
             self.services[self.text(purpose)]
             for purpose in self.facts.values(Relation.PURPOSE, event)
             if self.text(purpose) in self.services
+        ]
+        households = [
+            self.household_of(self.text(purpose))
+            for purpose in self.facts.values(Relation.PURPOSE, event)
+            if self.household_of(self.text(purpose)) is not None
         ]
         payments = [
             Payment(
@@ -474,6 +555,7 @@ class WorldReader:
                 benefit_plan_drawn_on=None
                 if means is None
                 else self.benefit_plans.get(self.text(means)),
+                household_maintained=next(iter(households), None),
             )
             for day in days
             for amount in self.facts.values(Relation.AMOUNT, event)
@@ -514,14 +596,110 @@ class WorldReader:
             day=None if day is None else self.date(day),
         )
 
-    def marriage(self, event: Term) -> Marriage:
-        """:return: The marriage *event* is."""
+    def marriages_of(self, event: Term) -> list[Marriage]:
+        """:return: The marriage *event* is, once for each start the case states of it."""
         end = self.facts.value(Relation.END, event)
-        return Marriage(
-            spouses=[
-                self.party(spouse)
-                for spouse in self.facts.values(Relation.AGENT, event)
+        marriages = [
+            Marriage(
+                name=self.text(event),
+                spouses=[
+                    self.party(spouse)
+                    for spouse in self.facts.values(Relation.AGENT, event)
+                ],
+                period=Period(
+                    start=None if start is None else self.date(start),
+                    end=None if end is None else self.date(end),
+                ),
+            )
+            for start in self.facts.values(Relation.START, event) or [None]
+        ]
+        self.marriages[marriages[0].name] = marriages[0]
+        return marriages
+
+    def legal_separation(self, event: Term) -> LegalSeparation:
+        """:return: The legal separation *event* is; marriages are read beforehand."""
+        return LegalSeparation(
+            name=self.text(event),
+            marriage=self.marriages[
+                self.text(self.facts.required_value(Relation.PATIENT, event))
             ],
+            decree=SeparationDecree(
+                self.text(self.facts.required_value(Relation.AGENT, event))
+            ),
+            day=self.date(self.facts.required_value(Relation.START, event)),
+        )
+
+    def siblinghood(self, event: Term) -> Siblinghood:
+        """:return: The relation of brothers or sisters *event* is."""
+        return Siblinghood(
+            siblings=[
+                self.party(sibling)
+                for relation in (Relation.AGENT, Relation.PATIENT)
+                for sibling in self.facts.values(relation, event)
+            ],
+            period=self.period(event),
+        )
+
+    def birth(self, event: Term) -> Birth:
+        """:return: The birth *event* is."""
+        return Birth(
+            person=self.party(self.facts.required_value(Relation.AGENT, event)),
+            day=self.date(self.facts.required_value(Relation.START, event)),
+        )
+
+    def residence(self, event: Term) -> Residence:
+        """:return: The residence *event* is."""
+        household = self.text(self.facts.required_value(Relation.PATIENT, event))
+        if household not in self.households:
+            self.households[household] = Household(name=household)
+        residence = Residence(
+            name=self.text(event),
+            residents=[
+                self.party(resident)
+                for resident in self.facts.values(Relation.AGENT, event)
+            ],
+            household=self.households[household],
+            period=self.period(event),
+        )
+        self.residences[residence.name] = residence
+        return residence
+
+    def household_of(self, name: str) -> Household | None:
+        """:return: The household named *name*, or that of the residence named *name*; None if neither is read."""
+        if name in self.residences:
+            return self.residences[name].household
+        return self.households.get(name)
+
+    def incomes_of(self, event: Term) -> list[Income]:
+        """:return: The income *event* is, once for each amount the case states of it."""
+        day = self.facts.value(Relation.START, event)
+        return [
+            Income(
+                earning_party=self.party(
+                    self.facts.required_value(Relation.AGENT, event)
+                ),
+                amount=amount,
+                day=None if day is None else self.date(day),
+            )
+            for amount in self.facts.values(Relation.AMOUNT, event)
+        ]
+
+    def joint_return(self, event: Term) -> JointReturn:
+        """:return: The joint return *event* is."""
+        return JointReturn(
+            name=self.text(event),
+            filers=[
+                self.party(filer) for filer in self.facts.values(Relation.AGENT, event)
+            ],
+            period=self.period(event),
+        )
+
+    def period(self, event: Term) -> Period:
+        """:return: The days from the start to the end the case states of *event*, either left open where it states none."""
+        start = self.facts.value(Relation.START, event)
+        end = self.facts.value(Relation.END, event)
+        return Period(
+            start=None if start is None else self.date(start),
             end=None if end is None else self.date(end),
         )
 
@@ -543,7 +721,9 @@ class WorldReader:
                         if self.party(parent) is not self.party(child):
                             kinships.append(
                                 Kinship(
-                                    parent=self.party(parent), child=self.party(child)
+                                    parent=self.party(parent),
+                                    child=self.party(child),
+                                    period=self.period(event),
                                 )
                             )
         return kinships

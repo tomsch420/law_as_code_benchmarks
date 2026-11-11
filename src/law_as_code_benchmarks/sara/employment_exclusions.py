@@ -173,7 +173,7 @@ class UnitedStatesGovernmentExclusion(Provision[ExcludedService]):
         service = variable(Service, domain=self.world.services)
         return an(
             entity(inference(ExcludedService)(service=service)).where(
-                HasType(service.employer, UnitedStatesGovernment)
+                HasType(variable=service.employer, types_=UnitedStatesGovernment)
             )
         )
 
@@ -196,7 +196,7 @@ class StateExclusion(Provision[ExcludedServiceForEmployer]):
         service = variable(Service, domain=self.world.services)
         return an(
             entity(inference(ExcludedServiceForEmployer)(service=service)).where(
-                HasType(service.employer, StateGovernment)
+                HasType(variable=service.employer, types_=StateGovernment)
             )
         )
 
@@ -218,7 +218,7 @@ class ForeignGovernmentExclusion(Provision[ExcludedServiceForEmployer]):
         service = variable(Service, domain=self.world.services)
         return an(
             entity(inference(ExcludedServiceForEmployer)(service=service)).where(
-                HasType(service.employer, ForeignGovernment)
+                HasType(variable=service.employer, types_=ForeignGovernment)
             )
         )
 

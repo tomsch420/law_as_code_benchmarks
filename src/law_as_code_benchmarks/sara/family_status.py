@@ -10,7 +10,6 @@ from __future__ import annotations
 
 import math
 from abc import ABC
-from decimal import ROUND_HALF_UP, Decimal
 from dataclasses import dataclass
 
 from krrood.entity_query_language.factories import (
@@ -56,6 +55,10 @@ from law_as_code_benchmarks.sara.family_status_conclusions import (
     AncestorRelationship,
     ApplicableAmount,
     ApplicablePercentage,
+    HeadOfHouseholdApplicableAmount,
+    JointReturnOrSurvivorApplicableAmount,
+    SeparateReturnApplicableAmount,
+    UnmarriedApplicableAmount,
     ChildFilingJointly,
     ChildInLawRelationship,
     ChildOrDescendantOfChildRelationship,
@@ -136,7 +139,11 @@ from law_as_code_benchmarks.sara.family_status_conclusions import (
     SuspendedExemptionAmount,
     UncleOrAuntRelationship,
 )
-from law_as_code_benchmarks.sara.provision import Provision, SaraPredicate
+from law_as_code_benchmarks.sara.provision import (
+    Provision,
+    SaraConclusion,
+    SaraPredicate,
+)
 
 # %% kinship
 
@@ -473,6 +480,18 @@ class GrossIncomeOfParty(Provision[GrossIncome]):
         return an(entity(gross_income))
 
     def individual_gross_incomes(self) -> list[IndividualGrossIncome]:
+        """:return: What each party receives in each calendar year, nothing where they receive nothing."""
+        received = self.received_incomes()
+        return received + [
+            IndividualGrossIncome(person=person, year=year, amount=0)
+            for person in self.world.parties
+            for year in self.world.calendar_years
+            if not any(
+                income.person is person and income.year is year for income in received
+            )
+        ]
+
+    def received_incomes(self) -> list[IndividualGrossIncome]:
         """:return: What each party receives in each calendar year they receive anything in."""
         revenue = variable(Revenue, domain=[*self.world.incomes, *self.world.payments])
         year = variable(CalendarYear, domain=self.world.calendar_years)
@@ -1432,6 +1451,13 @@ class AgeRequirementTest(Provision[AgeRequirement]):
         """
         return 2
 
+    @classproperty
+    def age_limit(cls) -> int:
+        """
+        The years an individual has to be younger than.
+        """
+        return 25
+
     def query(self) -> Query:
         individual = variable(Party, domain=self.world.parties)
         taxpayer = variable(Party, domain=self.world.parties)
@@ -1479,7 +1505,8 @@ class AgeRequirementTest(Provision[AgeRequirement]):
                     birthday,
                     and_(
                         birthday.person == individual,
-                        CalendarYear.counts_younger_than_25(year, birthday.day),
+                        CalendarYear.days_lived_by_close(year, birthday.day)
+                        <= CalendarYear.days_of_years_after_close(year, self.age_limit),
                     ),
                 ),
             )
@@ -3947,19 +3974,82 @@ class HeadOfHouseholdTest(Provision[HeadOfHousehold]):
 
 
 @dataclass
-class ApplicableAmountTest(Provision[ApplicableAmount]):
+class JointReturnOrSurvivorApplicableAmountTest(
+    Provision[JointReturnOrSurvivorApplicableAmount]
+):
     """
-    `§ 68(b) <https://www.law.cornell.edu/uscode/text/26/68#b>`__: the applicable amount, by filing status: `(1)(A) <https://www.law.cornell.edu/uscode/text/26/68#b_1_A>`__ a joint return or a surviving
-    spouse, `(B) <https://www.law.cornell.edu/uscode/text/26/68#b_1_B>`__ a head of household, `(C) <https://www.law.cornell.edu/uscode/text/26/68#b_1_C>`__ an unmarried individual, and `(D) <https://www.law.cornell.edu/uscode/text/26/68#b_1_D>`__ a married individual filing
-    separately.
+    `§ 68(b)(1)(A) <https://www.law.cornell.edu/uscode/text/26/68#b_1_A>`__: $300,000 for a taxpayer making a joint return, or surviving their spouse.
+
+    The statute asks whether the taxpayer is a surviving spouse; SARA's program asks
+    whether anyone is.
     """
 
     @classproperty
     def predicate(cls) -> SaraPredicate:
         """
-        :attr:`SaraPredicate.APPLICABLE_AMOUNT`.
+        :attr:`SaraPredicate.JOINT_RETURN_OR_SURVIVOR_APPLICABLE_AMOUNT`.
         """
-        return SaraPredicate.APPLICABLE_AMOUNT
+        return SaraPredicate.JOINT_RETURN_OR_SURVIVOR_APPLICABLE_AMOUNT
+
+    @classproperty
+    def year_position(cls) -> int | None:
+        """
+        The fifth argument.
+        """
+        return 4
+
+    @classproperty
+    def amount(cls) -> float:
+        """
+        The applicable amount.
+        """
+        return 300_000
+
+    def query(self) -> Query:
+        filing = variable(
+            JointFiling, domain=JointFilingTest(world=self.world).conclusions
+        )
+        survivor = variable(
+            SurvivingSpouse, domain=SurvivingSpouseTest(world=self.world).conclusions
+        )
+        amount = variable(
+            JointReturnOrSurvivorApplicableAmount,
+            domain=an(
+                entity(
+                    inference(JointReturnOrSurvivorApplicableAmount)(
+                        taxpayer=filing.individual,
+                        amount=self.amount,
+                        year=filing.year,
+                        joint_return=filing.joint_return,
+                    )
+                )
+            ).tolist()
+            + an(
+                entity(
+                    inference(JointReturnOrSurvivorApplicableAmount)(
+                        taxpayer=survivor.taxpayer,
+                        amount=self.amount,
+                        year=survivor.year,
+                        surviving_spouse=survivor.taxpayer,
+                    )
+                )
+            ).tolist(),
+        )
+        return an(entity(amount))
+
+
+@dataclass
+class HeadOfHouseholdApplicableAmountTest(Provision[HeadOfHouseholdApplicableAmount]):
+    """
+    `§ 68(b)(1)(B) <https://www.law.cornell.edu/uscode/text/26/68#b_1_B>`__: $275,000 for a head of household.
+    """
+
+    @classproperty
+    def predicate(cls) -> SaraPredicate:
+        """
+        :attr:`SaraPredicate.HEAD_OF_HOUSEHOLD_APPLICABLE_AMOUNT`.
+        """
+        return SaraPredicate.HEAD_OF_HOUSEHOLD_APPLICABLE_AMOUNT
 
     @classproperty
     def year_position(cls) -> int | None:
@@ -3969,83 +4059,54 @@ class ApplicableAmountTest(Provision[ApplicableAmount]):
         return 2
 
     @classproperty
-    def amount_for_joint_return(cls) -> float:
+    def amount(cls) -> float:
         """
-        `§ 68(b)(1)(A) <https://www.law.cornell.edu/uscode/text/26/68#b_1_A>`__: the amount for a joint return or a surviving spouse.
-        """
-        return 300_000
-
-    @classproperty
-    def amount_for_head_of_household(cls) -> float:
-        """
-        `§ 68(b)(1)(B) <https://www.law.cornell.edu/uscode/text/26/68#b_1_B>`__: the amount for a head of household.
+        The applicable amount.
         """
         return 275_000
 
-    @classproperty
-    def amount_for_unmarried_individual(cls) -> float:
-        """
-        `§ 68(b)(1)(C) <https://www.law.cornell.edu/uscode/text/26/68#b_1_C>`__: the amount for an individual not married, no surviving spouse
-        and no head of household.
-        """
-        return 250_000
-
     def query(self) -> Query:
-        amount = variable(
-            ApplicableAmount,
-            domain=self.amounts_for_joint_return_or_surviving_spouse()
-            + self.amounts_for_head_of_household()
-            + self.amounts_for_unmarried_individual()
-            + self.amounts_for_separate_return(),
-        )
-        return an(entity(amount))
-
-    def amounts_for_joint_return_or_surviving_spouse(self) -> list[ApplicableAmount]:
-        """:return: The applicable amount of `(1)(A) <https://www.law.cornell.edu/uscode/text/26/68#b_1_A>`__ for each taxpayer making a joint return or surviving their spouse."""
-        filing = variable(
-            JointFiling, domain=JointFilingTest(world=self.world).conclusions
-        )
-        survivor = variable(
-            SurvivingSpouse, domain=SurvivingSpouseTest(world=self.world).conclusions
-        )
-        return (
-            an(
-                entity(
-                    inference(ApplicableAmount)(
-                        taxpayer=filing.individual,
-                        amount=self.amount_for_joint_return,
-                        year=filing.year,
-                    )
-                )
-            ).tolist()
-            + an(
-                entity(
-                    inference(ApplicableAmount)(
-                        taxpayer=survivor.taxpayer,
-                        amount=self.amount_for_joint_return,
-                        year=survivor.year,
-                    )
-                )
-            ).tolist()
-        )
-
-    def amounts_for_head_of_household(self) -> list[ApplicableAmount]:
-        """:return: The applicable amount of `(1)(B) <https://www.law.cornell.edu/uscode/text/26/68#b_1_B>`__ for each head of household."""
         head = variable(
             HeadOfHousehold, domain=HeadOfHouseholdTest(world=self.world).conclusions
         )
         return an(
             entity(
-                inference(ApplicableAmount)(
-                    taxpayer=head.taxpayer,
-                    amount=self.amount_for_head_of_household,
-                    year=head.year,
+                inference(HeadOfHouseholdApplicableAmount)(
+                    taxpayer=head.taxpayer, amount=self.amount, year=head.year
                 )
             )
-        ).tolist()
+        )
 
-    def amounts_for_unmarried_individual(self) -> list[ApplicableAmount]:
-        """:return: The applicable amount of `(1)(C) <https://www.law.cornell.edu/uscode/text/26/68#b_1_C>`__ for each individual not married, no surviving spouse and no head of household."""
+
+@dataclass
+class UnmarriedApplicableAmountTest(Provision[UnmarriedApplicableAmount]):
+    """
+    `§ 68(b)(1)(C) <https://www.law.cornell.edu/uscode/text/26/68#b_1_C>`__: $250,000 for an individual not married, no surviving spouse and no head
+    of household.
+    """
+
+    @classproperty
+    def predicate(cls) -> SaraPredicate:
+        """
+        :attr:`SaraPredicate.UNMARRIED_APPLICABLE_AMOUNT`.
+        """
+        return SaraPredicate.UNMARRIED_APPLICABLE_AMOUNT
+
+    @classproperty
+    def year_position(cls) -> int | None:
+        """
+        The third argument.
+        """
+        return 2
+
+    @classproperty
+    def amount(cls) -> float:
+        """
+        The applicable amount.
+        """
+        return 250_000
+
+    def query(self) -> Query:
         taxpayer = variable(Party, domain=self.world.parties)
         year = variable(CalendarYear, domain=self.world.calendar_years)
         married = variable(
@@ -4060,10 +4121,8 @@ class ApplicableAmountTest(Provision[ApplicableAmount]):
         )
         return an(
             entity(
-                inference(ApplicableAmount)(
-                    taxpayer=taxpayer,
-                    amount=self.amount_for_unmarried_individual,
-                    year=year.number,
+                inference(UnmarriedApplicableAmount)(
+                    taxpayer=taxpayer, amount=self.amount, year=year.number
                 )
             ).where(
                 not_(
@@ -4086,23 +4145,87 @@ class ApplicableAmountTest(Provision[ApplicableAmount]):
                     )
                 ),
             )
-        ).tolist()
+        )
 
-    def amounts_for_separate_return(self) -> list[ApplicableAmount]:
-        """:return: The applicable amount of `(1)(D) <https://www.law.cornell.edu/uscode/text/26/68#b_1_D>`__, half that of `(A) <https://www.law.cornell.edu/uscode/text/26/68#b_1_A>`__, for each married individual filing separately."""
+
+@dataclass
+class SeparateReturnApplicableAmountTest(Provision[SeparateReturnApplicableAmount]):
+    """
+    `§ 68(b)(1)(D) <https://www.law.cornell.edu/uscode/text/26/68#b_1_D>`__: half the amount of `(A) <https://www.law.cornell.edu/uscode/text/26/68#b_1_A>`__ for a married individual filing
+    separately.
+    """
+
+    @classproperty
+    def predicate(cls) -> SaraPredicate:
+        """
+        :attr:`SaraPredicate.SEPARATE_RETURN_APPLICABLE_AMOUNT`.
+        """
+        return SaraPredicate.SEPARATE_RETURN_APPLICABLE_AMOUNT
+
+    @classproperty
+    def year_position(cls) -> int | None:
+        """
+        The third argument.
+        """
+        return 2
+
+    def query(self) -> Query:
         married = variable(
             MarriedIndividual,
             domain=MarriedIndividualTest(world=self.world).separate_filers(),
         )
         return an(
             entity(
-                inference(ApplicableAmount)(
+                inference(SeparateReturnApplicableAmount)(
                     taxpayer=married.person,
-                    amount=round(self.amount_for_joint_return / 2),
+                    amount=round(JointReturnOrSurvivorApplicableAmountTest.amount / 2),
                     year=married.year,
                 )
             )
-        ).tolist()
+        )
+
+
+@dataclass
+class ApplicableAmountTest(Provision[ApplicableAmount]):
+    """
+    `§ 68(b) <https://www.law.cornell.edu/uscode/text/26/68#b>`__: the applicable amount of any of `(1)(A) <https://www.law.cornell.edu/uscode/text/26/68#b_1_A>`__ through `(D) <https://www.law.cornell.edu/uscode/text/26/68#b_1_D>`__.
+    """
+
+    @classproperty
+    def predicate(cls) -> SaraPredicate:
+        """
+        :attr:`SaraPredicate.APPLICABLE_AMOUNT`.
+        """
+        return SaraPredicate.APPLICABLE_AMOUNT
+
+    @classproperty
+    def year_position(cls) -> int | None:
+        """
+        The third argument.
+        """
+        return 2
+
+    def query(self) -> Query:
+        amount = variable(
+            SaraConclusion,
+            domain=[
+                conclusion
+                for test in (
+                    JointReturnOrSurvivorApplicableAmountTest,
+                    HeadOfHouseholdApplicableAmountTest,
+                    UnmarriedApplicableAmountTest,
+                    SeparateReturnApplicableAmountTest,
+                )
+                for conclusion in test(world=self.world).conclusions
+            ],
+        )
+        return an(
+            entity(
+                inference(ApplicableAmount)(
+                    taxpayer=amount.taxpayer, amount=amount.amount, year=amount.year
+                )
+            )
+        )
 
 
 # %% exemption amount
@@ -4356,11 +4479,8 @@ class ReducedExemptionAmountTest(Provision[ReducedExemptionAmount]):
 
     @symbolic_function
     def reduced_amount(self, amount: float, percentage: int) -> float:
-        """:return: *amount* less *percentage* percent of it, rounded half away from zero as Prolog's ``round``, at least 0."""
-        reduction = int(
-            Decimal(str(amount * percentage / 100)).quantize(Decimal(1), ROUND_HALF_UP)
-        )
-        return max(amount - reduction, 0)
+        """:return: *amount* less *percentage* percent of it in whole dollars, at least 0."""
+        return max(amount - Provision.share_in_whole_dollars(amount, percentage), 0)
 
 
 @dataclass

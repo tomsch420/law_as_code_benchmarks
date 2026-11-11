@@ -12,8 +12,10 @@ import datetime
 import inspect
 from abc import ABC, abstractmethod
 from dataclasses import dataclass, field
+from decimal import ROUND_HALF_UP, Decimal
 from enum import StrEnum
 
+from krrood.entity_query_language.predicate import symbolic_function
 from krrood.entity_query_language.query.query import Query
 from krrood.ormatic.utils import classproperty
 from krrood.patterns.subclass_safe_generic import SubClassSafeGeneric
@@ -21,7 +23,7 @@ from krrood.symbol_graph.symbol_graph import Symbol
 from krrood.utils import recursive_subclasses
 from typing_extensions import Generic, TypeVar
 
-from law_as_code_benchmarks.sara.domain import World
+from law_as_code_benchmarks.sara.domain import Party, World
 from law_as_code_benchmarks.sara.prolog_term import (
     CompoundTerm,
     PrologText,
@@ -326,6 +328,135 @@ class SaraPredicate(StrEnum):
     HOUSEHOLD_MEMBER_DEPENDENT = "s2_b_3_B"
     """`§ 2(b)(3)(B) <https://www.law.cornell.edu/uscode/text/26/2#b_3_B>`__: an individual who would be no dependent but for § 152(d)(2)(H)."""
 
+    PERSONAL_EXEMPTIONS = "s151"
+    """`§ 151 <https://www.law.cornell.edu/uscode/text/26/151>`__: the exemptions a taxpayer deducts."""
+
+    ALLOWED_EXEMPTIONS = "s151_a"
+    """`§ 151(a) <https://www.law.cornell.edu/uscode/text/26/151#a>`__: the sum of the exemptions a taxpayer deducts."""
+
+    TAXPAYER_OR_SPOUSE_EXEMPTION = "s151_b"
+    """`§ 151(b) <https://www.law.cornell.edu/uscode/text/26/151#b>`__: the exemptions for the taxpayer and their spouse."""
+
+    LIMITED_ITEMIZED_DEDUCTIONS = "s68"
+    """`§ 68 <https://www.law.cornell.edu/uscode/text/26/68>`__: itemized deductions after the overall limitation."""
+
+    ITEMIZED_DEDUCTION_LIMITATION = "s68_a"
+    """`§ 68(a) <https://www.law.cornell.edu/uscode/text/26/68#a>`__: the reduction of itemized deductions."""
+
+    EXCESS_INCOME_REDUCTION = "s68_a_1"
+    """`§ 68(a)(1) <https://www.law.cornell.edu/uscode/text/26/68#a_1>`__: 3 percent of the excess over the applicable amount."""
+
+    ITEMIZED_DEDUCTION_REDUCTION = "s68_a_2"
+    """`§ 68(a)(2) <https://www.law.cornell.edu/uscode/text/26/68#a_2>`__: 80 percent of the itemized deductions."""
+
+    JOINT_RETURN_OR_SURVIVOR_APPLICABLE_AMOUNT = "s68_b_1_A"
+    """`§ 68(b)(1)(A) <https://www.law.cornell.edu/uscode/text/26/68#b_1_A>`__: the applicable amount for a joint return or a surviving spouse."""
+
+    HEAD_OF_HOUSEHOLD_APPLICABLE_AMOUNT = "s68_b_1_B"
+    """`§ 68(b)(1)(B) <https://www.law.cornell.edu/uscode/text/26/68#b_1_B>`__: the applicable amount for a head of household."""
+
+    UNMARRIED_APPLICABLE_AMOUNT = "s68_b_1_C"
+    """`§ 68(b)(1)(C) <https://www.law.cornell.edu/uscode/text/26/68#b_1_C>`__: the applicable amount for an unmarried individual."""
+
+    SEPARATE_RETURN_APPLICABLE_AMOUNT = "s68_b_1_D"
+    """`§ 68(b)(1)(D) <https://www.law.cornell.edu/uscode/text/26/68#b_1_D>`__: the applicable amount for a married individual filing separately."""
+
+    SUSPENDED_LIMITATION = "s68_f"
+    """`§ 68(f) <https://www.law.cornell.edu/uscode/text/26/68#f>`__: the years the limitation does not apply to."""
+
+    TAXABLE_INCOME = "s63"
+    """`§ 63 <https://www.law.cornell.edu/uscode/text/26/63>`__: taxable income."""
+
+    TAXABLE_INCOME_IN_GENERAL = "s63_a"
+    """`§ 63(a) <https://www.law.cornell.edu/uscode/text/26/63#a>`__: taxable income of an individual who itemizes."""
+
+    TAXABLE_INCOME_WITHOUT_ITEMIZING = "s63_b"
+    """`§ 63(b) <https://www.law.cornell.edu/uscode/text/26/63#b>`__: taxable income of an individual who does not itemize."""
+
+    STANDARD_DEDUCTION = "s63_c"
+    """`§ 63(c) <https://www.law.cornell.edu/uscode/text/26/63#c>`__: the standard deduction."""
+
+    STANDARD_DEDUCTION_UNDER_GENERAL_RULE = "s63_c_1"
+    """`§ 63(c)(1) <https://www.law.cornell.edu/uscode/text/26/63#c_1>`__: the standard deduction."""
+
+    LIMITED_BASIC_STANDARD_DEDUCTION = "s63_c_1_A"
+    """`§ 63(c)(1)(A) <https://www.law.cornell.edu/uscode/text/26/63#c_1_A>`__: the basic standard deduction, limited for dependents."""
+
+    ADDITIONAL_STANDARD_DEDUCTION = "s63_c_1_B"
+    """`§ 63(c)(1)(B) <https://www.law.cornell.edu/uscode/text/26/63#c_1_B>`__: the additional standard deduction."""
+
+    BASIC_STANDARD_DEDUCTION = "s63_c_2"
+    """`§ 63(c)(2) <https://www.law.cornell.edu/uscode/text/26/63#c_2>`__: the basic standard deduction."""
+
+    DOUBLED_BASIC_AMOUNT = "s63_c_2_A"
+    """`§ 63(c)(2)(A) <https://www.law.cornell.edu/uscode/text/26/63#c_2_A>`__: 200 percent of the basic amount."""
+
+    JOINT_RETURN_DOUBLING = "s63_c_2_A_i"
+    """`§ 63(c)(2)(A)(i) <https://www.law.cornell.edu/uscode/text/26/63#c_2_A_i>`__: a joint return."""
+
+    SURVIVING_SPOUSE_DOUBLING = "s63_c_2_A_ii"
+    """`§ 63(c)(2)(A)(ii) <https://www.law.cornell.edu/uscode/text/26/63#c_2_A_ii>`__: a surviving spouse."""
+
+    HEAD_OF_HOUSEHOLD_BASIC_AMOUNT = "s63_c_2_B"
+    """`§ 63(c)(2)(B) <https://www.law.cornell.edu/uscode/text/26/63#c_2_B>`__: the basic standard deduction of a head of household."""
+
+    BASIC_AMOUNT_IN_OTHER_CASES = "s63_c_2_C"
+    """`§ 63(c)(2)(C) <https://www.law.cornell.edu/uscode/text/26/63#c_2_C>`__: the basic standard deduction in any other case."""
+
+    ADDITIONAL_AMOUNTS_FOR_AGED_OR_BLIND = "s63_c_3"
+    """`§ 63(c)(3) <https://www.law.cornell.edu/uscode/text/26/63#c_3>`__: the additional standard deduction for the aged and blind."""
+
+    DEPENDENT_BASIC_AMOUNT_LIMIT = "s63_c_5"
+    """`§ 63(c)(5) <https://www.law.cornell.edu/uscode/text/26/63#c_5>`__: the limit on the basic standard deduction of a dependent."""
+
+    INELIGIBLE_FOR_STANDARD_DEDUCTION = "s63_c_6"
+    """`§ 63(c)(6) <https://www.law.cornell.edu/uscode/text/26/63#c_6>`__: individuals not eligible for the standard deduction."""
+
+    SPOUSE_ITEMIZING = "s63_c_6_A"
+    """`§ 63(c)(6)(A) <https://www.law.cornell.edu/uscode/text/26/63#c_6_A>`__: a married individual filing separately where either spouse itemizes."""
+
+    NONRESIDENT_ALIEN_INDIVIDUAL = "s63_c_6_B"
+    """`§ 63(c)(6)(B) <https://www.law.cornell.edu/uscode/text/26/63#c_6_B>`__: a nonresident alien individual."""
+
+    TRUST_OR_PARTNERSHIP = "s63_c_6_D"
+    """`§ 63(c)(6)(D) <https://www.law.cornell.edu/uscode/text/26/63#c_6_D>`__: an estate, trust, common trust fund or partnership."""
+
+    TEMPORARY_BASIC_AMOUNT_FOR_HEAD_OF_HOUSEHOLD = "s63_c_7_i"
+    """`§ 63(c)(7) <https://www.law.cornell.edu/uscode/text/26/63#c_7>`__: the amount for a head of household for 2018 through 2025."""
+
+    TEMPORARY_BASIC_AMOUNT_IN_OTHER_CASES = "s63_c_7_ii"
+    """`§ 63(c)(7) <https://www.law.cornell.edu/uscode/text/26/63#c_7>`__: the amount in other cases for 2018 through 2025."""
+
+    ITEMIZED_DEDUCTIONS = "s63_d"
+    """`§ 63(d) <https://www.law.cornell.edu/uscode/text/26/63#d>`__: itemized deductions."""
+
+    EXEMPTION_DEDUCTIONS = "s63_d_2"
+    """`§ 63(d)(2) <https://www.law.cornell.edu/uscode/text/26/63#d_2>`__: the deduction for personal exemptions."""
+
+    AGED_OR_BLIND_AMOUNTS = "s63_f"
+    """`§ 63(f) <https://www.law.cornell.edu/uscode/text/26/63#f>`__: the additional amounts for the aged or blind."""
+
+    AGED_COUNT = "s63_f_1"
+    """`§ 63(f)(1) <https://www.law.cornell.edu/uscode/text/26/63#f_1>`__: the additional amounts for the aged."""
+
+    AGED_TAXPAYER = "s63_f_1_A"
+    """`§ 63(f)(1)(A) <https://www.law.cornell.edu/uscode/text/26/63#f_1_A>`__: a taxpayer aged 65."""
+
+    AGED_SPOUSE = "s63_f_1_B"
+    """`§ 63(f)(1)(B) <https://www.law.cornell.edu/uscode/text/26/63#f_1_B>`__: a spouse aged 65."""
+
+    BLIND_COUNT = "s63_f_2"
+    """`§ 63(f)(2) <https://www.law.cornell.edu/uscode/text/26/63#f_2>`__: the additional amounts for the blind."""
+
+    BLIND_TAXPAYER = "s63_f_2_A"
+    """`§ 63(f)(2)(A) <https://www.law.cornell.edu/uscode/text/26/63#f_2_A>`__: a blind taxpayer."""
+
+    BLIND_SPOUSE = "s63_f_2_B"
+    """`§ 63(f)(2)(B) <https://www.law.cornell.edu/uscode/text/26/63#f_2_B>`__: a blind spouse."""
+
+    HIGHER_ADDITIONAL_AMOUNT = "s63_f_3"
+    """`§ 63(f)(3) <https://www.law.cornell.edu/uscode/text/26/63#f_3>`__: the higher amount for unmarried individuals."""
+
 
 # %% bindings
 
@@ -381,6 +512,11 @@ class SaraConclusion(Symbol, ABC):
         """:return: *day* as SARA's program writes it, ``YYYY-MM-DD``; None for a day it leaves open."""
         return None if day is None else day.isoformat()
 
+    @staticmethod
+    def name_of(party: Party | None) -> str | None:
+        """:return: The name of *party*; None for a party the conclusion leaves open."""
+        return None if party is None else party.name
+
     def unify(self, goal: CompoundTerm, bindings: Bindings) -> Bindings | None:
         """:return: *bindings*, extended so that the conclusion agrees with every argument of *goal*; None if it cannot."""
         arguments = self.prolog_arguments()
@@ -419,6 +555,14 @@ class Provision(Generic[ConclusionType], SubClassSafeGeneric, ABC):
     @abstractmethod
     def query(self) -> Query:
         """:return: A query inferring the provision's conclusions about the case."""
+
+    @staticmethod
+    @symbolic_function
+    def share_in_whole_dollars(amount: float, percentage: float) -> int:
+        """:return: *percentage* percent of *amount*, rounded to whole dollars, halves away from zero as Prolog's ``round``."""
+        return int(
+            Decimal(str(amount * percentage / 100)).quantize(Decimal(1), ROUND_HALF_UP)
+        )
 
     @classmethod
     def from_goal(cls, goal: CompoundTerm, world: World) -> Provision:

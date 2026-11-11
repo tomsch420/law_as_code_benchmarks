@@ -13,6 +13,7 @@ from enum import StrEnum
 
 import law_as_code_benchmarks.sara.employment_tax  # noqa: F401, registers the provisions
 import law_as_code_benchmarks.sara.family_status  # noqa: F401, registers the provisions
+import law_as_code_benchmarks.sara.taxable_income  # noqa: F401, registers the provisions
 from law_as_code_benchmarks.sara.case import SaraCase, SaraSplit
 from law_as_code_benchmarks.sara.case_reader import WorldReader
 from law_as_code_benchmarks.sara.goal import Goal

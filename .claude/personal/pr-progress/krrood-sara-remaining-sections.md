@@ -1,14 +1,14 @@
 ## PR #5 krrood-sara-remaining-sections
 
 ### Plan
-- Employment tax: rest of § 3306 (employer (a), wages (b), employment (c) + exclusions) and § 3301; 8 test cases
-- Stated conclusions (s3306_a, s3306_b, s3306_c, total_wages_employer) read into the domain model and taken as given (standing rule)
-- Mirror SARA's quirks: day_to_stamp's +1 day before %W weeks, shared week count across two years, round half away from zero
-- Tests first: domain reading, each provision on its 8 cases, scoring
+- Employment tax: rest of § 3306 (employer (a), wages (b), employment (c)) and § 3301; 8 test cases
+- Stated conclusions held alongside inferred ones (standing rule)
+- Follow the reference answers where SARA's program errs (calendar weeks; (c)(2) on cash remuneration)
 
 ### Done
-- Plan split in 4 items (posted on #2); branch, draft PR #5
+- Plan split in 4 items (posted on #2); draft PR #5; bug PR #6 for answer_case.pl dropping library module headers
+- employment_tax.py + conclusions, reader for payments/plans/life events/stated facts; 8/8 test cases, 22/22 train cases; 69 tests pass; pushed 0d30062
 
 ### Next
-- Domain: payments, plans, stated conclusions; reader
-- Provisions s3306_a_*, s3306_b_*, s3306_c, s3301
+- Confirm all 376 cases read and evaluate; update PR description
+- Left for later items: dependents/spouses in (b)(2), (b)(10), (c)(10)(A)(ii) (income-tax item); (a)(2)(B), (b)(7), day-only exclusions not modelled

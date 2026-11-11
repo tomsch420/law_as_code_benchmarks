@@ -58,12 +58,12 @@ items:
   track: krrood-benchmarks
   depends_on: []
   status: not started
-  notes: 'Model the rest of section 3306 (wages, employers of domestic service and
-    agricultural labor: s3306_a_1_B, s3306_a_3, s3306_b_2_C) and the employment tax of section
-    3301 on krrood-sara''s loading and scoring, scored on their 8 test-split cases.
+  notes: 'Model the rest of section 3306 (employer, wages and employment, its exclusions
+    included) and the employment tax of section 3301, scored on their 8 test-split cases
+    (s3306_a_1_B, s3306_a_3, s3306_b_2_C, s3301). The references of 3306(b)(2), (b)(10) and
+    (c)(10)(A)(ii) to dependents (152) and spouses (7703) are connected by krrood-sara-income-tax.
 
     '
-
 - id: krrood-sara-family-status
   title: Model SARA's marital, dependent and filing status, sections 7703, 152, 151 and 2, in krrood
   branch: krrood-sara-family-status
@@ -97,7 +97,8 @@ items:
   - krrood-sara-taxable-income
   status: not started
   notes: 'Model the tax rates of section 1 and the tax a person owes (income tax plus
-    employment tax), and score the share of all 120 test-split cases answered as SARA''s
+    employment tax), connect section 3306''s references to dependents (152) and spouses
+    (7703), and score the share of all 120 test-split cases answered as SARA''s
     Prolog program answers them, entailment and amounts scored apart.
 
     '

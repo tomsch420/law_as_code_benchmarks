@@ -69,9 +69,11 @@ items:
   title: Model SARA's taxable income, sections 63 and 68, in krrood
   branch: krrood-sara-taxable-income
   track: krrood-benchmarks
+  pull_request_number: 8
+  session: local Claude Code session f386fcc5-179d-4148-8ad3-a7db9ad9905c
   depends_on:
   - krrood-sara-family-status
-  status: not started
+  status: in progress
   notes: 'Model taxable income and the standard deduction (63) and the limit on itemized deductions
     (68), scored on their 24 test-split cases.
 

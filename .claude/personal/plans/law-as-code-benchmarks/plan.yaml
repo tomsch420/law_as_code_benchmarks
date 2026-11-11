@@ -44,7 +44,7 @@ items:
   branch: krrood-law-as-code-report
   track: krrood-benchmarks
   depends_on:
-  - krrood-sara-remaining-sections
+  - krrood-sara-income-tax
   - krrood-catala-family-benefits
   - krrood-openfisca-family-benefits
   status: not started
@@ -53,13 +53,51 @@ items:
 
     '
 - id: krrood-sara-remaining-sections
-  title: Model SARA's remaining sections in krrood and score all 120 test cases
+  title: Model SARA's employment tax, the rest of section 3306 and section 3301, in krrood
   branch: krrood-sara-remaining-sections
   track: krrood-benchmarks
   depends_on: []
   status: not started
-  notes: 'Model the rest of SARA''s nine Internal Revenue Code sections on krrood-sara''s
-    loading and scoring, and score the share of the 120 test-split cases answered as SARA''s
+  notes: 'Model the rest of section 3306 (wages, employers of domestic service and
+    agricultural labor: s3306_a_1_B, s3306_a_3, s3306_b_2_C) and the employment tax of section
+    3301 on krrood-sara''s loading and scoring, scored on their 8 test-split cases.
+
+    '
+
+- id: krrood-sara-family-status
+  title: Model SARA's marital, dependent and filing status, sections 7703, 152, 151 and 2, in krrood
+  branch: krrood-sara-family-status
+  track: krrood-benchmarks
+  depends_on: []
+  status: not started
+  notes: 'Model marital status (7703), dependents (152), personal exemptions (151) and
+    surviving spouse and head of household (2), scored on their 36 test-split cases.
+
+    '
+
+- id: krrood-sara-taxable-income
+  title: Model SARA's taxable income, sections 63 and 68, in krrood
+  branch: krrood-sara-taxable-income
+  track: krrood-benchmarks
+  depends_on:
+  - krrood-sara-family-status
+  status: not started
+  notes: 'Model taxable income and the standard deduction (63) and the limit on itemized
+    deductions (68), scored on their 24 test-split cases.
+
+    '
+
+- id: krrood-sara-income-tax
+  title: Model SARA's income tax, section 1, and score all 120 test cases
+  branch: krrood-sara-income-tax
+  track: krrood-benchmarks
+  depends_on:
+  - krrood-sara-remaining-sections
+  - krrood-sara-family-status
+  - krrood-sara-taxable-income
+  status: not started
+  notes: 'Model the tax rates of section 1 and the tax a person owes (income tax plus
+    employment tax), and score the share of all 120 test-split cases answered as SARA''s
     Prolog program answers them, entailment and amounts scored apart.
 
     '

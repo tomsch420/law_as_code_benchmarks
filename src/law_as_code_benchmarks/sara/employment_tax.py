@@ -688,7 +688,11 @@ class TotalWagesOfEmployer(Provision[TotalWages]):
                     first_day=annual_wages.year.opening_day,
                     last_day=annual_wages.year.closing_day,
                 )
-            ).grouped_by(annual_wages.employer, annual_wages.year)
+            ).grouped_by(
+                annual_wages.employer,
+                annual_wages.year.opening_day,
+                annual_wages.year.closing_day,
+            )
         )
 
     def annual_wages(self) -> list[AnnualWagesOfEmployee]:

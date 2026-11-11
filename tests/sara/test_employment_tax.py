@@ -27,6 +27,7 @@ from law_as_code_benchmarks.sara.employment_tax import (
     DaysOfEmploymentEmployerTest,
     EmploymentDefinition,
     ExciseTaxOnEmployer,
+    TotalWagesOfEmployer,
     WagesDefinition,
 )
 from law_as_code_benchmarks.sara.employment_tax_conclusions import (
@@ -225,6 +226,21 @@ def test_the_excise_tax_rounds_half_a_dollar_up() -> None:
         ),
     ]
     assert [tax.amount for tax in ExciseTaxOnEmployer(world=world).conclusions] == [1]
+
+
+def test_total_wages_run_over_the_calendar_year_they_are_paid_in() -> None:
+    """
+    The total wages an employer paid in a year run from January 1 to December 31 of it,
+    each a day.
+    """
+    world = world_of_one_service()
+    world.payments = [payment_for_work(world, 1_000)]
+    world.calendar_years = [CalendarYear(number=2017)]
+    [total_wages] = TotalWagesOfEmployer(world=world).conclusions
+    assert (total_wages.first_day, total_wages.last_day) == (
+        datetime.date(2017, 1, 1),
+        datetime.date(2017, 12, 31),
+    )
 
 
 def test_a_stated_conclusion_holds_alongside_inferred_ones() -> None:

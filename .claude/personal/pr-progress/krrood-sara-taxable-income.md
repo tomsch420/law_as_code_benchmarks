@@ -1,12 +1,12 @@
-## PR krrood-sara-taxable-income (stacked on #7)
+## PR #8 krrood-sara-taxable-income (stacked on #7)
 
 ### Plan
-- Conclusion cache per case (World), then § 151 totals, § 68 (a), (a)(1), (a)(2), (f), (b)(1)(A)-(D), § 63 (a)-(d), (f)
-- Reader: deduction_, blindness_, business_trust_; stated s63, s63_c_1, s63_d, s151, s2_b; open parties in stated facts
-- 22 test cases (item notes say 24), 34 train cases as a check
+- §§ 63, 68 and § 151's totals in taxable_income.py; conclusion cache per case
+- Next item stacked on this branch: krrood-sara-income-tax
 
 ### Done
-- Bootstrap, draft PR, item recorded in progress
+- 22/22 test cases, 34/34 train cases; test split 80/80 modelled entailment correct; 147 tests pass; pushed 8ecff78; PR description updated
+- Test example changed to s3306_a_2_B, as agreed
 
 ### Next
-- Cache, then § 151 totals, § 68, § 63, tests first
+- krrood-sara-income-tax: § 1 and the 20 tax cases, stacked on this branch

@@ -526,9 +526,7 @@ class GrossIncomeOfParty(Provision[GrossIncome]):
     ) -> list[GrossIncome]:
         """:return: The gross income of each party making a joint return, theirs and their spouse's of *individual*."""
         income = variable(IndividualGrossIncome, domain=individual)
-        filing = variable(
-            JointFiling, domain=JointFilingTest(world=self.world).conclusions
-        )
+        filing = variable(JointFiling, domain=self.joint_filings())
         return an(
             entity(
                 inference(GrossIncome)(
@@ -541,8 +539,15 @@ class GrossIncomeOfParty(Provision[GrossIncome]):
                 or_(income.person == filing.individual, income.person == filing.spouse),
                 income.year.number == filing.year,
             )
-            .grouped_by(filing)
+            .grouped_by(filing.individual, filing.spouse, filing.year)
         ).tolist()
+
+    def joint_filings(self) -> list[JointFiling]:
+        """:return: The joint filings, one for each individual, spouse and year, however many returns state it."""
+        filings = {}
+        for filing in JointFilingTest(world=self.world).conclusions:
+            filings.setdefault((filing.individual, filing.spouse, filing.year), filing)
+        return list(filings.values())
 
 
 # %% marital status

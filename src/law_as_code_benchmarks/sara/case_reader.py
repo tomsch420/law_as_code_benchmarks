@@ -15,22 +15,38 @@ from enum import StrEnum
 
 from law_as_code_benchmarks.sara.domain import (
     AmericanEmployer,
+    CalendarYear,
     Country,
+    Death,
+    Disability,
     ForeignGovernment,
     Hospital,
     HospitalStay,
     InternationalOrganization,
+    Kinship,
     LaborKind,
+    Marriage,
     Migration,
     Party,
+    Payment,
     Place,
+    EmployeeBenefitPlan,
+    EmployeeBenefit,
     Service,
     StateGovernment,
+    Termination,
     UnitedStatesGovernment,
     World,
 )
+from law_as_code_benchmarks.sara.employment_tax_conclusions import (
+    Employer,
+    Employment,
+    TotalWages,
+    Wages,
+)
 from law_as_code_benchmarks.sara.exceptions import ConflictingFacts, MissingFact
 from law_as_code_benchmarks.sara.prolog_term import CompoundTerm, PrologText, Term
+from law_as_code_benchmarks.sara.provision import SaraConclusion, SaraPredicate
 
 # %% SARA's vocabulary
 
@@ -58,6 +74,36 @@ class EventType(StrEnum):
 
     AMERICAN_EMPLOYER = "american_employer_"
     """That its agent is an American employer."""
+
+    PAYMENT = "payment_"
+    """A payment by its agent to its patient."""
+
+    PLAN = "plan_"
+    """That the event's name is that of a plan."""
+
+    TERMINATION = "termination_"
+    """Its agent ending its patient, a service."""
+
+    DEATH = "death_"
+    """The death of its agent."""
+
+    DISABILITY = "disability_"
+    """Its agent becoming disabled."""
+
+    MARRIAGE = "marriage_"
+    """A marriage between its agents."""
+
+    SON = "son_"
+    """That its agent is a son of its patient."""
+
+    DAUGHTER = "daughter_"
+    """That its agent is a daughter of its patient."""
+
+    FATHER = "father_"
+    """That its agent is the father of its patient."""
+
+    MOTHER = "mother_"
+    """That its agent is the mother of its patient."""
 
 
 class Relation(StrEnum):
@@ -90,6 +136,18 @@ class Relation(StrEnum):
     COUNTRY = "country_"
     """The country a place lies in; its first argument is the place, not an event."""
 
+    AMOUNT = "amount_"
+    """How much a payment is."""
+
+    MEANS = "means_"
+    """What a payment is paid in, or the plan it is paid from."""
+
+    BENEFICIARY = "beneficiary_"
+    """Whom a plan benefits."""
+
+    REASON = "reason_"
+    """Why an event happens."""
+
 
 class SaraName(StrEnum):
     """The names SARA gives the things the domain model knows by kind rather than by name."""
@@ -106,6 +164,22 @@ class SaraName(StrEnum):
     DOMESTIC_SERVICE = "domestic service"
     """Domestic service, as the purpose or type of a service."""
 
+    PROVISION_IN_CASE_OF_SICKNESS = "make provisions for employees in case of sickness"
+    """The purpose of a plan for employees in case of sickness."""
+
+    PROVISION_IN_CASE_OF_ACCIDENT_DISABILITY = (
+        "make provisions for employees in case of accident disability"
+    )
+    """The purpose of a plan for employees in case of accident disability."""
+
+    PROVISION_IN_CASE_OF_DEATH = "make provisions for employees in case of death"
+    """The purpose of a plan for employees in case of death."""
+
+    PROVISION_FOR_EMPLOYEES_OR_DEPENDENTS = (
+        "make provisions for employees or dependents"
+    )
+    """The purpose of a plan for employees or their dependents generally."""
+
 
 class GovernmentAffix(StrEnum):
     """How SARA's names of governments begin or end."""
@@ -115,6 +189,22 @@ class GovernmentAffix(StrEnum):
 
     GOVERNMENT = " government"
     """The ending of the name of a government."""
+
+
+class StatedPredicate(StrEnum):
+    """The predicates whose conclusions the domain model reads where a case states them as facts."""
+
+    EMPLOYMENT = SaraPredicate.EMPLOYMENT
+    """`§ 3306(c) <https://www.law.cornell.edu/uscode/text/26/3306#c>`__: employment."""
+
+    WAGES = SaraPredicate.WAGES
+    """`§ 3306(b) <https://www.law.cornell.edu/uscode/text/26/3306#b>`__: wages."""
+
+    EMPLOYER = SaraPredicate.EMPLOYER
+    """`§ 3306(a) <https://www.law.cornell.edu/uscode/text/26/3306#a>`__: an employer for a year."""
+
+    TOTAL_WAGES = SaraPredicate.TOTAL_WAGES
+    """The total wages of an employer in a period."""
 
 
 # %% the facts of a case, indexed
@@ -134,14 +224,22 @@ class FactIndex:
     )
     """The values each relation relates an event to, by relation and event."""
 
+    stated: dict[SaraPredicate, list[CompoundTerm]] = field(
+        default_factory=lambda: defaultdict(list)
+    )
+    """The conclusions of provisions the case states as facts, by predicate."""
+
     @classmethod
     def from_facts(cls, facts: list[CompoundTerm]) -> FactIndex:
         """:return: The index of *facts*; facts of functors the domain model does not read are left out."""
         index = cls()
         event_types = set(EventType)
         relations = set(Relation)
+        stated_predicates = set(StatedPredicate)
         for fact in facts:
-            if fact.functor in event_types and len(fact.arguments) == 1:
+            if fact.functor in stated_predicates:
+                index.stated[SaraPredicate(fact.functor)].append(fact)
+            elif fact.functor in event_types and len(fact.arguments) == 1:
                 index.typed[EventType(fact.functor)].append(fact.arguments[0])
             elif fact.functor in relations and len(fact.arguments) == 2:
                 index.related[(Relation(fact.functor), fact.arguments[0])].append(
@@ -193,6 +291,15 @@ class WorldReader:
     places: dict[str, Place] = field(default_factory=dict)
     """The places read so far, by name."""
 
+    services: dict[str, Service] = field(default_factory=dict)
+    """The services read so far, by name, those only a stated conclusion names included."""
+
+    benefit_plans: dict[str, EmployeeBenefitPlan] = field(default_factory=dict)
+    """The plans, by name."""
+
+    payments: dict[str, Payment] = field(default_factory=dict)
+    """The payments read so far, by name, those only a stated conclusion names included."""
+
     @classmethod
     def from_facts(cls, facts: list[CompoundTerm]) -> WorldReader:
         """:return: A reader of the case stating *facts*."""
@@ -206,11 +313,21 @@ class WorldReader:
             ).citizenships.append(
                 self.country(self.facts.required_value(Relation.PATIENT, citizenship))
             )
+        services = [
+            self.service(event) for event in self.facts.typed[EventType.SERVICE]
+        ]
+        benefit_plans = [
+            self.benefit_plan(event) for event in self.facts.typed[EventType.PLAN]
+        ]
+        payments = [
+            payment
+            for event in self.facts.typed[EventType.PAYMENT]
+            for payment in self.payments_of(event)
+        ]
+        stated_conclusions = self.stated_conclusions()
         return World(
             united_states=self.country(SaraName.UNITED_STATES.value),
-            services=[
-                self.service(event) for event in self.facts.typed[EventType.SERVICE]
-            ],
+            services=services,
             hospitals=[
                 Hospital(role_taker=party)
                 for party in self.agents_of(EventType.HOSPITAL)
@@ -230,7 +347,38 @@ class WorldReader:
             migrations=[
                 self.migration(event) for event in self.facts.typed[EventType.MIGRATION]
             ],
+            payments=payments,
+            benefit_plans=benefit_plans,
+            terminations=[
+                self.termination(event)
+                for event in self.facts.typed[EventType.TERMINATION]
+            ],
+            deaths=[self.death(event) for event in self.facts.typed[EventType.DEATH]],
+            marriages=[
+                self.marriage(event) for event in self.facts.typed[EventType.MARRIAGE]
+            ],
+            kinships=self.kinships(),
+            stated_conclusions=stated_conclusions,
+            calendar_years=self.calendar_years(
+                [payment.day for payment in payments]
+                + [
+                    day
+                    for service in self.services.values()
+                    for day in (service.start, service.end)
+                ]
+                + [
+                    conclusion.workday
+                    for conclusion in stated_conclusions
+                    if isinstance(conclusion, Employment)
+                ]
+            ),
         )
+
+    @staticmethod
+    def calendar_years(days: list[datetime.date | None]) -> list[CalendarYear]:
+        """:return: The calendar years *days* fall in, and each year after one of them."""
+        numbers = {day.year + offset for day in days if day for offset in (0, 1)}
+        return [CalendarYear(number=number) for number in sorted(numbers)]
 
     def agents_of(self, event_type: EventType) -> list[Party]:
         """:return: The parties acting in the events of *event_type*."""
@@ -242,12 +390,23 @@ class WorldReader:
 
     def service(self, event: Term) -> Service:
         """:return: The service *event* is."""
+        return self.service_by(
+            event,
+            employee=self.facts.required_value(Relation.AGENT, event),
+            employer=self.facts.required_value(Relation.PATIENT, event),
+        )
+
+    def service_by(self, event: Term, employee: Term, employer: Term) -> Service:
+        """:return: The service *event* is, by *employee* for *employer*, read once from its facts."""
+        name = self.text(event)
+        if name in self.services:
+            return self.services[name]
         start = self.facts.value(Relation.START, event)
         end = self.facts.value(Relation.END, event)
-        return Service(
-            name=self.text(event),
-            employee=self.party(self.facts.required_value(Relation.AGENT, event)),
-            employer=self.party(self.facts.required_value(Relation.PATIENT, event)),
+        self.services[name] = Service(
+            name=name,
+            employee=self.party(employee),
+            employer=self.party(employer),
             start=None if start is None else self.date(start),
             end=None if end is None else self.date(end),
             places=[
@@ -258,6 +417,209 @@ class WorldReader:
                 self.facts.values(Relation.PURPOSE, event)
                 + self.facts.values(Relation.TYPE, event)
             ),
+            purposes=self.labor_kinds(self.facts.values(Relation.PURPOSE, event)),
+        )
+        return self.services[name]
+
+    def benefit_plan(self, event: Term) -> EmployeeBenefitPlan:
+        """:return: The plan *event* names."""
+        sponsor = self.facts.value(Relation.AGENT, event)
+        benefits = {
+            SaraName.PROVISION_IN_CASE_OF_SICKNESS: EmployeeBenefit.SICKNESS,
+            SaraName.PROVISION_IN_CASE_OF_ACCIDENT_DISABILITY: EmployeeBenefit.ACCIDENT_DISABILITY,
+            SaraName.PROVISION_IN_CASE_OF_DEATH: EmployeeBenefit.DEATH,
+            SaraName.PROVISION_FOR_EMPLOYEES_OR_DEPENDENTS: EmployeeBenefit.EMPLOYEES_OR_DEPENDENTS,
+        }
+        plan = EmployeeBenefitPlan(
+            name=self.text(event),
+            sponsor=None if sponsor is None else self.party(sponsor),
+            benefits={
+                benefits[self.text(purpose)]
+                for purpose in self.facts.values(Relation.PURPOSE, event)
+                if self.text(purpose) in benefits
+            },
+            beneficiaries=[
+                self.party(beneficiary)
+                for beneficiary in self.facts.values(Relation.BENEFICIARY, event)
+            ],
+        )
+        self.benefit_plans[plan.name] = plan
+        return plan
+
+    def payments_of(self, event: Term) -> list[Payment]:
+        """:return: The payments *event* is, one for each day and amount the case states of it; plans are read beforehand."""
+        payer = self.facts.value(Relation.AGENT, event)
+        recipient = self.facts.value(Relation.PATIENT, event)
+        days = self.facts.values(Relation.START, event) or [None]
+        means = self.facts.value(Relation.MEANS, event)
+        services = [
+            self.services[self.text(purpose)]
+            for purpose in self.facts.values(Relation.PURPOSE, event)
+            if self.text(purpose) in self.services
+        ]
+        payments = [
+            Payment(
+                name=self.text(event),
+                payer=None if payer is None else self.party(payer),
+                recipient=None
+                if recipient is None
+                else self.benefit_plans.get(self.text(recipient))
+                or self.party(recipient),
+                amount=amount,
+                day=None if day is None else self.date(day),
+                service=next(iter(services), None),
+                medium=None
+                if means is None or self.text(means) in self.benefit_plans
+                else self.text(means),
+                benefit_plan_drawn_on=None
+                if means is None
+                else self.benefit_plans.get(self.text(means)),
+            )
+            for day in days
+            for amount in self.facts.values(Relation.AMOUNT, event)
+        ]
+        if payments:
+            self.payments[self.text(event)] = payments[0]
+        return payments
+
+    def termination(self, event: Term) -> Termination:
+        """:return: The termination *event* is; services are read beforehand."""
+        day = self.facts.value(Relation.START, event)
+        reasons = [
+            self.text(reason) for reason in self.facts.values(Relation.REASON, event)
+        ]
+        return Termination(
+            employer=self.party(self.facts.required_value(Relation.AGENT, event)),
+            service=self.service(self.facts.required_value(Relation.PATIENT, event)),
+            day=None if day is None else self.date(day),
+            reasons=[
+                self.death(reason)
+                for reason in self.facts.typed[EventType.DEATH]
+                if self.text(reason) in reasons
+            ]
+            + [
+                Disability(
+                    person=self.party(self.facts.required_value(Relation.AGENT, reason))
+                )
+                for reason in self.facts.typed[EventType.DISABILITY]
+                if self.text(reason) in reasons
+            ],
+        )
+
+    def death(self, event: Term) -> Death:
+        """:return: The death *event* is."""
+        day = self.facts.value(Relation.START, event)
+        return Death(
+            person=self.party(self.facts.required_value(Relation.AGENT, event)),
+            day=None if day is None else self.date(day),
+        )
+
+    def marriage(self, event: Term) -> Marriage:
+        """:return: The marriage *event* is."""
+        end = self.facts.value(Relation.END, event)
+        return Marriage(
+            spouses=[
+                self.party(spouse)
+                for spouse in self.facts.values(Relation.AGENT, event)
+            ],
+            end=None if end is None else self.date(end),
+        )
+
+    def kinships(self) -> list[Kinship]:
+        """:return: The relations of parents to children, whether stated from the child's side or the parent's."""
+        kinships = []
+        for event_type, child_relation in (
+            (EventType.SON, Relation.AGENT),
+            (EventType.DAUGHTER, Relation.AGENT),
+            (EventType.FATHER, Relation.PATIENT),
+            (EventType.MOTHER, Relation.PATIENT),
+        ):
+            parent_relation = (
+                Relation.PATIENT if child_relation == Relation.AGENT else Relation.AGENT
+            )
+            for event in self.facts.typed[event_type]:
+                for parent in self.facts.values(parent_relation, event):
+                    for child in self.facts.values(child_relation, event):
+                        if self.party(parent) is not self.party(child):
+                            kinships.append(
+                                Kinship(
+                                    parent=self.party(parent), child=self.party(child)
+                                )
+                            )
+        return kinships
+
+    def stated_conclusions(self) -> list[SaraConclusion]:
+        """:return: The conclusions the case states as facts, each read into the domain model."""
+        return (
+            [
+                Employment(
+                    service=self.service_by(service, employee, employer),
+                    workday=None if workday is None else self.date(workday),
+                    year=year,
+                )
+                for service, employer, employee, workday, year in self.stated_arguments(
+                    SaraPredicate.EMPLOYMENT
+                )
+            ]
+            + [
+                self.stated_wages(*arguments)
+                for arguments in self.stated_arguments(SaraPredicate.WAGES)
+            ]
+            + [
+                Employer(party=self.party(employer), year=year)
+                for employer, year in self.stated_arguments(SaraPredicate.EMPLOYER)
+            ]
+            + [
+                TotalWages(
+                    employer=self.party(employer),
+                    amount=amount,
+                    first_day=self.date(first_day),
+                    last_day=self.date(last_day),
+                )
+                for employer, amount, _, _, first_day, last_day in self.stated_arguments(
+                    SaraPredicate.TOTAL_WAGES
+                )
+            ]
+        )
+
+    def stated_arguments(self, predicate: SaraPredicate) -> list[tuple[Term, ...]]:
+        """:return: The arguments of each fact the case states of *predicate*."""
+        return [fact.arguments for fact in self.facts.stated[predicate]]
+
+    def stated_wages(
+        self,
+        amount: float,
+        payment: Term,
+        service: Term,
+        payer: Term,
+        payee: Term,
+        employer: Term,
+        employee: Term,
+        medium: Term,
+    ) -> Wages:
+        """
+        :return: The wages a stated fact of `§ 3306(b) <https://www.law.cornell.edu/uscode/text/26/3306#b>`__ states, in the program's order of
+            arguments; a payment the case states no event of is taken to be made on the
+            first day of its service.
+        """
+        stated_service = self.service_by(service, employee, employer)
+        if payment is not None and self.text(payment) in self.payments:
+            stated_payment = self.payments[self.text(payment)]
+        else:
+            stated_payment = Payment(
+                name=None if payment is None else self.text(payment),
+                payer=self.party(payer),
+                recipient=self.party(payee),
+                amount=amount,
+                day=stated_service.start,
+                service=stated_service,
+                medium=None if medium is None else self.text(medium),
+            )
+        return Wages(
+            amount=amount,
+            payment=stated_payment,
+            service=stated_service,
+            payee=self.party(payee),
         )
 
     def hospital_stay(self, event: Term) -> HospitalStay:

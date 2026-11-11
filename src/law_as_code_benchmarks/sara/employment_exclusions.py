@@ -1,5 +1,5 @@
 """
-The services § 3306(c) of the Internal Revenue Code excludes from *employment*, or
+The services `§ 3306(c) <https://www.law.cornell.edu/uscode/text/26/3306#c>`__ of the Internal Revenue Code excludes from *employment*, or
 brings into it, as rules over the domain model.
 """
 
@@ -35,7 +35,7 @@ from law_as_code_benchmarks.sara.domain import (
     StateGovernment,
     UnitedStatesGovernment,
 )
-from law_as_code_benchmarks.sara.prolog_term import Term
+from law_as_code_benchmarks.sara.prolog_term import CompoundTerm, Term
 from law_as_code_benchmarks.sara.provision import (
     Provision,
     SaraConclusion,
@@ -76,24 +76,39 @@ class ExcludedServiceForEmployer(ExcludedService):
 @dataclass(eq=False)
 class ServiceOfHospitalPatient(ExcludedService):
     """
-    A service for a hospital by one of its patients, on a day of the patient's stay.
+    A service for a hospital by one of its patients, during the patient's stay.
     """
 
-    workday: Term
+    stay: HospitalStay
     """
-    The day it is performed on, as the goal states it.
+    The patient's stay in the hospital.
     """
 
     def prolog_arguments(self) -> tuple[Term, ...]:
         """
-        Extends :meth:`ExcludedService.prolog_arguments` by the hospital, the patient
-        and the day.
+        Extends :meth:`ExcludedService.prolog_arguments` by the hospital and the
+        patient, the day left open.
         """
         return (
             self.service.name,
             self.service.employer.name,
             self.service.employee.name,
-            self.workday,
+            None,
+        )
+
+    def answers(self, goal: CompoundTerm) -> bool:
+        """
+        Extends :meth:`SaraConclusion.answers`: the goal must name a day of the stay.
+
+        A goal naming no day has no answer, as in SARA.
+        """
+        *arguments, workday = goal.arguments
+        return (
+            workday is not None
+            and self.stay.includes(WorldReader.date(workday))
+            and super().answers(
+                CompoundTerm(functor=goal.functor, arguments=(*arguments, None))
+            )
         )
 
 
@@ -144,7 +159,7 @@ class LaborNotByAdmittedAlien(SaraConclusion):
 @dataclass
 class UnitedStatesGovernmentExclusion(Provision[ExcludedService]):
     """
-    § 3306(c)(6): service performed in the employ of the United States Government.
+    `§ 3306(c)(6) <https://www.law.cornell.edu/uscode/text/26/3306#c_6>`__: service performed in the employ of the United States Government.
     """
 
     @classproperty
@@ -158,7 +173,7 @@ class UnitedStatesGovernmentExclusion(Provision[ExcludedService]):
         service = variable(Service, domain=self.world.services)
         return an(
             entity(inference(ExcludedService)(service=service)).where(
-                HasType(service.employer, UnitedStatesGovernment)
+                HasType(variable=service.employer, types_=UnitedStatesGovernment)
             )
         )
 
@@ -166,7 +181,7 @@ class UnitedStatesGovernmentExclusion(Provision[ExcludedService]):
 @dataclass
 class StateExclusion(Provision[ExcludedServiceForEmployer]):
     """
-    § 3306(c)(7): service performed in the employ of a State, or a political subdivision
+    `§ 3306(c)(7) <https://www.law.cornell.edu/uscode/text/26/3306#c_7>`__: service performed in the employ of a State, or a political subdivision
     of one.
     """
 
@@ -181,7 +196,7 @@ class StateExclusion(Provision[ExcludedServiceForEmployer]):
         service = variable(Service, domain=self.world.services)
         return an(
             entity(inference(ExcludedServiceForEmployer)(service=service)).where(
-                HasType(service.employer, StateGovernment)
+                HasType(variable=service.employer, types_=StateGovernment)
             )
         )
 
@@ -189,7 +204,7 @@ class StateExclusion(Provision[ExcludedServiceForEmployer]):
 @dataclass
 class ForeignGovernmentExclusion(Provision[ExcludedServiceForEmployer]):
     """
-    § 3306(c)(11): service performed in the employ of a foreign government.
+    `§ 3306(c)(11) <https://www.law.cornell.edu/uscode/text/26/3306#c_11>`__: service performed in the employ of a foreign government.
     """
 
     @classproperty
@@ -203,7 +218,7 @@ class ForeignGovernmentExclusion(Provision[ExcludedServiceForEmployer]):
         service = variable(Service, domain=self.world.services)
         return an(
             entity(inference(ExcludedServiceForEmployer)(service=service)).where(
-                HasType(service.employer, ForeignGovernment)
+                HasType(variable=service.employer, types_=ForeignGovernment)
             )
         )
 
@@ -211,7 +226,7 @@ class ForeignGovernmentExclusion(Provision[ExcludedServiceForEmployer]):
 @dataclass
 class InternationalOrganizationExclusion(Provision[ExcludedServiceForEmployer]):
     """
-    § 3306(c)(16): service performed in the employ of an international organization.
+    `§ 3306(c)(16) <https://www.law.cornell.edu/uscode/text/26/3306#c_16>`__: service performed in the employ of an international organization.
     """
 
     @classproperty
@@ -239,10 +254,8 @@ class InternationalOrganizationExclusion(Provision[ExcludedServiceForEmployer]):
 @dataclass
 class HospitalPatientExclusion(Provision[ServiceOfHospitalPatient]):
     """
-    § 3306(c)(10)(B): service performed in the employ of a hospital by a patient of that
-    hospital, on the day the goal names.
-
-    A goal naming no day has no solution, as in SARA.
+    `§ 3306(c)(10)(B) <https://www.law.cornell.edu/uscode/text/26/3306#c_10_B>`__: service performed in the employ of a hospital by a patient of that
+    hospital.
     """
 
     @classproperty
@@ -253,20 +266,16 @@ class HospitalPatientExclusion(Provision[ServiceOfHospitalPatient]):
         return SaraPredicate.SERVICE_BY_HOSPITAL_PATIENT
 
     def query(self) -> Query:
-        workday = self.goal.arguments[3]
-        service = variable(
-            Service, domain=[] if workday is None else self.world.services
-        )
+        service = variable(Service, domain=self.world.services)
         hospital = variable(Hospital, domain=self.world.hospitals)
         stay = variable(HospitalStay, domain=self.world.hospital_stays)
         return an(
             entity(
-                inference(ServiceOfHospitalPatient)(service=service, workday=workday)
+                inference(ServiceOfHospitalPatient)(service=service, stay=stay)
             ).where(
                 service.employer == hospital.role_taker,
                 stay.hospital == service.employer,
                 stay.patient == service.employee,
-                stay.includes(WorldReader.date(workday)),
             )
         )
 
@@ -274,7 +283,7 @@ class HospitalPatientExclusion(Provision[ServiceOfHospitalPatient]):
 @dataclass
 class AdmittedAlienCondition(Provision[LaborNotByAdmittedAlien]):
     """
-    § 3306(c)(1)(B): the condition that labor is not agricultural labor performed by an
+    `§ 3306(c)(1)(B) <https://www.law.cornell.edu/uscode/text/26/3306#c_1_B>`__: the condition that labor is not agricultural labor performed by an
     alien admitted to the United States to perform agricultural labor.
     """
 
@@ -317,7 +326,7 @@ class AdmittedAlienCondition(Provision[LaborNotByAdmittedAlien]):
 @dataclass
 class ServiceAbroadInclusion(Provision[ServiceAbroad]):
     """
-    § 3306(c)(B): service performed outside the United States by a citizen of the United
+    `§ 3306(c)(B) <https://www.law.cornell.edu/uscode/text/26/3306#c>`__: service performed outside the United States by a citizen of the United
     States as an employee of an American employer.
 
     A place in no stated country is not taken to be abroad.

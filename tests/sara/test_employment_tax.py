@@ -12,9 +12,12 @@ import pytest
 from law_as_code_benchmarks.sara.domain import (
     CalendarYear,
     Country,
+    DomesticServicePlace,
     Kinship,
+    LaborKind,
     Party,
     Payment,
+    Place,
     Plan,
     PlanPurpose,
     Service,
@@ -103,6 +106,25 @@ def test_service_for_ones_child_is_not_employment() -> None:
     world = world_of_one_service()
     service = world.services[0]
     world.kinships = [Kinship(parent=service.employee, child=service.employer)]
+    assert EmploymentDefinition(world=world).conclusions == []
+
+
+def test_domestic_service_in_a_private_home_with_little_cash_paid_is_not_employment() -> (
+    None
+):
+    """
+    § 3306(c)(2): domestic service in a private home in the United States, for which
+    less than $1,000 in cash was paid, is no employment.
+    """
+    world = world_of_one_service()
+    service = world.services[0]
+    service.kinds = {LaborKind.DOMESTIC_SERVICE}
+    service.places = [
+        Place(name=DomesticServicePlace.PRIVATE_HOME),
+        Place(name="usa", country=world.united_states),
+    ]
+    world.payments = [payment_for_work(world, 300)]
+    world.calendar_years = [CalendarYear(number=2017)]
     assert EmploymentDefinition(world=world).conclusions == []
 
 

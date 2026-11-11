@@ -54,7 +54,7 @@ from law_as_code_benchmarks.sara.employment_tax_conclusions import (
     EmployerByAgriculturalWages,
     EmployerByDaysOfEmployment,
     EmployerByWages,
-    EmployerOfAgriculturalLabor,
+    EmployerByCashPaid,
     EmployerOfDomesticService,
     Employment,
     ExciseTax,
@@ -68,7 +68,7 @@ from law_as_code_benchmarks.sara.provision import Provision, SaraPredicate
 
 
 @dataclass
-class EmployerOfAgriculturalLaborTest(Provision[EmployerOfAgriculturalLabor]):
+class EmployerByCashPaidTest(Provision[EmployerByCashPaid]):
     """
     § 3306(c)(1)(A)(i): a person who, in the calendar year or the year before, paid
     $20,000 or more in cash to individuals employed in agricultural labor.
@@ -93,7 +93,7 @@ class EmployerOfAgriculturalLaborTest(Provision[EmployerOfAgriculturalLabor]):
         year = variable(CalendarYear, domain=self.world.calendar_years)
         return an(
             entity(
-                inference(EmployerOfAgriculturalLabor)(
+                inference(EmployerByCashPaid)(
                     party=payment.payer, year=year.number, payments=payment
                 )
             )
@@ -128,36 +128,23 @@ class EmploymentDefinition(Provision[Employment]):
         return SaraPredicate.EMPLOYMENT
 
     def query(self) -> Query:
-        located_services = self.located_services()
-        service = variable(Service, domain=located_services)
-        return an(
-            entity(inference(Employment)(service=service, year=service.end.year)).where(
-                not_(in_(service, self.services_excluded_by_employer())),
-                not_(self.is_excluded_agricultural_labor(service)),
-                not_(in_(service, self.excluded_domestic_services(located_services))),
-                not_(self.is_service_for_child(service)),
-            )
-        )
-
-    def located_services(self) -> list[Service]:
-        """
-        :return: The services ending in a stated year that are performed within the
-            United States, as one at no stated place is taken to be, or abroad under §
-            3306(c)(B).
-        """
         service = variable(
             Service,
             domain=[service for service in self.world.services if service.end],
         )
         return an(
-            entity(service).where(
+            entity(inference(Employment)(service=service, year=service.end.year)).where(
                 or_(
                     service.places == [],
                     in_(self.world.united_states, service.countries()),
                     in_(service, self.services_abroad()),
-                )
+                ),
+                not_(in_(service, self.services_excluded_by_employer())),
+                not_(self.is_excluded_agricultural_labor(service)),
+                not_(self.is_excluded_domestic_service(service)),
+                not_(self.is_service_for_child(service)),
             )
-        ).tolist()
+        )
 
     def services_abroad(self) -> list[Service]:
         """:return: The services § 3306(c)(B) brings into employment though performed abroad."""
@@ -185,8 +172,8 @@ class EmploymentDefinition(Provision[Employment]):
         (1)(A)(i) in its year and not by an alien admitted to perform it.
         """
         employer = variable(
-            EmployerOfAgriculturalLabor,
-            domain=EmployerOfAgriculturalLaborTest(world=self.world).conclusions,
+            EmployerByCashPaid,
+            domain=EmployerByCashPaidTest(world=self.world).conclusions,
         )
         return and_(
             in_(LaborKind.AGRICULTURAL_LABOR, service.kinds),
@@ -212,43 +199,55 @@ class EmploymentDefinition(Provision[Employment]):
             ),
         )
 
-    def excluded_domestic_services(
-        self, located_services: list[Service]
-    ) -> list[Service]:
+    def is_excluded_domestic_service(self, service: Service) -> Query:
         """
         § 3306(c)(2): domestic service in a private home, local college club or local
-        chapter of a college fraternity or sorority, unless performed for an employer
-        under § 3306(a)(3) in its year.
-
-        :param located_services: The services to look among.
-        :return: The services excluded.
+        chapter of a college fraternity or sorority, unless its employer paid cash
+        remuneration of $1,000 or more for domestic service in its year or the year
+        before.
         """
-        service = variable(Service, domain=located_services)
-        domestic_services = an(
-            entity(service).where(
-                in_(LaborKind.DOMESTIC_SERVICE, service.kinds),
-                service.is_performed_at_any(list(DomesticServicePlace)),
-            )
-        ).tolist()
-        if not domestic_services:
-            return []
-        domestic_service = variable(Service, domain=domestic_services)
         employer = variable(
-            EmployerOfDomesticService,
-            domain=DomesticServiceEmployerTest(world=self.world).conclusions,
+            EmployerByCashPaid,
+            domain=self.employers_by_cash_paid_for_domestic_service(),
         )
+        return and_(
+            in_(LaborKind.DOMESTIC_SERVICE, service.kinds),
+            service.is_performed_at_any(list(DomesticServicePlace)),
+            not_(
+                exists(
+                    employer,
+                    and_(
+                        employer.party == service.employer,
+                        employer.year == service.end.year,
+                    ),
+                )
+            ),
+        )
+
+    def employers_by_cash_paid_for_domestic_service(
+        self, threshold: float = 1_000
+    ) -> list[EmployerByCashPaid]:
+        """
+        :param threshold: The least cash remuneration § 3306(c)(2) asks for.
+        :return: The persons who paid at least *threshold* in cash for domestic service
+            in a calendar year or the year before, for each such year.
+        """
+        payment = variable(Payment, domain=self.world.payments)
+        year = variable(CalendarYear, domain=self.world.calendar_years)
         return an(
-            entity(domestic_service).where(
-                not_(
-                    exists(
-                        employer,
-                        and_(
-                            employer.party == domestic_service.employer,
-                            employer.year == domestic_service.end.year,
-                        ),
-                    )
+            entity(
+                inference(EmployerByCashPaid)(
+                    party=payment.payer, year=year.number, payments=payment
                 )
             )
+            .where(
+                in_(LaborKind.DOMESTIC_SERVICE, payment.service.kinds),
+                payment.is_in_cash(),
+                payment.day >= year.opening_day_of_preceding_year,
+                payment.day <= year.closing_day,
+            )
+            .grouped_by(payment.payer, year.number)
+            .having(total(payment.amount, default=0) >= threshold)
         ).tolist()
 
     def is_service_for_child(self, service: Service) -> Query:

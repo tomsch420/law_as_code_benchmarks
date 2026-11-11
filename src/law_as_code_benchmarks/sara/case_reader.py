@@ -511,14 +511,12 @@ class WorldReader:
 
     def marriage(self, event: Term) -> Marriage:
         """:return: The marriage *event* is."""
-        start = self.facts.value(Relation.START, event)
         end = self.facts.value(Relation.END, event)
         return Marriage(
             spouses=[
                 self.party(spouse)
                 for spouse in self.facts.values(Relation.AGENT, event)
             ],
-            start=None if start is None else self.date(start),
             end=None if end is None else self.date(end),
         )
 

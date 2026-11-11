@@ -349,9 +349,6 @@ class Marriage(Symbol):
     spouses: list[Party]
     """The spouses."""
 
-    start: datetime.date | None = None
-    """The first day of it; None where the case does not say."""
-
     end: datetime.date | None = None
     """The last day of it; None where it goes on."""
 

@@ -202,10 +202,10 @@ class EmployerOfDomesticService(EmployerByWagesPaid):
 
 
 @dataclass(eq=False)
-class EmployerOfAgriculturalLabor(Employer):
+class EmployerByCashPaid(Employer):
     """
-    A person who paid $20,000 or more in cash to individuals employed in agricultural
-    labor.
+    A person who paid enough cash for a kind of labor in the calendar year or the year
+    before.
     """
 
     payments: list[Payment] = field(default_factory=list)

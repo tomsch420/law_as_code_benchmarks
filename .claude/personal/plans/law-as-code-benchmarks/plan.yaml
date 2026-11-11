@@ -82,10 +82,12 @@ items:
   title: Model SARA's income tax, section 1, and score all 120 test cases
   branch: krrood-sara-income-tax
   track: krrood-benchmarks
+  pull_request_number: 9
+  session: local Claude Code session f386fcc5-179d-4148-8ad3-a7db9ad9905c
   depends_on:
   - krrood-sara-family-status
   - krrood-sara-taxable-income
-  status: not started
+  status: in progress
   notes: 'Model the tax rates of section 1 and the tax a person owes (income tax plus employment
     tax), connect section 3306''s references to dependents (152) and spouses (7703), and score
     the share of all 120 test-split cases answered as SARA''s Prolog program answers them,

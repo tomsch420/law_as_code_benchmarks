@@ -3,7 +3,7 @@ A provision of SARA's statutes as a krrood rule, and the conclusions it draws.
 
 A provision is asked as SARA's Prolog program is, by a goal naming its predicate. It
 holds where one of its conclusions, inferred or stated by the case, agrees with every
-argument the goal binds.
+argument the goal binds, and binds the goal's named variables as it agrees.
 """
 
 from __future__ import annotations
@@ -11,7 +11,7 @@ from __future__ import annotations
 import inspect
 from functools import cached_property
 from abc import ABC, abstractmethod
-from dataclasses import dataclass
+from dataclasses import dataclass, field
 from enum import StrEnum
 
 from krrood.entity_query_language.query.query import Query
@@ -22,7 +22,12 @@ from krrood.utils import recursive_subclasses
 from typing_extensions import Generic, TypeVar
 
 from law_as_code_benchmarks.sara.domain import World
-from law_as_code_benchmarks.sara.prolog_term import CompoundTerm, PrologText, Term
+from law_as_code_benchmarks.sara.prolog_term import (
+    CompoundTerm,
+    PrologText,
+    PrologVariable,
+    Term,
+)
 
 # %% predicates
 
@@ -85,6 +90,44 @@ class SaraPredicate(StrEnum):
     """`§ 3301 <https://www.law.cornell.edu/uscode/text/26/3301>`__: the excise tax on an employer, 6 percent of the wages paid in a calendar year."""
 
 
+# %% bindings
+
+
+@dataclass(frozen=True)
+class Bindings:
+    """The values a goal's named variables are bound to so far."""
+
+    values: dict[str, Term] = field(default_factory=dict)
+    """The value of each bound variable, by name; None for one bound to an argument a conclusion leaves open."""
+
+    def unify(self, asked: Term, concluded: Term) -> Bindings | None:
+        """
+        :param asked: An argument of a goal.
+        :param concluded: The argument a conclusion gives in its place.
+        :return: The bindings extended so that *asked* agrees with *concluded*; None if it cannot.
+        """
+        if asked is None:
+            return self
+        if isinstance(asked, PrologVariable):
+            if asked.name not in self.values:
+                return Bindings(values={**self.values, asked.name: concluded})
+            asked = self.values[asked.name]
+        if self.text_of(asked) != self.text_of(concluded):
+            return None
+        return self
+
+    def resolve(self, term: Term) -> Term:
+        """:return: The value *term* is bound to, if it is a bound variable; else *term* itself."""
+        if isinstance(term, PrologVariable):
+            return self.values.get(term.name)
+        return term
+
+    @staticmethod
+    def text_of(term: Term) -> Term:
+        """:return: The characters of a Prolog string, as the domain model names things; any other term itself."""
+        return term.value if isinstance(term, PrologText) else term
+
+
 # %% conclusions
 
 
@@ -96,18 +139,16 @@ class SaraConclusion(Symbol, ABC):
     def prolog_arguments(self) -> tuple[Term, ...]:
         """:return: The conclusion as the arguments of the provision's predicate, in the program's order."""
 
-    def answers(self, goal: CompoundTerm) -> bool:
-        """:return: Whether the conclusion agrees with every argument *goal* binds."""
+    def unify(self, goal: CompoundTerm, bindings: Bindings) -> Bindings | None:
+        """:return: *bindings*, extended so that the conclusion agrees with every argument of *goal*; None if it cannot."""
         arguments = self.prolog_arguments()
-        return len(goal.arguments) == len(arguments) and all(
-            asked is None or self.text_of(asked) == self.text_of(concluded)
-            for asked, concluded in zip(goal.arguments, arguments)
-        )
-
-    @staticmethod
-    def text_of(term: Term) -> Term:
-        """:return: The characters of a Prolog string, as the domain model names things; any other term itself."""
-        return term.value if isinstance(term, PrologText) else term
+        if len(goal.arguments) != len(arguments):
+            return None
+        for asked, concluded in zip(goal.arguments, arguments):
+            bindings = bindings.unify(asked, concluded)
+            if bindings is None:
+                return None
+        return bindings
 
 
 ConclusionType = TypeVar("ConclusionType", bound=SaraConclusion)
@@ -128,9 +169,23 @@ class Provision(Generic[ConclusionType], SubClassSafeGeneric, ABC):
     def predicate(cls) -> SaraPredicate:
         """The predicate of SARA's program the provision is asked by."""
 
+    @classproperty
+    def year_position(cls) -> int | None:
+        """The position of the calendar year among the predicate's arguments; None where it takes none."""
+        return None
+
     @abstractmethod
     def query(self) -> Query:
         """:return: A query inferring the provision's conclusions about the case."""
+
+    @classmethod
+    def from_goal(cls, goal: CompoundTerm, world: World) -> Provision:
+        """:return: The provision about *world*, the calendar year *goal* names among the years it considers."""
+        if cls.year_position is not None:
+            year = goal.arguments[cls.year_position]
+            if isinstance(year, int):
+                world.include_calendar_year(year)
+        return cls(world=world)
 
     @cached_property
     def conclusions(self) -> list[ConclusionType]:
@@ -142,9 +197,17 @@ class Provision(Generic[ConclusionType], SubClassSafeGeneric, ABC):
             if isinstance(conclusion, conclusion_type)
         ]
 
+    def solutions(self, goal: CompoundTerm, bindings: Bindings) -> list[Bindings]:
+        """:return: The bindings each conclusion agreeing with *goal*, which names the predicate, extends *bindings* to."""
+        return [
+            solution
+            for conclusion in self.conclusions
+            if (solution := conclusion.unify(goal, bindings)) is not None
+        ]
+
     def holds(self, goal: CompoundTerm) -> bool:
-        """:return: Whether one of the provision's conclusions answers *goal*, which names its predicate."""
-        return any(conclusion.answers(goal) for conclusion in self.conclusions)
+        """:return: Whether one of the provision's conclusions agrees with *goal*, which names its predicate."""
+        return bool(self.solutions(goal, Bindings()))
 
     @classmethod
     def modelling(cls, predicate_name: str) -> type[Provision] | None:

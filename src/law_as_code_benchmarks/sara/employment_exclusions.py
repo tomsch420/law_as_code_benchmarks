@@ -37,6 +37,7 @@ from law_as_code_benchmarks.sara.domain import (
 )
 from law_as_code_benchmarks.sara.prolog_term import CompoundTerm, Term
 from law_as_code_benchmarks.sara.provision import (
+    Bindings,
     Provision,
     SaraConclusion,
     SaraPredicate,
@@ -96,19 +97,18 @@ class ServiceOfHospitalPatient(ExcludedService):
             None,
         )
 
-    def answers(self, goal: CompoundTerm) -> bool:
+    def unify(self, goal: CompoundTerm, bindings: Bindings) -> Bindings | None:
         """
-        Extends :meth:`SaraConclusion.answers`: the goal must name a day of the stay.
+        Extends :meth:`SaraConclusion.unify`: the goal must name a day of the stay.
 
         A goal naming no day has no answer, as in SARA.
         """
         *arguments, workday = goal.arguments
-        return (
-            workday is not None
-            and self.stay.includes(WorldReader.date(workday))
-            and super().answers(
-                CompoundTerm(functor=goal.functor, arguments=(*arguments, None))
-            )
+        workday = bindings.resolve(workday)
+        if workday is None or not self.stay.includes(WorldReader.date(workday)):
+            return None
+        return super().unify(
+            CompoundTerm(functor=goal.functor, arguments=(*arguments, None)), bindings
         )
 
 

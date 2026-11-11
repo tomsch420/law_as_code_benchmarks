@@ -14,7 +14,7 @@ from enum import StrEnum
 import law_as_code_benchmarks.sara.employment_tax  # noqa: F401, registers the provisions
 from law_as_code_benchmarks.sara.case import SaraCase, SaraSplit
 from law_as_code_benchmarks.sara.case_reader import WorldReader
-from law_as_code_benchmarks.sara.provision import Provision
+from law_as_code_benchmarks.sara.goal import Goal
 from law_as_code_benchmarks.sara.reference import ReferenceRun
 
 # %% one case
@@ -126,17 +126,16 @@ class CaseResult:
         stopwatch = Stopwatch()
         case = SaraCase.load(identifier, swipl)
         expanding_facts = stopwatch.lap()
-        goal = case.test.goal
-        provision = Provision.modelling(goal.functor)
-        kind = AnswerKind.from_predicate(goal.functor)
-        if provision is None:
+        goal = Goal.from_term(case.test.goal)
+        kind = AnswerKind.from_predicate(case.test.goal.functor)
+        if goal is None:
             return cls(
                 identifier=identifier, kind=kind, is_modelled=False, is_correct=False
             )
         stopwatch.lap()
         world = WorldReader.from_facts(case.facts).read()
         reading_domain_model = stopwatch.lap()
-        holds = provision(world=world).holds(goal)
+        holds = goal.holds(world)
         answering_in_krrood = stopwatch.lap()
         reference = ReferenceRun.from_identifier(identifier, swipl)
         return cls(

@@ -1,9 +1,9 @@
 """
 The Prolog terms SARA's cases are written in, as :file:`ground_case.pl` prints them.
 
-An atom is a :class:`str`, a number an :class:`int` or :class:`float`, an unbound variable
-``None`` and a list a :class:`list`; a Prolog string and a compound term have classes of
-their own, since Prolog tells a string from the atom of the same spelling.
+An atom is a :class:`str`, a number an :class:`int` or :class:`float`, an anonymous
+variable ``None`` and a list a :class:`list`; strings, named variables and compound
+terms have classes of their own, as Prolog tells a string from the atom spelled the same.
 """
 
 from __future__ import annotations
@@ -26,6 +26,14 @@ class PrologText:
 
 
 @dataclass(frozen=True)
+class PrologVariable:
+    """A named variable of a test goal, which every conjunct naming it shares."""
+
+    name: str
+    """The variable's name, such as ``Start_relationship``."""
+
+
+@dataclass(frozen=True)
 class CompoundTerm:
     """A compound term, such as a fact or a goal."""
 
@@ -36,8 +44,10 @@ class CompoundTerm:
     """The arguments, in order."""
 
 
-Term: TypeAlias = str | int | float | PrologText | CompoundTerm | list | None
-"""A Prolog term; ``None`` stands for an unbound variable and a list holds terms."""
+Term: TypeAlias = (
+    str | int | float | PrologText | PrologVariable | CompoundTerm | list | None
+)
+"""A Prolog term; ``None`` stands for an anonymous variable and a list holds terms."""
 
 
 # %% reading the JSON form
@@ -55,6 +65,9 @@ class TermKey(StrEnum):
     ARGUMENTS = "arguments"
     """The arguments of a compound term."""
 
+    VARIABLE = "variable"
+    """The name of a named variable."""
+
 
 @dataclass
 class TermReader:
@@ -71,6 +84,8 @@ class TermReader:
             return value
         if TermKey.TEXT in value:
             return PrologText(value[TermKey.TEXT])
+        if TermKey.VARIABLE in value:
+            return PrologVariable(value[TermKey.VARIABLE])
         return CompoundTerm(
             functor=value[TermKey.FUNCTOR],
             arguments=tuple(

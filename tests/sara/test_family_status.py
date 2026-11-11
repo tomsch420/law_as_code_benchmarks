@@ -11,6 +11,7 @@ from law_as_code_benchmarks.sara.domain import (
     CalendarYear,
     Country,
     Household,
+    Income,
     JointReturn,
     Kinship,
     Marriage,
@@ -22,6 +23,7 @@ from law_as_code_benchmarks.sara.domain import (
 )
 from law_as_code_benchmarks.sara.family_status import (
     AgeRequirementTest,
+    GrossIncomeOfParty,
     HouseholdMaintenanceTest,
     JointFilingTest,
     SpousesWithoutNonresidentAlienTest,
@@ -169,3 +171,32 @@ def test_a_calendar_year_added_to_a_case_makes_provisions_draw_conclusions_anew(
         conclusion.year
         for conclusion in SpousesWithoutNonresidentAlienTest(world=world).conclusions
     } == {2018, 2019}
+
+
+# %% gross income
+
+
+def test_spouses_filing_jointly_each_have_both_incomes_as_gross_income() -> None:
+    """
+    The gross income of a spouse making a joint return is their income and their
+    spouse's together.
+    """
+    world = world_of_alice_and_bob()
+    alice, bob = world.parties
+    day = datetime.date(2018, 6, 1)
+    world.incomes = [
+        Income(earning_party=alice, amount=100, day=day),
+        Income(earning_party=bob, amount=50, day=day),
+    ]
+    world.joint_returns = [
+        JointReturn(
+            name="return_2018",
+            filers=[alice, bob],
+            period=Period(
+                start=datetime.date(2018, 1, 1), end=datetime.date(2018, 12, 31)
+            ),
+        )
+    ]
+    assert GrossIncomeOfParty(world=world).holds(
+        goal(GrossIncomeOfParty.predicate, "alice", 2018, 150)
+    )

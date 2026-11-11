@@ -30,8 +30,8 @@ from law_as_code_benchmarks.sara.domain import (
     Party,
     Payment,
     Place,
-    Plan,
-    PlanPurpose,
+    EmployeeBenefitPlan,
+    EmployeeBenefit,
     Service,
     StateGovernment,
     Termination,
@@ -194,16 +194,16 @@ class GovernmentAffix(StrEnum):
 class StatedPredicate(StrEnum):
     """The predicates whose conclusions the domain model reads where a case states them as facts."""
 
-    EMPLOYMENT = SaraPredicate.EMPLOYMENT.value
-    """§ 3306(c): employment."""
+    EMPLOYMENT = SaraPredicate.EMPLOYMENT
+    """`§ 3306(c) <https://www.law.cornell.edu/uscode/text/26/3306#c>`__: employment."""
 
-    WAGES = SaraPredicate.WAGES.value
-    """§ 3306(b): wages."""
+    WAGES = SaraPredicate.WAGES
+    """`§ 3306(b) <https://www.law.cornell.edu/uscode/text/26/3306#b>`__: wages."""
 
-    EMPLOYER = SaraPredicate.EMPLOYER.value
-    """§ 3306(a): an employer for a year."""
+    EMPLOYER = SaraPredicate.EMPLOYER
+    """`§ 3306(a) <https://www.law.cornell.edu/uscode/text/26/3306#a>`__: an employer for a year."""
 
-    TOTAL_WAGES = SaraPredicate.TOTAL_WAGES.value
+    TOTAL_WAGES = SaraPredicate.TOTAL_WAGES
     """The total wages of an employer in a period."""
 
 
@@ -294,7 +294,7 @@ class WorldReader:
     services: dict[str, Service] = field(default_factory=dict)
     """The services read so far, by name, those only a stated conclusion names included."""
 
-    plans: dict[str, Plan] = field(default_factory=dict)
+    benefit_plans: dict[str, EmployeeBenefitPlan] = field(default_factory=dict)
     """The plans, by name."""
 
     payments: dict[str, Payment] = field(default_factory=dict)
@@ -316,7 +316,9 @@ class WorldReader:
         services = [
             self.service(event) for event in self.facts.typed[EventType.SERVICE]
         ]
-        plans = [self.plan(event) for event in self.facts.typed[EventType.PLAN]]
+        benefit_plans = [
+            self.benefit_plan(event) for event in self.facts.typed[EventType.PLAN]
+        ]
         payments = [
             payment
             for event in self.facts.typed[EventType.PAYMENT]
@@ -346,7 +348,7 @@ class WorldReader:
                 self.migration(event) for event in self.facts.typed[EventType.MIGRATION]
             ],
             payments=payments,
-            plans=plans,
+            benefit_plans=benefit_plans,
             terminations=[
                 self.termination(event)
                 for event in self.facts.typed[EventType.TERMINATION]
@@ -419,29 +421,29 @@ class WorldReader:
         )
         return self.services[name]
 
-    def plan(self, event: Term) -> Plan:
+    def benefit_plan(self, event: Term) -> EmployeeBenefitPlan:
         """:return: The plan *event* names."""
         sponsor = self.facts.value(Relation.AGENT, event)
-        purposes = {
-            SaraName.PROVISION_IN_CASE_OF_SICKNESS.value: PlanPurpose.SICKNESS,
-            SaraName.PROVISION_IN_CASE_OF_ACCIDENT_DISABILITY.value: PlanPurpose.ACCIDENT_DISABILITY,
-            SaraName.PROVISION_IN_CASE_OF_DEATH.value: PlanPurpose.DEATH,
-            SaraName.PROVISION_FOR_EMPLOYEES_OR_DEPENDENTS.value: PlanPurpose.EMPLOYEES_OR_DEPENDENTS,
+        benefits = {
+            SaraName.PROVISION_IN_CASE_OF_SICKNESS: EmployeeBenefit.SICKNESS,
+            SaraName.PROVISION_IN_CASE_OF_ACCIDENT_DISABILITY: EmployeeBenefit.ACCIDENT_DISABILITY,
+            SaraName.PROVISION_IN_CASE_OF_DEATH: EmployeeBenefit.DEATH,
+            SaraName.PROVISION_FOR_EMPLOYEES_OR_DEPENDENTS: EmployeeBenefit.EMPLOYEES_OR_DEPENDENTS,
         }
-        plan = Plan(
+        plan = EmployeeBenefitPlan(
             name=self.text(event),
             sponsor=None if sponsor is None else self.party(sponsor),
-            purposes={
-                purposes[self.text(purpose)]
+            benefits={
+                benefits[self.text(purpose)]
                 for purpose in self.facts.values(Relation.PURPOSE, event)
-                if self.text(purpose) in purposes
+                if self.text(purpose) in benefits
             },
             beneficiaries=[
                 self.party(beneficiary)
                 for beneficiary in self.facts.values(Relation.BENEFICIARY, event)
             ],
         )
-        self.plans[plan.name] = plan
+        self.benefit_plans[plan.name] = plan
         return plan
 
     def payments_of(self, event: Term) -> list[Payment]:
@@ -461,16 +463,17 @@ class WorldReader:
                 payer=None if payer is None else self.party(payer),
                 recipient=None
                 if recipient is None
-                else self.plans.get(self.text(recipient)) or self.party(recipient),
+                else self.benefit_plans.get(self.text(recipient))
+                or self.party(recipient),
                 amount=amount,
                 day=None if day is None else self.date(day),
                 service=next(iter(services), None),
                 medium=None
-                if means is None or self.text(means) in self.plans
+                if means is None or self.text(means) in self.benefit_plans
                 else self.text(means),
-                plan_drawn_on=None
+                benefit_plan_drawn_on=None
                 if means is None
-                else self.plans.get(self.text(means)),
+                else self.benefit_plans.get(self.text(means)),
             )
             for day in days
             for amount in self.facts.values(Relation.AMOUNT, event)
@@ -595,7 +598,7 @@ class WorldReader:
         medium: Term,
     ) -> Wages:
         """
-        :return: The wages a stated fact of § 3306(b) states, in the program's order of
+        :return: The wages a stated fact of `§ 3306(b) <https://www.law.cornell.edu/uscode/text/26/3306#b>`__ states, in the program's order of
             arguments; a payment the case states no event of is taken to be made on the
             first day of its service.
         """

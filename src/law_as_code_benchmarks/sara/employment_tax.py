@@ -1,9 +1,9 @@
 """
-The employment tax as rules over the domain model: who is an *employer* (§ 3306(a)),
-what is *wages* (§ 3306(b)) and *employment* (§ 3306(c)), and the excise tax of § 3301.
+The employment tax as rules over the domain model: who is an *employer* (`§ 3306(a) <https://www.law.cornell.edu/uscode/text/26/3306#a>`__),
+what is *wages* (`§ 3306(b) <https://www.law.cornell.edu/uscode/text/26/3306#b>`__) and *employment* (`§ 3306(c) <https://www.law.cornell.edu/uscode/text/26/3306#c>`__), and the excise tax of `§ 3301 <https://www.law.cornell.edu/uscode/text/26/3301>`__.
 
 Days of employment are only those a case states, as SARA's program leaves the day open
-wherever §§ 3306 and 3301 ask about employment.
+wherever §§ `3306 <https://www.law.cornell.edu/uscode/text/26/3306>`__ and `3301 <https://www.law.cornell.edu/uscode/text/26/3301>`__ ask about employment.
 """
 
 from __future__ import annotations
@@ -35,8 +35,8 @@ from law_as_code_benchmarks.sara.domain import (
     Marriage,
     Party,
     Payment,
-    Plan,
-    PlanPurpose,
+    EmployeeBenefitPlan,
+    EmployeeBenefit,
     Service,
     Termination,
 )
@@ -58,7 +58,7 @@ from law_as_code_benchmarks.sara.employment_tax_conclusions import (
     EmployerOfDomesticService,
     Employment,
     ExciseTax,
-    PlanForDeath,
+    DeathBenefitPlan,
     TotalWages,
     Wages,
 )
@@ -70,7 +70,7 @@ from law_as_code_benchmarks.sara.provision import Provision, SaraPredicate
 @dataclass
 class EmployerByCashPaidTest(Provision[EmployerByCashPaid]):
     """
-    § 3306(c)(1)(A)(i): a person who, in the calendar year or the year before, paid
+    `§ 3306(c)(1)(A)(i) <https://www.law.cornell.edu/uscode/text/26/3306#c_1_A_i>`__: a person who, in the calendar year or the year before, paid
     $20,000 or more in cash to individuals employed in agricultural labor.
     """
 
@@ -113,11 +113,11 @@ class EmployerByCashPaidTest(Provision[EmployerByCashPaid]):
 @dataclass
 class EmploymentDefinition(Provision[Employment]):
     """
-    § 3306(c): service within the United States, or abroad for an American employer,
-    that no paragraph of § 3306(c) excludes, for the calendar year it ends in.
+    `§ 3306(c) <https://www.law.cornell.edu/uscode/text/26/3306#c>`__: service within the United States, or abroad for an American
+    employer, that no paragraph excludes, for the calendar year it ends in.
 
-    The paragraphs that exclude service on a given day, (5) for a spouse or a child
-    under 21, (10), (13) and (21), never apply, as these rules give no day.
+    `(5) <https://www.law.cornell.edu/uscode/text/26/3306#c_5>`__ for a spouse or a child under 21, `(10) <https://www.law.cornell.edu/uscode/text/26/3306#c_10>`__, `(13) <https://www.law.cornell.edu/uscode/text/26/3306#c_13>`__
+    and `(21) <https://www.law.cornell.edu/uscode/text/26/3306#c_21>`__ need a day, which these rules never give, so they never apply.
     """
 
     @classproperty
@@ -147,14 +147,14 @@ class EmploymentDefinition(Provision[Employment]):
         )
 
     def services_abroad(self) -> list[Service]:
-        """:return: The services § 3306(c)(B) brings into employment though performed abroad."""
+        """:return: The services `§ 3306(c)(B) <https://www.law.cornell.edu/uscode/text/26/3306#c>`__ brings into employment though performed abroad."""
         return [
             conclusion.service
             for conclusion in ServiceAbroadInclusion(world=self.world).conclusions
         ]
 
     def services_excluded_by_employer(self) -> list[Service]:
-        """:return: The services § 3306(c)(6), (7), (11) and (16) exclude for whom they are performed for."""
+        """:return: The services `§ 3306(c)(6) <https://www.law.cornell.edu/uscode/text/26/3306#c_6>`__, `(7) <https://www.law.cornell.edu/uscode/text/26/3306#c_7>`__, `(11) <https://www.law.cornell.edu/uscode/text/26/3306#c_11>`__ and `(16) <https://www.law.cornell.edu/uscode/text/26/3306#c_16>`__ exclude for whom they are performed for."""
         return [
             conclusion.service
             for exclusion in (
@@ -168,8 +168,8 @@ class EmploymentDefinition(Provision[Employment]):
 
     def is_excluded_agricultural_labor(self, service: Service) -> Query:
         """
-        § 3306(c)(1): agricultural labor, unless performed for a person meeting
-        (1)(A)(i) in its year and not by an alien admitted to perform it.
+        `§ 3306(c)(1) <https://www.law.cornell.edu/uscode/text/26/3306#c_1>`__: agricultural labor, unless performed for a person meeting
+        `(1)(A)(i) <https://www.law.cornell.edu/uscode/text/26/3306#c_1_A_i>`__ in its year and not by an alien admitted to perform it.
         """
         employer = variable(
             EmployerByCashPaid,
@@ -201,7 +201,7 @@ class EmploymentDefinition(Provision[Employment]):
 
     def is_excluded_domestic_service(self, service: Service) -> Query:
         """
-        § 3306(c)(2): domestic service in a private home, local college club or local
+        `§ 3306(c)(2) <https://www.law.cornell.edu/uscode/text/26/3306#c_2>`__: domestic service in a private home, local college club or local
         chapter of a college fraternity or sorority, unless its employer paid cash
         remuneration of $1,000 or more for domestic service in its year or the year
         before.
@@ -228,7 +228,7 @@ class EmploymentDefinition(Provision[Employment]):
         self, threshold: float = 1_000
     ) -> list[EmployerByCashPaid]:
         """
-        :param threshold: The least cash remuneration § 3306(c)(2) asks for.
+        :param threshold: The least cash remuneration `§ 3306(c)(2) <https://www.law.cornell.edu/uscode/text/26/3306#c_2>`__ asks for.
         :return: The persons who paid at least *threshold* in cash for domestic service
             in a calendar year or the year before, for each such year.
         """
@@ -252,7 +252,7 @@ class EmploymentDefinition(Provision[Employment]):
 
     def is_service_for_child(self, service: Service) -> Query:
         """
-        § 3306(c)(5)(A): service performed by an individual in the employ of their son
+        `§ 3306(c)(5)(A) <https://www.law.cornell.edu/uscode/text/26/3306#c_5_A>`__: service performed by an individual in the employ of their son
         or daughter.
         """
         kinship = variable(Kinship, domain=self.world.kinships)
@@ -268,17 +268,17 @@ class EmploymentDefinition(Provision[Employment]):
 @dataclass
 class WagesDefinition(Provision[Wages]):
     """
-    § 3306(b): a payment for employment, up to the first $7,000 of it, that no paragraph
-    of § 3306(b) excludes.
+    `§ 3306(b) <https://www.law.cornell.edu/uscode/text/26/3306#b>`__: a payment for employment, up to the first $7,000 of it, that no paragraph
+    of `§ 3306(b) <https://www.law.cornell.edu/uscode/text/26/3306#b>`__ excludes.
 
-    Paragraphs (2) and (10) cover payments to the employee only, not to their
-    dependents; (7) is not modelled.
+    Paragraphs `(2) <https://www.law.cornell.edu/uscode/text/26/3306#b_2>`__ and `(10) <https://www.law.cornell.edu/uscode/text/26/3306#b_10>`__ cover payments to the employee only, not to
+    their dependents; `(7) <https://www.law.cornell.edu/uscode/text/26/3306#b_7>`__ is not modelled.
     """
 
     @classproperty
     def wage_base(cls) -> float:
         """
-        § 3306(b)(1): the most of a payment that is wages.
+        `§ 3306(b)(1) <https://www.law.cornell.edu/uscode/text/26/3306#b_1>`__: the most of a payment that is wages.
         """
         return 7_000
 
@@ -338,23 +338,23 @@ class WagesDefinition(Provision[Wages]):
         self, payment: Payment, payee: Party
     ) -> Query:
         """
-        § 3306(b)(2)(A) and (C): a payment by the employer into or from a plan making
+        `§ 3306(b)(2)(A) <https://www.law.cornell.edu/uscode/text/26/3306#b_2_A>`__ and `(C) <https://www.law.cornell.edu/uscode/text/26/3306#b_2_C>`__: a payment by the employer into or from a plan making
         provision for the employee in case of sickness, accident disability or death.
         """
-        plan = variable(Plan, domain=self.world.plans)
+        plan = variable(EmployeeBenefitPlan, domain=self.world.benefit_plans)
         return and_(
             payment.service.employer == payment.payer,
             payment.service.employee == payee,
             exists(
                 plan,
                 and_(
-                    in_(plan, payment.plans()),
+                    in_(plan, payment.benefit_plans()),
                     in_(payee, plan.beneficiaries),
-                    plan.makes_any_provision(
+                    plan.provides_any(
                         {
-                            PlanPurpose.SICKNESS,
-                            PlanPurpose.ACCIDENT_DISABILITY,
-                            PlanPurpose.DEATH,
+                            EmployeeBenefit.SICKNESS,
+                            EmployeeBenefit.ACCIDENT_DISABILITY,
+                            EmployeeBenefit.DEATH,
                         }
                     ),
                 ),
@@ -363,16 +363,16 @@ class WagesDefinition(Provision[Wages]):
 
     def is_payment_upon_termination(self, payment: Payment, payee: Party) -> Query:
         """
-        § 3306(b)(10): a payment by the employer to the employee from a plan for its
+        `§ 3306(b)(10) <https://www.law.cornell.edu/uscode/text/26/3306#b_10>`__: a payment by the employer to the employee from a plan for its
         employees, upon or after it ended their service for their death or disability.
         """
         termination = variable(Termination, domain=self.world.terminations)
         return and_(
             payment.service.employer == payment.payer,
             payment.service.employee == payee,
-            payment.plan_drawn_on.sponsor == payment.payer,
-            payment.plan_drawn_on.makes_any_provision(
-                {PlanPurpose.EMPLOYEES_OR_DEPENDENTS}
+            payment.benefit_plan_drawn_on.sponsor == payment.payer,
+            payment.benefit_plan_drawn_on.provides_any(
+                {EmployeeBenefit.EMPLOYEES_OR_DEPENDENTS}
             ),
             exists(
                 termination,
@@ -387,7 +387,7 @@ class WagesDefinition(Provision[Wages]):
 
     def is_agricultural_labor_paid_in_kind(self, payment: Payment) -> Query:
         """
-        § 3306(b)(11): remuneration for agricultural labor paid in a medium other than
+        `§ 3306(b)(11) <https://www.law.cornell.edu/uscode/text/26/3306#b_11>`__: remuneration for agricultural labor paid in a medium other than
         cash.
         """
         return and_(
@@ -399,7 +399,7 @@ class WagesDefinition(Provision[Wages]):
 
     def is_payment_to_survivor(self, payment: Payment, payee: Party) -> Query:
         """
-        § 3306(b)(15): a payment by the employer to the surviving spouse of the employee
+        `§ 3306(b)(15) <https://www.law.cornell.edu/uscode/text/26/3306#b_15>`__: a payment by the employer to the surviving spouse of the employee
         after the calendar year the employee died in.
         """
         death = variable(Death, domain=self.world.deaths)
@@ -425,23 +425,23 @@ class WagesDefinition(Provision[Wages]):
 
 
 @dataclass
-class PlanForDeathTest(Provision[PlanForDeath]):
+class DeathBenefitPlanTest(Provision[DeathBenefitPlan]):
     """
-    § 3306(b)(2)(C): a plan making provision for employees in case of death.
+    `§ 3306(b)(2)(C) <https://www.law.cornell.edu/uscode/text/26/3306#b_2_C>`__: a plan making provision for employees in case of death.
     """
 
     @classproperty
     def predicate(cls) -> SaraPredicate:
         """
-        The predicate of :attr:`SaraPredicate.PLAN_FOR_DEATH`.
+        The predicate of :attr:`SaraPredicate.DEATH_BENEFIT_PLAN`.
         """
-        return SaraPredicate.PLAN_FOR_DEATH
+        return SaraPredicate.DEATH_BENEFIT_PLAN
 
     def query(self) -> Query:
-        plan = variable(Plan, domain=self.world.plans)
+        plan = variable(EmployeeBenefitPlan, domain=self.world.benefit_plans)
         return an(
-            entity(inference(PlanForDeath)(plan=plan)).where(
-                in_(PlanPurpose.DEATH, plan.purposes)
+            entity(inference(DeathBenefitPlan)(benefit_plan=plan)).where(
+                in_(EmployeeBenefit.DEATH, plan.benefits)
             )
         )
 
@@ -452,7 +452,7 @@ class PlanForDeathTest(Provision[PlanForDeath]):
 @dataclass
 class WagesEmployerTest(Provision[EmployerByWages]):
     """
-    § 3306(a)(1)(A): a person who, in the calendar year or the year before, paid wages
+    `§ 3306(a)(1)(A) <https://www.law.cornell.edu/uscode/text/26/3306#a_1_A>`__: a person who, in the calendar year or the year before, paid wages
     of $1,500 or more, those for agricultural labor and domestic service aside.
     """
 
@@ -493,7 +493,7 @@ class WagesEmployerTest(Provision[EmployerByWages]):
 @dataclass
 class DaysOfEmploymentEmployerTest(Provision[EmployerByDaysOfEmployment]):
     """
-    § 3306(a)(1)(B): a person who, on each of some 10 days in the calendar year or the
+    `§ 3306(a)(1)(B) <https://www.law.cornell.edu/uscode/text/26/3306#a_1_B>`__: a person who, on each of some 10 days in the calendar year or the
     year before, each in a different calendar week, employed someone in employment other
     than agricultural labor and domestic service.
     """
@@ -550,7 +550,7 @@ class DaysOfEmploymentEmployerTest(Provision[EmployerByDaysOfEmployment]):
 @dataclass
 class AgriculturalWagesEmployerTest(Provision[EmployerByAgriculturalWages]):
     """
-    § 3306(a)(2)(A): a person who, in the calendar year or the year before, paid wages
+    `§ 3306(a)(2)(A) <https://www.law.cornell.edu/uscode/text/26/3306#a_2_A>`__: a person who, in the calendar year or the year before, paid wages
     of $20,000 or more for agricultural labor.
     """
 
@@ -590,7 +590,7 @@ class AgriculturalWagesEmployerTest(Provision[EmployerByAgriculturalWages]):
 @dataclass
 class DomesticServiceEmployerTest(Provision[EmployerOfDomesticService]):
     """
-    § 3306(a)(3): a person who, in the calendar year or the year before, paid wages in
+    `§ 3306(a)(3) <https://www.law.cornell.edu/uscode/text/26/3306#a_3>`__: a person who, in the calendar year or the year before, paid wages in
     cash of $1,000 or more for domestic service.
     """
 
@@ -631,7 +631,7 @@ class DomesticServiceEmployerTest(Provision[EmployerOfDomesticService]):
 @dataclass
 class EmployerDefinition(Provision[Employer]):
     """
-    § 3306(a): a person who is an employer for a calendar year under any of its
+    `§ 3306(a) <https://www.law.cornell.edu/uscode/text/26/3306#a>`__: a person who is an employer for a calendar year under any of its
     paragraphs.
     """
 
@@ -666,7 +666,7 @@ class EmployerDefinition(Provision[Employer]):
 class TotalWagesOfEmployer(Provision[TotalWages]):
     """
     The wages an employer paid in a calendar year, those to each employee counted up to
-    the wage base of § 3306(b)(1).
+    the wage base of `§ 3306(b)(1) <https://www.law.cornell.edu/uscode/text/26/3306#b_1>`__.
     """
 
     @classproperty
@@ -718,7 +718,7 @@ class TotalWagesOfEmployer(Provision[TotalWages]):
 @dataclass
 class ExciseTaxOnEmployer(Provision[ExciseTax]):
     """
-    § 3301: the excise tax on an employer for a calendar year, 6 percent of the total
+    `§ 3301 <https://www.law.cornell.edu/uscode/text/26/3301>`__: the excise tax on an employer for a calendar year, 6 percent of the total
     wages it paid in it.
     """
 

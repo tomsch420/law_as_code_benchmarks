@@ -143,7 +143,7 @@ class Service(Symbol):
 
 
 class DomesticServicePlace(StrEnum):
-    """The places § 3306(c)(2) treats domestic service at apart, each named as SARA names it."""
+    """The places `§ 3306(c)(2) <https://www.law.cornell.edu/uscode/text/26/3306#c_2>`__ treats domestic service at apart, each named as SARA names it."""
 
     PRIVATE_HOME = "private home"
     """A private home."""
@@ -196,8 +196,8 @@ class Migration(Symbol):
 # %% payments
 
 
-class PlanPurpose(Enum):
-    """The provisions a plan of an employer makes, among those § 3306(b) treats apart."""
+class EmployeeBenefit(Enum):
+    """The benefits an employee benefit plan provides, among those `§ 3306(b) <https://www.law.cornell.edu/uscode/text/26/3306#b>`__ treats apart."""
 
     SICKNESS = auto()
     """Provision for employees in case of sickness."""
@@ -213,8 +213,8 @@ class PlanPurpose(Enum):
 
 
 @dataclass(eq=False)
-class Plan(Symbol):
-    """A plan or fund an employer pays into, or pays from, for the benefit of others."""
+class EmployeeBenefitPlan(Symbol):
+    """A plan or fund an employer establishes for its employees or their dependents, and pays into or from."""
 
     name: str
     """The plan's name."""
@@ -222,18 +222,18 @@ class Plan(Symbol):
     sponsor: Party | None = None
     """Who established it; None where the case does not say."""
 
-    purposes: set[PlanPurpose] = field(default_factory=set)
-    """The provisions it makes, among those § 3306(b) treats apart."""
+    benefits: set[EmployeeBenefit] = field(default_factory=set)
+    """The benefits it provides, among those `§ 3306(b) <https://www.law.cornell.edu/uscode/text/26/3306#b>`__ treats apart."""
 
     beneficiaries: list[Party] = field(default_factory=list)
     """Whom it benefits."""
 
-    def makes_any_provision(self, purposes: set[PlanPurpose]) -> bool:
-        """:return: Whether it makes one of the provisions *purposes* name."""
-        return not self.purposes.isdisjoint(purposes)
+    def provides_any(self, benefits: set[EmployeeBenefit]) -> bool:
+        """:return: Whether it provides one of *benefits*."""
+        return not self.benefits.isdisjoint(benefits)
 
 
-class Medium(StrEnum):
+class PaymentMedium(StrEnum):
     """The media of payment the provisions treat apart."""
 
     CASH = "cash"
@@ -250,7 +250,7 @@ class Payment(Symbol):
     payer: Party | None
     """Who pays; None where the case does not say."""
 
-    recipient: Party | Plan | None
+    recipient: Party | EmployeeBenefitPlan | None
     """Who or what is paid; None where the case does not say."""
 
     amount: float
@@ -265,34 +265,34 @@ class Payment(Symbol):
     medium: str | None = None
     """What it is paid in, such as ``cash``; None where the case does not say."""
 
-    plan_drawn_on: Plan | None = None
+    benefit_plan_drawn_on: EmployeeBenefitPlan | None = None
     """The plan it is paid from; None where it is not paid from a plan."""
 
     def amount_up_to(self, limit: float) -> float:
         """:return: The amount, counted up to *limit*."""
         return min(limit, self.amount)
 
-    def plans(self) -> list[Plan]:
+    def benefit_plans(self) -> list[EmployeeBenefitPlan]:
         """:return: The plans it is paid into or from."""
         return [
             plan
-            for plan in (self.recipient, self.plan_drawn_on)
-            if isinstance(plan, Plan)
+            for plan in (self.recipient, self.benefit_plan_drawn_on)
+            if isinstance(plan, EmployeeBenefitPlan)
         ]
 
     def payees(self) -> list[Party]:
         """:return: Who receives the payment: its recipient, or the beneficiaries of the plan paid into."""
-        if isinstance(self.recipient, Plan):
+        if isinstance(self.recipient, EmployeeBenefitPlan):
             return self.recipient.beneficiaries
         return [] if self.recipient is None else [self.recipient]
 
     def is_in_cash(self) -> bool:
         """:return: Whether it is paid in cash, which it is taken to be where the case names no medium."""
-        return self.medium is None or self.medium == Medium.CASH
+        return self.medium is None or self.medium == PaymentMedium.CASH
 
     def is_in_other_medium_than_cash(self) -> bool:
         """:return: Whether the case names a medium it is paid in other than cash."""
-        return self.medium is not None and self.medium != Medium.CASH
+        return self.medium is not None and self.medium != PaymentMedium.CASH
 
 
 # %% events of life and work
@@ -423,7 +423,7 @@ class World:
     payments: list[Payment] = field(default_factory=list)
     """The payments made."""
 
-    plans: list[Plan] = field(default_factory=list)
+    benefit_plans: list[EmployeeBenefitPlan] = field(default_factory=list)
     """The plans of employers."""
 
     terminations: list[Termination] = field(default_factory=list)

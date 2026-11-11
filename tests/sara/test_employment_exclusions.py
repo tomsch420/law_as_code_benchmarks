@@ -1,5 +1,5 @@
 """
-Tests of the services § 3306(c) excludes from employment, on SARA's cases and on the
+Tests of the services `§ 3306(c) <https://www.law.cornell.edu/uscode/text/26/3306#c>`__ excludes from employment, on SARA's cases and on the
 program's quirks.
 """
 

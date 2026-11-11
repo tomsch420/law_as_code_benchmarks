@@ -1,5 +1,5 @@
 """
-What §§ 3306 and 3301 of the Internal Revenue Code conclude: employment, wages,
+What §§ `3306 <https://www.law.cornell.edu/uscode/text/26/3306>`__ and `3301 <https://www.law.cornell.edu/uscode/text/26/3301>`__ of the Internal Revenue Code conclude: employment, wages,
 employers and the excise tax on them.
 """
 
@@ -16,7 +16,7 @@ from law_as_code_benchmarks.sara.domain import (
     CalendarYear,
     Party,
     Payment,
-    Plan,
+    EmployeeBenefitPlan,
     Service,
 )
 from law_as_code_benchmarks.sara.prolog_term import Term
@@ -28,7 +28,7 @@ from law_as_code_benchmarks.sara.provision import SaraConclusion
 @dataclass(eq=False)
 class Employment(SaraConclusion):
     """
-    A service that is employment under § 3306(c).
+    A service that is employment under `§ 3306(c) <https://www.law.cornell.edu/uscode/text/26/3306#c>`__.
     """
 
     service: Service
@@ -66,7 +66,7 @@ class Employment(SaraConclusion):
 @dataclass(eq=False)
 class Wages(SaraConclusion):
     """
-    A payment, or the part of one, that is wages under § 3306(b).
+    A payment, or the part of one, that is wages under `§ 3306(b) <https://www.law.cornell.edu/uscode/text/26/3306#b>`__.
     """
 
     amount: float
@@ -103,18 +103,18 @@ class Wages(SaraConclusion):
 
 
 @dataclass(eq=False)
-class PlanForDeath(SaraConclusion):
+class DeathBenefitPlan(SaraConclusion):
     """
     A plan making provision for employees in case of death.
     """
 
-    plan: Plan
+    benefit_plan: EmployeeBenefitPlan
     """
     The plan.
     """
 
     def prolog_arguments(self) -> tuple[Term, ...]:
-        return (self.plan.name,)
+        return (self.benefit_plan.name,)
 
 
 # %% employers
@@ -123,7 +123,7 @@ class PlanForDeath(SaraConclusion):
 @dataclass(eq=False)
 class Employer(SaraConclusion):
     """
-    A person who is an employer for a calendar year under § 3306(a).
+    A person who is an employer for a calendar year under `§ 3306(a) <https://www.law.cornell.edu/uscode/text/26/3306#a>`__.
     """
 
     party: Party
@@ -195,7 +195,7 @@ class EmployerOfDomesticService(EmployerByWagesPaid):
 
     def prolog_arguments(self) -> tuple[Term, ...]:
         """
-        Orders the arguments as § 3306(a)(3) does, the services and the total wages
+        Orders the arguments as `§ 3306(a)(3) <https://www.law.cornell.edu/uscode/text/26/3306#a_3>`__ does, the services and the total wages
         inserted.
         """
         return self.party.name, self.service_names(), self.total_wages(), self.year
@@ -215,7 +215,7 @@ class EmployerByCashPaid(Employer):
 
     def prolog_arguments(self) -> tuple[Term, ...]:
         """
-        Orders the arguments as § 3306(c)(1)(A)(i) does, the remuneration, recipients
+        Orders the arguments as `§ 3306(c)(1)(A)(i) <https://www.law.cornell.edu/uscode/text/26/3306#c_1_A_i>`__ does, the remuneration, recipients
         and services inserted.
         """
         return (
@@ -245,7 +245,7 @@ class EmployerByDaysOfEmployment(Employer):
 
     def prolog_arguments(self) -> tuple[Term, ...]:
         """
-        Orders the arguments as § 3306(a)(1)(B) does, the days and employees inserted.
+        Orders the arguments as `§ 3306(a)(1)(B) <https://www.law.cornell.edu/uscode/text/26/3306#a_1_B>`__ does, the days and employees inserted.
         """
         return (
             self.party.name,
@@ -292,8 +292,8 @@ class AnnualWagesOfEmployee(Symbol):
 @dataclass(eq=False)
 class TotalWages(SaraConclusion):
     """
-    The wages an employer paid from one day to another, each employee's capped by §
-    3306(b)(1).
+    The wages an employer paid from one day to another, each employee's capped by
+    `§ 3306(b)(1) <https://www.law.cornell.edu/uscode/text/26/3306#b_1>`__.
     """
 
     employer: Party
@@ -342,7 +342,7 @@ class TotalWages(SaraConclusion):
 @dataclass(eq=False)
 class ExciseTax(SaraConclusion):
     """
-    The excise tax § 3301 imposes on an employer for a calendar year.
+    The excise tax `§ 3301 <https://www.law.cornell.edu/uscode/text/26/3301>`__ imposes on an employer for a calendar year.
     """
 
     employer: Party

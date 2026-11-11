@@ -1,5 +1,5 @@
 """
-Tests of the employment tax of §§ 3306 and 3301: employment, wages, employers and the
+Tests of the employment tax of §§ `3306 <https://www.law.cornell.edu/uscode/text/26/3306>`__ and `3301 <https://www.law.cornell.edu/uscode/text/26/3301>`__: employment, wages, employers and the
 excise tax on them.
 """
 
@@ -18,8 +18,8 @@ from law_as_code_benchmarks.sara.domain import (
     Party,
     Payment,
     Place,
-    Plan,
-    PlanPurpose,
+    EmployeeBenefitPlan,
+    EmployeeBenefit,
     Service,
     World,
 )
@@ -63,10 +63,10 @@ def test_an_employment_tax_case_is_answered_as_its_test_goal_states(
 
 def world_of_one_service(
     payments: list[Payment] | None = None,
-    plans: list[Plan] | None = None,
+    benefit_plans: list[EmployeeBenefitPlan] | None = None,
     kinships: list[Kinship] | None = None,
 ) -> World:
-    """:return: Bob working in 2017 for Alice, with *payments*, *plans* and *kinships*."""
+    """:return: Bob working in 2017 for Alice, with *payments*, *benefit_plans* and *kinships*."""
     world = World(united_states=Country(name="usa"))
     world.services = [
         Service(
@@ -78,7 +78,7 @@ def world_of_one_service(
         )
     ]
     world.payments = payments or []
-    world.plans = plans or []
+    world.benefit_plans = benefit_plans or []
     world.kinships = kinships or []
     return world
 
@@ -101,7 +101,7 @@ def payment_for_work(world: World, amount: float) -> Payment:
 
 def test_service_for_ones_child_is_not_employment() -> None:
     """
-    § 3306(c)(5)(A): service in the employ of one's son or daughter is no employment.
+    `§ 3306(c)(5)(A) <https://www.law.cornell.edu/uscode/text/26/3306#c_5_A>`__: service in the employ of one's son or daughter is no employment.
     """
     world = world_of_one_service()
     service = world.services[0]
@@ -113,7 +113,7 @@ def test_domestic_service_in_a_private_home_with_little_cash_paid_is_not_employm
     None
 ):
     """
-    § 3306(c)(2): domestic service in a private home in the United States, for which
+    `§ 3306(c)(2) <https://www.law.cornell.edu/uscode/text/26/3306#c_2>`__: domestic service in a private home in the United States, for which
     less than $1,000 in cash was paid, is no employment.
     """
     world = world_of_one_service()
@@ -133,7 +133,7 @@ def test_domestic_service_in_a_private_home_with_little_cash_paid_is_not_employm
 
 def test_wages_are_counted_up_to_the_wage_base() -> None:
     """
-    § 3306(b)(1): of a payment for employment, only the wage base is wages.
+    `§ 3306(b)(1) <https://www.law.cornell.edu/uscode/text/26/3306#b_1>`__: of a payment for employment, only the wage base is wages.
     """
     world = world_of_one_service()
     world.payments = [payment_for_work(world, WagesDefinition.wage_base + 2_000)]
@@ -144,19 +144,19 @@ def test_wages_are_counted_up_to_the_wage_base() -> None:
 
 def test_a_payment_into_a_plan_for_death_of_the_employee_is_no_wages() -> None:
     """
-    § 3306(b)(2)(C): a payment by the employer into a plan making provision for the
+    `§ 3306(b)(2)(C) <https://www.law.cornell.edu/uscode/text/26/3306#b_2_C>`__: a payment by the employer into a plan making provision for the
     employee in case of death is no wages.
     """
     world = world_of_one_service()
     service = world.services[0]
-    plan = Plan(
+    plan = EmployeeBenefitPlan(
         name="life insurance",
-        purposes={PlanPurpose.DEATH},
+        benefits={EmployeeBenefit.DEATH},
         beneficiaries=[service.employee],
     )
     payment = payment_for_work(world, 1_000)
     payment.recipient = plan
-    world.plans = [plan]
+    world.benefit_plans = [plan]
     world.payments = [payment]
     assert WagesDefinition(world=world).conclusions == []
 
@@ -171,7 +171,7 @@ def employment_on(service: Service, workday: datetime.date) -> Employment:
 
 def test_days_in_one_calendar_week_count_as_one_week() -> None:
     """
-    § 3306(a)(1)(B): days of employment from Monday to Sunday of one week count as one
+    `§ 3306(a)(1)(B) <https://www.law.cornell.edu/uscode/text/26/3306#a_1_B>`__: days of employment from Monday to Sunday of one week count as one
     week, though ten days in all.
     """
     world = world_of_one_service()
@@ -186,7 +186,7 @@ def test_days_in_one_calendar_week_count_as_one_week() -> None:
 
 def test_ten_days_in_ten_calendar_weeks_make_an_employer() -> None:
     """
-    § 3306(a)(1)(B): employing someone on ten days, each in a different week, makes an
+    `§ 3306(a)(1)(B) <https://www.law.cornell.edu/uscode/text/26/3306#a_1_B>`__: employing someone on ten days, each in a different week, makes an
     employer.
     """
     world = world_of_one_service()
@@ -209,7 +209,7 @@ def test_ten_days_in_ten_calendar_weeks_make_an_employer() -> None:
 
 def test_the_excise_tax_rounds_half_a_dollar_up() -> None:
     """
-    § 3301: the tax is rounded to whole dollars, half a dollar away from zero, as
+    `§ 3301 <https://www.law.cornell.edu/uscode/text/26/3301>`__: the tax is rounded to whole dollars, half a dollar away from zero, as
     Prolog's ``round`` does.
     """
     world = world_of_one_service()

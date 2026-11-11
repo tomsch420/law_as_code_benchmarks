@@ -1,5 +1,5 @@
 """
-The services § 3306(c) of the Internal Revenue Code excludes from *employment*, or
+The services `§ 3306(c) <https://www.law.cornell.edu/uscode/text/26/3306#c>`__ of the Internal Revenue Code excludes from *employment*, or
 brings into it, as rules over the domain model.
 """
 
@@ -159,7 +159,7 @@ class LaborNotByAdmittedAlien(SaraConclusion):
 @dataclass
 class UnitedStatesGovernmentExclusion(Provision[ExcludedService]):
     """
-    § 3306(c)(6): service performed in the employ of the United States Government.
+    `§ 3306(c)(6) <https://www.law.cornell.edu/uscode/text/26/3306#c_6>`__: service performed in the employ of the United States Government.
     """
 
     @classproperty
@@ -181,7 +181,7 @@ class UnitedStatesGovernmentExclusion(Provision[ExcludedService]):
 @dataclass
 class StateExclusion(Provision[ExcludedServiceForEmployer]):
     """
-    § 3306(c)(7): service performed in the employ of a State, or a political subdivision
+    `§ 3306(c)(7) <https://www.law.cornell.edu/uscode/text/26/3306#c_7>`__: service performed in the employ of a State, or a political subdivision
     of one.
     """
 
@@ -204,7 +204,7 @@ class StateExclusion(Provision[ExcludedServiceForEmployer]):
 @dataclass
 class ForeignGovernmentExclusion(Provision[ExcludedServiceForEmployer]):
     """
-    § 3306(c)(11): service performed in the employ of a foreign government.
+    `§ 3306(c)(11) <https://www.law.cornell.edu/uscode/text/26/3306#c_11>`__: service performed in the employ of a foreign government.
     """
 
     @classproperty
@@ -226,7 +226,7 @@ class ForeignGovernmentExclusion(Provision[ExcludedServiceForEmployer]):
 @dataclass
 class InternationalOrganizationExclusion(Provision[ExcludedServiceForEmployer]):
     """
-    § 3306(c)(16): service performed in the employ of an international organization.
+    `§ 3306(c)(16) <https://www.law.cornell.edu/uscode/text/26/3306#c_16>`__: service performed in the employ of an international organization.
     """
 
     @classproperty
@@ -254,7 +254,7 @@ class InternationalOrganizationExclusion(Provision[ExcludedServiceForEmployer]):
 @dataclass
 class HospitalPatientExclusion(Provision[ServiceOfHospitalPatient]):
     """
-    § 3306(c)(10)(B): service performed in the employ of a hospital by a patient of that
+    `§ 3306(c)(10)(B) <https://www.law.cornell.edu/uscode/text/26/3306#c_10_B>`__: service performed in the employ of a hospital by a patient of that
     hospital.
     """
 
@@ -283,7 +283,7 @@ class HospitalPatientExclusion(Provision[ServiceOfHospitalPatient]):
 @dataclass
 class AdmittedAlienCondition(Provision[LaborNotByAdmittedAlien]):
     """
-    § 3306(c)(1)(B): the condition that labor is not agricultural labor performed by an
+    `§ 3306(c)(1)(B) <https://www.law.cornell.edu/uscode/text/26/3306#c_1_B>`__: the condition that labor is not agricultural labor performed by an
     alien admitted to the United States to perform agricultural labor.
     """
 
@@ -326,7 +326,7 @@ class AdmittedAlienCondition(Provision[LaborNotByAdmittedAlien]):
 @dataclass
 class ServiceAbroadInclusion(Provision[ServiceAbroad]):
     """
-    § 3306(c)(B): service performed outside the United States by a citizen of the United
+    `§ 3306(c)(B) <https://www.law.cornell.edu/uscode/text/26/3306#c>`__: service performed outside the United States by a citizen of the United
     States as an employee of an American employer.
 
     A place in no stated country is not taken to be abroad.

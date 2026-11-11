@@ -27,8 +27,8 @@ class AmountPredicate(StrEnum):
 
     TAX = "tax"
     """
-    The tax a person owes for a year: income tax under § 1 and employment tax under §
-    3301.
+    The tax a person owes for a year: income tax under `§ 1 <https://www.law.cornell.edu/uscode/text/26/1>`__ and employment tax under 
+    `§ 3301 <https://www.law.cornell.edu/uscode/text/26/3301>`__.
     """
 
 

@@ -31,58 +31,58 @@ class SaraPredicate(StrEnum):
     """The predicates of SARA's Prolog program that are modelled, each named as the program names it."""
 
     SERVICE_FOR_UNITED_STATES_GOVERNMENT = "s3306_c_6"
-    """§ 3306(c)(6): service in the employ of the United States Government."""
+    """`§ 3306(c)(6) <https://www.law.cornell.edu/uscode/text/26/3306#c_6>`__: service in the employ of the United States Government."""
 
     SERVICE_FOR_STATE = "s3306_c_7"
-    """§ 3306(c)(7): service in the employ of a State."""
+    """`§ 3306(c)(7) <https://www.law.cornell.edu/uscode/text/26/3306#c_7>`__: service in the employ of a State."""
 
     SERVICE_BY_HOSPITAL_PATIENT = "s3306_c_10_B"
-    """§ 3306(c)(10)(B): service for a hospital by a patient of that hospital."""
+    """`§ 3306(c)(10)(B) <https://www.law.cornell.edu/uscode/text/26/3306#c_10_B>`__: service for a hospital by a patient of that hospital."""
 
     SERVICE_FOR_FOREIGN_GOVERNMENT = "s3306_c_11"
-    """§ 3306(c)(11): service in the employ of a foreign government."""
+    """`§ 3306(c)(11) <https://www.law.cornell.edu/uscode/text/26/3306#c_11>`__: service in the employ of a foreign government."""
 
     SERVICE_FOR_INTERNATIONAL_ORGANIZATION = "s3306_c_16"
-    """§ 3306(c)(16): service in the employ of an international organization."""
+    """`§ 3306(c)(16) <https://www.law.cornell.edu/uscode/text/26/3306#c_16>`__: service in the employ of an international organization."""
 
     SERVICE_ABROAD_FOR_AMERICAN_EMPLOYER = "s3306_c_B"
-    """§ 3306(c)(B): service outside the United States by a citizen for an American employer."""
+    """`§ 3306(c)(B) <https://www.law.cornell.edu/uscode/text/26/3306#c>`__: service outside the United States by a citizen for an American employer."""
 
     LABOR_NOT_BY_ADMITTED_ALIEN = "s3306_c_1_B"
-    """§ 3306(c)(1)(B): agricultural labor not performed by an alien admitted to perform it."""
+    """`§ 3306(c)(1)(B) <https://www.law.cornell.edu/uscode/text/26/3306#c_1_B>`__: agricultural labor not performed by an alien admitted to perform it."""
 
     EMPLOYER_OF_AGRICULTURAL_LABOR = "s3306_c_1_A_i"
-    """§ 3306(c)(1)(A)(i): a person who paid $20,000 or more in cash for agricultural labor."""
+    """`§ 3306(c)(1)(A)(i) <https://www.law.cornell.edu/uscode/text/26/3306#c_1_A_i>`__: a person who paid $20,000 or more in cash for agricultural labor."""
 
     EMPLOYMENT = "s3306_c"
-    """§ 3306(c): service that is *employment*."""
+    """`§ 3306(c) <https://www.law.cornell.edu/uscode/text/26/3306#c>`__: service that is *employment*."""
 
     WAGES = "s3306_b"
-    """§ 3306(b): remuneration for employment that is *wages*."""
+    """`§ 3306(b) <https://www.law.cornell.edu/uscode/text/26/3306#b>`__: remuneration for employment that is *wages*."""
 
-    PLAN_FOR_DEATH = "s3306_b_2_C"
-    """§ 3306(b)(2)(C): a plan making provision for employees in case of death."""
+    DEATH_BENEFIT_PLAN = "s3306_b_2_C"
+    """`§ 3306(b)(2)(C) <https://www.law.cornell.edu/uscode/text/26/3306#b_2_C>`__: a plan making provision for employees in case of death."""
 
     EMPLOYER = "s3306_a"
-    """§ 3306(a): a person who is an *employer* for a calendar year."""
+    """`§ 3306(a) <https://www.law.cornell.edu/uscode/text/26/3306#a>`__: a person who is an *employer* for a calendar year."""
 
     EMPLOYER_BY_WAGES = "s3306_a_1_A"
-    """§ 3306(a)(1)(A): a person who paid wages of $1,500 or more."""
+    """`§ 3306(a)(1)(A) <https://www.law.cornell.edu/uscode/text/26/3306#a_1_A>`__: a person who paid wages of $1,500 or more."""
 
     EMPLOYER_BY_DAYS_OF_EMPLOYMENT = "s3306_a_1_B"
-    """§ 3306(a)(1)(B): a person who employed someone on 10 days, each in a different week."""
+    """`§ 3306(a)(1)(B) <https://www.law.cornell.edu/uscode/text/26/3306#a_1_B>`__: a person who employed someone on 10 days, each in a different week."""
 
     EMPLOYER_BY_AGRICULTURAL_WAGES = "s3306_a_2_A"
-    """§ 3306(a)(2)(A): a person who paid wages of $20,000 or more for agricultural labor."""
+    """`§ 3306(a)(2)(A) <https://www.law.cornell.edu/uscode/text/26/3306#a_2_A>`__: a person who paid wages of $20,000 or more for agricultural labor."""
 
     EMPLOYER_OF_DOMESTIC_SERVICE = "s3306_a_3"
-    """§ 3306(a)(3): a person who paid $1,000 or more in cash for domestic service."""
+    """`§ 3306(a)(3) <https://www.law.cornell.edu/uscode/text/26/3306#a_3>`__: a person who paid $1,000 or more in cash for domestic service."""
 
     TOTAL_WAGES = "total_wages_employer"
-    """The wages an employer paid in a period, each employee's capped at $7,000 by § 3306(b)(1)."""
+    """The wages an employer paid in a period, each employee's capped at $7,000 by `§ 3306(b)(1) <https://www.law.cornell.edu/uscode/text/26/3306#b_1>`__."""
 
     EXCISE_TAX = "s3301"
-    """§ 3301: the excise tax on an employer, 6 percent of the wages paid in a calendar year."""
+    """`§ 3301 <https://www.law.cornell.edu/uscode/text/26/3301>`__: the excise tax on an employer, 6 percent of the wages paid in a calendar year."""
 
 
 # %% conclusions
@@ -135,7 +135,7 @@ class Provision(Generic[ConclusionType], SubClassSafeGeneric, ABC):
     @cached_property
     def conclusions(self) -> list[ConclusionType]:
         """The conclusions the provision infers, followed by those of its kind the case states."""
-        conclusion_type = self.get_type_of_generic_parameter(ConclusionType)
+        conclusion_type = self.get_type_of_generic_parameter(parameter=ConclusionType)
         return self.query().tolist() + [
             conclusion
             for conclusion in self.world.stated_conclusions

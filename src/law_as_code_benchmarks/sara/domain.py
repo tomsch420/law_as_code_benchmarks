@@ -712,6 +712,9 @@ class World:
     calendar_years: list[CalendarYear] = field(default_factory=list)
     """The calendar years the case's days fall in, and each year after one of them."""
 
+    drawn_conclusions: dict[type, list[SaraConclusion]] = field(default_factory=dict)
+    """The conclusions each provision has drawn about the case, by the provision's class; emptied when the case changes."""
+
     @symbolic_function
     def lifetime(self, person: Party) -> Period:
         """:return: The days up to *person*'s death, open where the case states no day of it."""
@@ -725,8 +728,9 @@ class World:
         return list(dict.fromkeys(residence.household for residence in self.residences))
 
     def include_calendar_year(self, number: int) -> None:
-        """Adds the calendar year numbered *number* to :attr:`calendar_years`, unless it is among them."""
+        """Adds the calendar year numbered *number* to :attr:`calendar_years`, unless it is among them, so conclusions are drawn anew."""
         if any(year.number == number for year in self.calendar_years):
             return
         self.calendar_years.append(CalendarYear(number=number))
         self.calendar_years.sort(key=lambda year: year.number)
+        self.drawn_conclusions.clear()

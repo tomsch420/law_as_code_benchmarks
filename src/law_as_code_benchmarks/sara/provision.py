@@ -10,7 +10,6 @@ from __future__ import annotations
 
 import datetime
 import inspect
-from functools import cached_property
 from abc import ABC, abstractmethod
 from dataclasses import dataclass, field
 from enum import StrEnum
@@ -430,15 +429,20 @@ class Provision(Generic[ConclusionType], SubClassSafeGeneric, ABC):
                 world.include_calendar_year(year)
         return cls(world=world)
 
-    @cached_property
+    @property
     def conclusions(self) -> list[ConclusionType]:
-        """The conclusions the provision infers, followed by those of its kind the case states."""
-        conclusion_type = self.get_type_of_generic_parameter(parameter=ConclusionType)
-        return self.query().tolist() + [
-            conclusion
-            for conclusion in self.world.stated_conclusions
-            if isinstance(conclusion, conclusion_type)
-        ]
+        """The conclusions the provision infers, followed by those of its kind the case states, drawn once per case."""
+        provision_type = type(self)
+        if provision_type not in self.world.drawn_conclusions:
+            conclusion_type = self.get_type_of_generic_parameter(
+                parameter=ConclusionType
+            )
+            self.world.drawn_conclusions[provision_type] = self.query().tolist() + [
+                conclusion
+                for conclusion in self.world.stated_conclusions
+                if isinstance(conclusion, conclusion_type)
+            ]
+        return self.world.drawn_conclusions[provision_type]
 
     def solutions(self, goal: CompoundTerm, bindings: Bindings) -> list[Bindings]:
         """:return: The bindings each conclusion agreeing with *goal*, which names the predicate, extends *bindings* to."""

@@ -141,3 +141,31 @@ def test_only_spouses_are_asked_whether_they_could_have_filed_jointly() -> None:
     assert not SpousesWithoutNonresidentAlienTest(world=world).holds(
         goal(SpousesWithoutNonresidentAlienTest.predicate, "bob", None, 2018)
     )
+
+
+# %% conclusions drawn once per case
+
+
+def test_a_provision_asked_again_about_a_case_draws_no_new_conclusions() -> None:
+    """
+    A provision asked twice about the same case gives the conclusions it drew first.
+    """
+    world = world_of_alice_and_bob()
+    first = SpousesWithoutNonresidentAlienTest(world=world).conclusions
+    assert SpousesWithoutNonresidentAlienTest(world=world).conclusions is first
+
+
+def test_a_calendar_year_added_to_a_case_makes_provisions_draw_conclusions_anew() -> (
+    None
+):
+    """
+    Adding a calendar year makes a provision draw its conclusions again, for that year
+    too.
+    """
+    world = world_of_alice_and_bob()
+    SpousesWithoutNonresidentAlienTest(world=world).conclusions
+    world.include_calendar_year(2019)
+    assert {
+        conclusion.year
+        for conclusion in SpousesWithoutNonresidentAlienTest(world=world).conclusions
+    } == {2018, 2019}

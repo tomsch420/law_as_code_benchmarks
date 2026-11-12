@@ -3,7 +3,8 @@ A provision of SARA's statutes as a krrood rule, and the conclusions it draws.
 
 A provision is asked as SARA's Prolog program is, by a goal naming its predicate. It
 holds where one of its conclusions, inferred or stated by the case, agrees with every
-argument the goal binds, and binds the goal's named variables as it agrees.
+argument the goal binds; the goal's named variables stand for the arguments of the
+conclusion they first meet.
 """
 
 from __future__ import annotations
@@ -15,12 +16,15 @@ from abc import ABC, abstractmethod
 from dataclasses import dataclass, field
 from enum import StrEnum
 
+from krrood.entity_query_language.core.base_expressions import SymbolicExpression
+from krrood.entity_query_language.factories import an, entity, variable
+from krrood.entity_query_language.predicate import symbolic_function
 from krrood.entity_query_language.query.query import Query
 from krrood.ormatic.utils import classproperty
 from krrood.patterns.subclass_safe_generic import SubClassSafeGeneric
 from krrood.symbol_graph.symbol_graph import Symbol
 from krrood.utils import recursive_subclasses
-from typing_extensions import Generic, TypeVar
+from typing_extensions import TYPE_CHECKING, Any, Generic, TypeVar
 
 from law_as_code_benchmarks.sara.domain import World
 from law_as_code_benchmarks.sara.prolog_term import (
@@ -29,6 +33,9 @@ from law_as_code_benchmarks.sara.prolog_term import (
     PrologVariable,
     Term,
 )
+
+if TYPE_CHECKING:
+    from krrood.entity_query_language.core.variable import Variable
 
 # %% predicates
 
@@ -328,42 +335,64 @@ class SaraPredicate(StrEnum):
     """`§ 2(b)(3)(B) <https://www.law.cornell.edu/uscode/text/26/2#b_3_B>`__: an individual who would be no dependent but for § 152(d)(2)(H)."""
 
 
-# %% bindings
+# %% goal queries
 
 
-@dataclass(frozen=True)
-class Bindings:
-    """The values a goal's named variables are bound to so far."""
+@dataclass
+class GoalQuery:
+    """
+    The EQL query a test goal asks: a variable over a provision's conclusions for each
+    predicate the goal names, and the conditions the goal's arguments set on them.
+    """
 
-    values: dict[str, Term] = field(default_factory=dict)
-    """The value of each bound variable, by name; None for one bound to an argument a conclusion leaves open."""
+    values: dict[str, Term | SymbolicExpression] = field(default_factory=dict)
+    """The value each named variable of the goal stands for, by name: a constant, or the argument of a conclusion it first met."""
 
-    def unify(self, asked: Term, concluded: Term) -> Bindings | None:
-        """
-        :param asked: An argument of a goal.
-        :param concluded: The argument a conclusion gives in its place.
-        :return: The bindings extended so that *asked* agrees with *concluded*; None if it cannot.
-        """
-        if asked is None:
-            return self
-        if isinstance(asked, PrologVariable):
-            if asked.name not in self.values:
-                return Bindings(values={**self.values, asked.name: concluded})
-            asked = self.values[asked.name]
-        if self.text_of(asked) != self.text_of(concluded):
-            return None
-        return self
+    conditions: list[SymbolicExpression] = field(default_factory=list)
+    """The conditions every answer meets."""
 
-    def resolve(self, term: Term) -> Term:
-        """:return: The value *term* is bound to, if it is a bound variable; else *term* itself."""
+    conclusions: list[Variable] = field(default_factory=list)
+    """A variable over a provision's conclusions for each predicate the goal names."""
+
+    is_contradicted: bool = False
+    """Whether two constants the goal compares disagree, which leaves the query no answer."""
+
+    def is_unbound(self, term: Term) -> bool:
+        """:return: Whether *term* is a named variable that stands for nothing yet."""
+        return isinstance(term, PrologVariable) and term.name not in self.values
+
+    def value(self, term: Term) -> Term | SymbolicExpression:
+        """:return: What *term* stands for: a bound variable's value, the characters of a Prolog string, None for a variable bound to nothing yet; else *term* itself."""
         if isinstance(term, PrologVariable):
             return self.values.get(term.name)
-        return term
-
-    @staticmethod
-    def text_of(term: Term) -> Term:
-        """:return: The characters of a Prolog string, as the domain model names things; any other term itself."""
         return term.value if isinstance(term, PrologText) else term
+
+    def unify(self, term: Term, value: Term | SymbolicExpression) -> None:
+        """Makes *term* agree with *value*: an unbound variable comes to stand for it, anything else but an open argument must equal it."""
+        if term is None:
+            return
+        if self.is_unbound(term):
+            self.values[term.name] = value
+            return
+        self.require(self.value(term) == value)
+
+    def require(self, condition: SymbolicExpression | bool) -> None:
+        """Adds *condition* to the query; a condition between constants is already true or false and decides the query alone."""
+        if isinstance(condition, bool):
+            self.is_contradicted = self.is_contradicted or not condition
+            return
+        self.conditions.append(condition)
+
+    def has_answer(self) -> bool:
+        """:return: Whether some conclusions, one for each variable, meet every condition."""
+        if self.is_contradicted:
+            return False
+        if not self.conclusions:
+            return True
+        selection = entity(self.conclusions[0])
+        if self.conditions:
+            selection = selection.where(*self.conditions)
+        return bool(an(selection).tolist())
 
 
 # %% conclusions
@@ -382,16 +411,22 @@ class SaraConclusion(Symbol, ABC):
         """:return: *day* as SARA's program writes it, ``YYYY-MM-DD``; None for a day it leaves open."""
         return None if day is None else day.isoformat()
 
-    def unify(self, goal: CompoundTerm, bindings: Bindings) -> Bindings | None:
-        """:return: *bindings*, extended so that the conclusion agrees with every argument of *goal*; None if it cannot."""
-        arguments = self.prolog_arguments()
-        if len(goal.arguments) != len(arguments):
-            return None
-        for asked, concluded in zip(goal.arguments, arguments):
-            bindings = bindings.unify(asked, concluded)
-            if bindings is None:
-                return None
-        return bindings
+    def agrees_with_argument(self, position: int, asked: Term) -> bool:
+        """:return: Whether the conclusion agrees with *asked* as the argument at *position*; every conclusion agrees with an open argument."""
+        return asked is None or self.prolog_arguments()[position] == asked
+
+    @staticmethod
+    @symbolic_function
+    def agrees(conclusion: SaraConclusion, position: int, asked: Term) -> bool:
+        """:return: Whether *conclusion* agrees with *asked* as the argument at *position*."""
+        # A symbolic function runs the function it decorates, never an override.
+        return conclusion.agrees_with_argument(position, asked)
+
+    @staticmethod
+    @symbolic_function
+    def argument_at(conclusion: SaraConclusion, position: int) -> object:
+        """:return: The argument of *conclusion* at *position*."""
+        return conclusion.prolog_arguments()[position]
 
 
 ConclusionType = TypeVar("ConclusionType", bound=SaraConclusion)
@@ -440,17 +475,31 @@ class Provision(Generic[ConclusionType], SubClassSafeGeneric, ABC):
             if isinstance(conclusion, conclusion_type)
         ]
 
-    def solutions(self, goal: CompoundTerm, bindings: Bindings) -> list[Bindings]:
-        """:return: The bindings each conclusion agreeing with *goal*, which names the predicate, extends *bindings* to."""
-        return [
-            solution
-            for conclusion in self.conclusions
-            if (solution := conclusion.unify(goal, bindings)) is not None
-        ]
+    def constrain(self, goal: CompoundTerm, goal_query: GoalQuery) -> None:
+        """Adds to *goal_query* a variable over the provision's conclusions that agree with every argument of *goal*, which names its predicate."""
+        conclusion = variable(
+            self.get_type_of_generic_parameter(parameter=ConclusionType),
+            domain=[
+                conclusion
+                for conclusion in self.conclusions
+                if len(conclusion.prolog_arguments()) == len(goal.arguments)
+            ],
+        )
+        goal_query.conclusions.append(conclusion)
+        for position, asked in enumerate(goal.arguments):
+            goal_query.require(
+                SaraConclusion.agrees(conclusion, position, goal_query.value(asked))
+            )
+            if goal_query.is_unbound(asked):
+                goal_query.unify(
+                    asked, SaraConclusion.argument_at(conclusion, position)
+                )
 
     def holds(self, goal: CompoundTerm) -> bool:
         """:return: Whether one of the provision's conclusions agrees with *goal*, which names its predicate."""
-        return bool(self.solutions(goal, Bindings()))
+        goal_query = GoalQuery()
+        self.constrain(goal, goal_query)
+        return goal_query.has_answer()
 
     @classmethod
     def modelling(cls, predicate_name: str) -> type[Provision] | None:

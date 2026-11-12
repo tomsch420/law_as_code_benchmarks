@@ -28,6 +28,7 @@ from law_as_code_benchmarks.sara.family_status import (
     JointFilingTest,
     SpousesWithoutNonresidentAlienTest,
 )
+from law_as_code_benchmarks.sara.family_status_conclusions import MarriedIndividual
 from law_as_code_benchmarks.sara.prolog_term import CompoundTerm
 
 # %% a world of one family
@@ -72,6 +73,39 @@ def test_spouses_making_a_joint_return_for_the_year_file_jointly() -> None:
             ),
         )
     ]
+    assert JointFilingTest(world=world).holds(
+        goal(JointFilingTest.predicate, "alice", "return_2018", "bob", 2018)
+    )
+
+
+def test_spouses_stated_married_making_a_joint_return_file_jointly() -> None:
+    """
+    Spouses a case states married under § 7703, with no marriage of their own, file
+    jointly when they make a joint return for the year, as in SARA's program.
+    """
+    alice, bob = Party(name="alice"), Party(name="bob")
+    world = World(
+        united_states=Country(name="usa"),
+        parties=[alice, bob],
+        stated_conclusions=[
+            MarriedIndividual(
+                person=alice,
+                spouse=bob,
+                marriage=Marriage(name="unnamed", spouses=[alice, bob]),
+                year=2018,
+            )
+        ],
+        joint_returns=[
+            JointReturn(
+                name="return_2018",
+                filers=[alice, bob],
+                period=Period(
+                    start=datetime.date(2018, 1, 1), end=datetime.date(2018, 12, 31)
+                ),
+            )
+        ],
+        calendar_years=[CalendarYear(number=2018)],
+    )
     assert JointFilingTest(world=world).holds(
         goal(JointFilingTest.predicate, "alice", "return_2018", "bob", 2018)
     )

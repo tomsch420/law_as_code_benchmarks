@@ -143,6 +143,20 @@ def test_wages_are_counted_up_to_the_wage_base() -> None:
     ]
 
 
+def test_each_payment_to_an_employee_is_wages_once() -> None:
+    """
+    Two payments to the same employee are two wages, not one for each pairing of the
+    payment with an occurrence of the employee among the payees.
+    """
+    world = world_of_one_service()
+    first, second = payment_for_work(world, 500), payment_for_work(world, 700)
+    second.name = "second pay"
+    world.payments = [first, second]
+    assert sorted(
+        wages.amount for wages in WagesDefinition(world=world).conclusions
+    ) == sorted(payment.amount for payment in world.payments)
+
+
 def test_a_payment_into_a_plan_for_death_of_the_employee_is_no_wages() -> None:
     """
     `§ 3306(b)(2)(C) <https://www.law.cornell.edu/uscode/text/26/3306#b_2_C>`__: a payment by the employer into a plan making provision for the

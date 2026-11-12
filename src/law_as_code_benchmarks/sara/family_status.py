@@ -794,7 +794,7 @@ class JointFilingTest(Provision[JointFiling]):
     their spouse for the calendar year.
 
     A joint return for the year rules out `§ 7703(b)(1) <https://www.law.cornell.edu/uscode/text/26/7703#b_1>`__, so `§ 7703(a) <https://www.law.cornell.edu/uscode/text/26/7703#a>`__ decides the
-    marriage alone.
+    marriage alone, together with the case's stated conclusions of `§ 7703 <https://www.law.cornell.edu/uscode/text/26/7703>`__.
     """
 
     @classproperty
@@ -813,8 +813,17 @@ class JointFilingTest(Provision[JointFiling]):
 
     def query(self) -> Query:
         married = variable(
-            MarriedUnderGeneralRule,
-            domain=MarriedUnderGeneralRuleTest(world=self.world).conclusions,
+            MarriedIndividual,
+            domain=list(
+                dict.fromkeys(
+                    MarriedUnderGeneralRuleTest(world=self.world).conclusions
+                    + [
+                        conclusion
+                        for conclusion in self.world.stated_conclusions
+                        if isinstance(conclusion, MarriedIndividual)
+                    ]
+                )
+            ),
         )
         joint_return = variable(JointReturn, domain=self.world.joint_returns)
         year = variable(CalendarYear, domain=self.world.calendar_years)

@@ -300,9 +300,13 @@ class WagesDefinition(Provision[Wages]):
         )
         payee = variable(
             Party,
-            domain=[
-                payee for payment in self.world.payments for payee in payment.payees()
-            ],
+            domain=list(
+                dict.fromkeys(
+                    payee
+                    for payment in self.world.payments
+                    for payee in payment.payees()
+                )
+            ),
         )
         employment = variable(
             Employment, domain=EmploymentDefinition(world=self.world).conclusions

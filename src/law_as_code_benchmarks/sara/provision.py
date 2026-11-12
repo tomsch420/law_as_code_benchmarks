@@ -24,7 +24,7 @@ from krrood.ormatic.utils import classproperty
 from krrood.patterns.subclass_safe_generic import SubClassSafeGeneric
 from krrood.symbol_graph.symbol_graph import Symbol
 from krrood.utils import recursive_subclasses
-from typing_extensions import TYPE_CHECKING, Any, Generic, TypeVar
+from typing_extensions import TYPE_CHECKING, Generic, TypeVar
 
 from law_as_code_benchmarks.sara.domain import Party, World
 from law_as_code_benchmarks.sara.prolog_term import (

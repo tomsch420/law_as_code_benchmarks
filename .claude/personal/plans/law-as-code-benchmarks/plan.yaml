@@ -51,16 +51,3 @@ items:
     and what it lacks, with each gap filed as an issue on cram2/cognitive_robot_abstract_machine.
 
     '
-- id: krrood-sara-complete
-  title: Model the rest of SARA's section 3306 and answer all 376 cases
-  branch: krrood-sara-complete
-  track: krrood-benchmarks
-  pull_request_number: 12
-  session: local Claude Code session f386fcc5-179d-4148-8ad3-a7db9ad9905c
-  depends_on: []
-  status: in progress
-  notes: 'Model every paragraph of section 3306 a SARA case asks on its own, let a goal name
-    a party the case states nothing of (s152_d_1_B_pos), and answer all 376 train and test
-    cases. 21 helper and union predicates of the program, which no case asks, stay unmodelled.
-
-    '

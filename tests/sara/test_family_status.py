@@ -10,6 +10,7 @@ import datetime
 from law_as_code_benchmarks.sara.domain import (
     CalendarYear,
     Country,
+    Death,
     Household,
     Income,
     JointReturn,
@@ -26,6 +27,7 @@ from law_as_code_benchmarks.sara.family_status import (
     GrossIncomeOfParty,
     HouseholdMaintenanceTest,
     JointFilingTest,
+    SpouseDeceasedInYearTest,
     SpousesWithoutNonresidentAlienTest,
 )
 from law_as_code_benchmarks.sara.family_status_conclusions import MarriedIndividual
@@ -187,6 +189,20 @@ def test_only_spouses_are_asked_whether_they_could_have_filed_jointly() -> None:
     assert not SpousesWithoutNonresidentAlienTest(world=world).holds(
         goal(SpousesWithoutNonresidentAlienTest.predicate, "bob", None, 2018)
     )
+
+
+def test_a_deceased_individual_is_not_their_own_deceased_spouse() -> None:
+    """
+    § 2(b)(2)(C) concludes a spouse's death only for the other spouse, though SARA's
+    program also concludes it for the individual who died.
+    """
+    world = world_of_alice_and_bob()
+    alice, bob = world.parties
+    world.deaths = [Death(person=alice, day=datetime.date(2018, 7, 9))]
+    assert [
+        (conclusion.taxpayer, conclusion.spouse)
+        for conclusion in SpouseDeceasedInYearTest(world=world).conclusions
+    ] == [(bob, alice)]
 
 
 # %% conclusions drawn once per case

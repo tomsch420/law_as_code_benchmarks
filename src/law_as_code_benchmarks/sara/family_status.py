@@ -3164,6 +3164,9 @@ class SpouseDeceasedInYearTest(Provision[SpouseDeceasedInYear]):
     """
     `§ 2(b)(2)(C) <https://www.law.cornell.edu/uscode/text/26/2#b_2_C>`__: a taxpayer whose spouse, no nonresident alien in the year, died married to
     them during it.
+
+    .. note:: The spouse is another individual than the taxpayer, where SARA's program
+        also lets the individual who died be their own spouse.
     """
 
     @classproperty
@@ -3202,6 +3205,7 @@ class SpouseDeceasedInYearTest(Provision[SpouseDeceasedInYear]):
             ).where(
                 in_(taxpayer, marriage.spouses),
                 in_(death.person, marriage.spouses),
+                taxpayer != death.person,
                 death.day >= year.opening_day,
                 death.day <= year.closing_day,
                 or_(marriage.period.end == None, death.day <= marriage.period.end),

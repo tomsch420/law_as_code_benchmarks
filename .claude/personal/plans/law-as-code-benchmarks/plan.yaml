@@ -20,8 +20,10 @@ items:
   title: Model Catala's French family benefits in krrood and score them
   branch: krrood-catala-family-benefits
   track: krrood-benchmarks
+  pull_request_number: 15
+  session: https://claude.ai/code/session_01LzY41KXVD15Tr3P8n3nwfr
   depends_on: []
-  status: not started
+  status: in progress
   notes: 'Model allocations_familiales (with prestations_familiales and base_mensuelle_allocations_familiales)
     from catala-examples in krrood, defaults and their exceptions as rules, amounts chosen
     by date; score the share of its 15 tests reproduced.

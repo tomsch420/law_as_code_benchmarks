@@ -1,6 +1,7 @@
 """
 The goals of SARA's test directives: a provision's predicate, a conjunction of goals, or
-one of the few utilities a test asks about the bindings of the goals before it.
+one of the few utilities a test asks about the bindings of the goals before it, each
+asked as conditions of one EQL query.
 """
 
 from __future__ import annotations
@@ -9,14 +10,15 @@ import datetime
 from abc import ABC, abstractmethod
 from dataclasses import dataclass
 
+from krrood.entity_query_language.predicate import symbolic_function
 from krrood.ormatic.utils import classproperty
 from krrood.utils import recursive_subclasses
 
 from law_as_code_benchmarks.sara.case import GoalFunctor
 from law_as_code_benchmarks.sara.case_reader import WorldReader
 from law_as_code_benchmarks.sara.domain import World
-from law_as_code_benchmarks.sara.prolog_term import CompoundTerm, PrologText
-from law_as_code_benchmarks.sara.provision import Bindings, Provision
+from law_as_code_benchmarks.sara.prolog_term import CompoundTerm, Term
+from law_as_code_benchmarks.sara.provision import GoalQuery, Provision
 
 # %% goals
 
@@ -28,12 +30,16 @@ class Goal(ABC):
     """
 
     @abstractmethod
-    def solutions(self, world: World, bindings: Bindings) -> list[Bindings]:
-        """:return: Each way *bindings* extends to a solution of the goal about *world*."""
+    def constrain(self, world: World, goal_query: GoalQuery) -> None:
+        """
+        Adds the goal about *world* to *goal_query*, after the goals before it.
+        """
 
     def holds(self, world: World) -> bool:
         """:return: Whether the goal has a solution about *world*."""
-        return bool(self.solutions(world, Bindings()))
+        goal_query = GoalQuery()
+        self.constrain(world, goal_query)
+        return goal_query.has_answer()
 
     @classmethod
     def from_term(cls, term: CompoundTerm) -> Goal | None:
@@ -66,14 +72,14 @@ class ProvisionGoal(Goal):
     The provision its predicate asks.
     """
 
-    def solutions(self, world: World, bindings: Bindings) -> list[Bindings]:
-        return self.provision.from_goal(self.term, world).solutions(self.term, bindings)
+    def constrain(self, world: World, goal_query: GoalQuery) -> None:
+        self.provision.from_goal(self.term, world).constrain(self.term, goal_query)
 
 
 @dataclass
 class Conjunction(Goal):
     """
-    Two goals that hold together, the second under the bindings of the first.
+    Two goals that hold together, the second seeing the variables the first binds.
     """
 
     left: Goal
@@ -83,15 +89,12 @@ class Conjunction(Goal):
 
     right: Goal
     """
-    The goal solved under each solution of :attr:`left`.
+    The goal solved under the bindings of :attr:`left`.
     """
 
-    def solutions(self, world: World, bindings: Bindings) -> list[Bindings]:
-        return [
-            solution
-            for left_solution in self.left.solutions(world, bindings)
-            for solution in self.right.solutions(world, left_solution)
-        ]
+    def constrain(self, world: World, goal_query: GoalQuery) -> None:
+        self.left.constrain(world, goal_query)
+        self.right.constrain(world, goal_query)
 
 
 # %% utilities
@@ -129,8 +132,8 @@ class UnboundTest(UtilityGoal):
         """
         return GoalFunctor.UNBOUND
 
-    def solutions(self, world: World, bindings: Bindings) -> list[Bindings]:
-        return [bindings] if bindings.resolve(self.term.arguments[0]) is None else []
+    def constrain(self, world: World, goal_query: GoalQuery) -> None:
+        goal_query.require(goal_query.value(self.term.arguments[0]) == None)  # noqa: E711
 
 
 @dataclass
@@ -147,11 +150,15 @@ class FirstDayOfYear(UtilityGoal):
         """
         return GoalFunctor.FIRST_DAY_OF_YEAR
 
-    def solutions(self, world: World, bindings: Bindings) -> list[Bindings]:
+    @staticmethod
+    @symbolic_function
+    def first_day_text(year: int) -> str:
+        """:return: January 1 of *year*, as SARA's program writes it, ``YYYY-MM-DD``."""
+        return datetime.date(year, 1, 1).isoformat()
+
+    def constrain(self, world: World, goal_query: GoalQuery) -> None:
         year, day = self.term.arguments
-        first_day = PrologText(datetime.date(bindings.resolve(year), 1, 1).isoformat())
-        solution = bindings.unify(day, first_day)
-        return [] if solution is None else [solution]
+        goal_query.unify(day, FirstDayOfYear.first_day_text(goal_query.value(year)))
 
 
 @dataclass
@@ -167,8 +174,14 @@ class DayOrder(UtilityGoal):
         """
         return GoalFunctor.DAY_ORDER
 
-    def solutions(self, world: World, bindings: Bindings) -> list[Bindings]:
-        first, second = (bindings.resolve(day) for day in self.term.arguments)
+    @staticmethod
+    @symbolic_function
+    def is_in_order(first: Term, second: Term) -> bool:
+        """:return: Whether neither day is open and *first* is not after *second*."""
         if first is None or second is None:
-            return []
-        return [bindings] if WorldReader.date(first) <= WorldReader.date(second) else []
+            return False
+        return WorldReader.date(first) <= WorldReader.date(second)
+
+    def constrain(self, world: World, goal_query: GoalQuery) -> None:
+        first, second = (goal_query.value(day) for day in self.term.arguments)
+        goal_query.require(DayOrder.is_in_order(first, second))

@@ -15,7 +15,6 @@ from law_as_code_benchmarks.sara.prolog_term import (
     TermKey,
     TermReader,
 )
-from law_as_code_benchmarks.sara.provision import Bindings
 
 # %% reading named variables
 
@@ -40,24 +39,34 @@ def test_a_conjunctive_test_goal_keeps_the_variables_its_conjuncts_share(
     assert relationship.arguments[3] == PrologVariable("End_relationship")
 
 
-# %% bindings
-
-
-def test_a_variable_bound_once_agrees_only_with_its_value() -> None:
-    """
-    A variable bound to a value agrees with that value and no other.
-    """
-    bindings = Bindings().unify(PrologVariable("Day"), "2018-01-01")
-    assert bindings.unify(PrologVariable("Day"), PrologText("2018-01-01")) == bindings
-    assert bindings.unify(PrologVariable("Day"), "2019-01-01") is None
-
-
 # %% conjunctions and utilities
 
 
 def empty_world() -> World:
     """:return: A world of no circumstances."""
     return World(united_states=Country(name="usa"))
+
+
+def first_days_of(first_year: int, second_year: int) -> CompoundTerm:
+    """:return: The goal that one variable is January 1 of both *first_year* and *second_year*."""
+    first_day = PrologVariable("First_day")
+    return CompoundTerm(
+        functor=GoalFunctor.CONJUNCTION,
+        arguments=tuple(
+            CompoundTerm(
+                functor=GoalFunctor.FIRST_DAY_OF_YEAR, arguments=(year, first_day)
+            )
+            for year in (first_year, second_year)
+        ),
+    )
+
+
+def test_a_variable_bound_once_agrees_only_with_its_value() -> None:
+    """
+    A variable bound to a day agrees with that day and no other.
+    """
+    assert Goal.from_term(first_days_of(2018, 2018)).holds(empty_world())
+    assert not Goal.from_term(first_days_of(2018, 2019)).holds(empty_world())
 
 
 def first_day_of_2018_compared_with(day: str) -> CompoundTerm:

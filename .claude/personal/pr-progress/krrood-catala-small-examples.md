@@ -1,10 +1,9 @@
 ### Plan
-- Generalize the Catala test reader (fr/en/pl, $/PLN, decimals, constructors with content, data scopes)
-- Map structure literals onto domain dataclasses
-- Model inheritance, Polish tax, US tax §121/§132, NSW gaming; score each
+- Reader for fr/en/pl, scope tests, models of inheritance, Polish tax, US tax code, NSW gaming
 
 ### Done
-- Bootstrap, draft PR #16 stacked on #15
+- All 46 test scopes reproduced (62 with family benefits) at d5cdfa3; 71 tests in tests/catala pass, also on krrood main
+- PR description current
 
 ### Next
-- Reader generalization
+- Review by the user; merge after #15

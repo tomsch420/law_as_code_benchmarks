@@ -989,7 +989,7 @@ class UnmarriedIncomeTaxTest(ScheduleIncomeTaxTest[UnmarriedIncomeTax]):
 
     def taxpayers(self) -> list[TaxpayerOfYear]:
         taxpayer = variable(Party, domain=self.world.parties)
-        year = variable(CalendarYear, domain=self.world.calendar_years)
+        year = variable(CalendarYear, domain=self.world.years_in_question())
         married = variable(
             MarriedIndividual,
             domain=MarriedIndividualTest(world=self.world).conclusions,
@@ -1191,7 +1191,7 @@ class TaxOwedTest(Provision[TaxOwed]):
     ) -> list[TaxOwed]:
         """:return: The tax of each person who owes, or does not owe, income tax and employment tax."""
         person = variable(Party, domain=self.world.parties)
-        year = variable(CalendarYear, domain=self.world.calendar_years)
+        year = variable(CalendarYear, domain=self.world.years_in_question())
         income_tax = variable(
             TotalIncomeTax, domain=IncomeTaxTest(world=self.world).conclusions
         )

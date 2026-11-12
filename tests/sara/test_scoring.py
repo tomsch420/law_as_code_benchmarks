@@ -7,7 +7,6 @@ from __future__ import annotations
 import statistics
 
 from law_as_code_benchmarks.sara.case import SaraSplit
-from law_as_code_benchmarks.sara.provision import SaraPredicate
 from law_as_code_benchmarks.sara.scoring import (
     AmountPredicate,
     AnswerKind,
@@ -30,9 +29,9 @@ def test_a_case_about_an_unmodelled_provision_is_not_modelled(swipl: str) -> Non
     """
     A case asking about an unmodelled provision counts as unmodelled and not correct.
     """
-    result = CaseResult.from_identifier("tax_case_8", swipl)
+    result = CaseResult.from_identifier("s3306_a_1_pos", swipl)
     assert (result.kind, result.is_modelled, result.is_correct) == (
-        AnswerKind.AMOUNT,
+        AnswerKind.ENTAILMENT,
         False,
         False,
     )
@@ -41,22 +40,14 @@ def test_a_case_about_an_unmodelled_provision_is_not_modelled(swipl: str) -> Non
 # %% the test split
 
 
-def test_the_test_split_models_the_cases_of_the_modelled_provisions(
-    swipl: str,
-) -> None:
+def test_the_test_split_models_every_case(swipl: str) -> None:
     """
-    Scoring the test split models exactly the cases of the modelled provisions.
+    Scoring the test split models each of its cases, entailment and amount alike.
     """
     score = SplitScore.from_split(SaraSplit.TEST, swipl)
-    modelled = [result for result in score.results if result.is_modelled]
-    predicates = {predicate.value for predicate in SaraPredicate}
-    assert len(score.results) == len(SaraSplit.TEST.case_identifiers())
-    assert [result.identifier for result in modelled] == [
-        identifier
-        for identifier in SaraSplit.TEST.case_identifiers()
-        if identifier.removesuffix("_pos").removesuffix("_neg") in predicates
-    ]
-    assert all(result.kind == AnswerKind.ENTAILMENT for result in modelled)
+    assert [result.identifier for result in score.results if result.is_modelled] == (
+        SaraSplit.TEST.case_identifiers()
+    )
 
 
 # %% timing
@@ -77,7 +68,7 @@ def test_an_unmodelled_case_is_not_timed(swipl: str) -> None:
     """
     A case about an unmodelled provision is not answered, so no stage is timed.
     """
-    assert CaseResult.from_identifier("tax_case_8", swipl).durations == {}
+    assert CaseResult.from_identifier("s3306_a_1_pos", swipl).durations == {}
 
 
 def timed_result(identifier: str, seconds: float) -> CaseResult:

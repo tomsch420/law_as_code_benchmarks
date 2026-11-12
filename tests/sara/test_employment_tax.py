@@ -27,6 +27,7 @@ from law_as_code_benchmarks.sara.employment_tax import (
     DaysOfEmploymentEmployerTest,
     EmploymentDefinition,
     ExciseTaxOnEmployer,
+    TotalWagesOfEmployer,
     WagesDefinition,
 )
 from law_as_code_benchmarks.sara.employment_tax_conclusions import (
@@ -142,6 +143,20 @@ def test_wages_are_counted_up_to_the_wage_base() -> None:
     ]
 
 
+def test_each_payment_to_an_employee_is_wages_once() -> None:
+    """
+    Two payments to the same employee are two wages, not one for each pairing of the
+    payment with an occurrence of the employee among the payees.
+    """
+    world = world_of_one_service()
+    first, second = payment_for_work(world, 500), payment_for_work(world, 700)
+    second.name = "second pay"
+    world.payments = [first, second]
+    assert sorted(
+        wages.amount for wages in WagesDefinition(world=world).conclusions
+    ) == sorted(payment.amount for payment in world.payments)
+
+
 def test_a_payment_into_a_plan_for_death_of_the_employee_is_no_wages() -> None:
     """
     `§ 3306(b)(2)(C) <https://www.law.cornell.edu/uscode/text/26/3306#b_2_C>`__: a payment by the employer into a plan making provision for the
@@ -225,6 +240,21 @@ def test_the_excise_tax_rounds_half_a_dollar_up() -> None:
         ),
     ]
     assert [tax.amount for tax in ExciseTaxOnEmployer(world=world).conclusions] == [1]
+
+
+def test_total_wages_run_over_the_calendar_year_they_are_paid_in() -> None:
+    """
+    The total wages an employer paid in a year run from January 1 to December 31 of it,
+    each a day.
+    """
+    world = world_of_one_service()
+    world.payments = [payment_for_work(world, 1_000)]
+    world.calendar_years = [CalendarYear(number=2017)]
+    [total_wages] = TotalWagesOfEmployer(world=world).conclusions
+    assert (total_wages.first_day, total_wages.last_day) == (
+        datetime.date(2017, 1, 1),
+        datetime.date(2017, 12, 31),
+    )
 
 
 def test_a_stated_conclusion_holds_alongside_inferred_ones() -> None:

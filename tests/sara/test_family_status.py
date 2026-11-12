@@ -191,12 +191,12 @@ def test_a_provision_asked_again_about_a_case_draws_no_new_conclusions() -> None
     assert SpousesWithoutNonresidentAlienTest(world=world).conclusions is first
 
 
-def test_a_calendar_year_added_to_a_case_makes_provisions_draw_conclusions_anew() -> (
+def test_a_calendar_year_asked_about_makes_provisions_draw_conclusions_for_it_alone() -> (
     None
 ):
     """
-    Adding a calendar year makes a provision draw its conclusions again, for that year
-    too.
+    Asking about a calendar year makes a provision draw its conclusions again, for the
+    years asked about only.
     """
     world = world_of_alice_and_bob()
     SpousesWithoutNonresidentAlienTest(world=world).conclusions
@@ -204,7 +204,7 @@ def test_a_calendar_year_added_to_a_case_makes_provisions_draw_conclusions_anew(
     assert {
         conclusion.year
         for conclusion in SpousesWithoutNonresidentAlienTest(world=world).conclusions
-    } == {2018, 2019}
+    } == {2019}
 
 
 # %% gross income

@@ -485,7 +485,7 @@ class GrossIncomeOfParty(Provision[GrossIncome]):
         return received + [
             IndividualGrossIncome(person=person, year=year, amount=0)
             for person in self.world.parties
-            for year in self.world.calendar_years
+            for year in self.world.years_in_question()
             if not any(
                 income.person is person and income.year is year for income in received
             )
@@ -494,7 +494,7 @@ class GrossIncomeOfParty(Provision[GrossIncome]):
     def received_incomes(self) -> list[IndividualGrossIncome]:
         """:return: What each party receives in each calendar year they receive anything in."""
         revenue = variable(Revenue, domain=[*self.world.incomes, *self.world.payments])
-        year = variable(CalendarYear, domain=self.world.calendar_years)
+        year = variable(CalendarYear, domain=self.world.years_in_question())
         return (
             an(
                 entity(
@@ -607,7 +607,7 @@ class MarriedAtDeterminationTest(Provision[MarriedAtDetermination]):
         marriage = variable(Marriage, domain=self.world.marriages)
         person = variable(Party, domain=self.world.parties)
         spouse = variable(Party, domain=self.world.parties)
-        year = variable(CalendarYear, domain=self.world.calendar_years)
+        year = variable(CalendarYear, domain=self.world.years_in_question())
         death = variable(
             Death, domain=[death for death in self.world.deaths if death.day]
         )
@@ -637,7 +637,7 @@ class MarriedAtDeterminationTest(Provision[MarriedAtDetermination]):
         marriage = variable(Marriage, domain=self.world.marriages)
         person = variable(Party, domain=self.world.parties)
         spouse = variable(Party, domain=self.world.parties)
-        year = variable(CalendarYear, domain=self.world.calendar_years)
+        year = variable(CalendarYear, domain=self.world.years_in_question())
         death = variable(Death, domain=self.world.deaths)
         earlier_death = variable(Death, domain=self.world.deaths)
         return an(
@@ -715,7 +715,7 @@ class LegalSeparationTest(Provision[LegallySeparatedIndividual]):
         separation = variable(LegalSeparation, domain=self.world.legal_separations)
         person = variable(Party, domain=self.world.parties)
         spouse = variable(Party, domain=self.world.parties)
-        year = variable(CalendarYear, domain=self.world.calendar_years)
+        year = variable(CalendarYear, domain=self.world.years_in_question())
         return an(
             entity(
                 inference(LegallySeparatedIndividual)(
@@ -826,7 +826,7 @@ class JointFilingTest(Provision[JointFiling]):
             ),
         )
         joint_return = variable(JointReturn, domain=self.world.joint_returns)
-        year = variable(CalendarYear, domain=self.world.calendar_years)
+        year = variable(CalendarYear, domain=self.world.years_in_question())
         return an(
             entity(
                 inference(JointFiling)(
@@ -956,7 +956,7 @@ class HomeOfChildTest(Provision[HomeOfChild]):
                 if residence.period.start is not None
             ],
         )
-        year = variable(CalendarYear, domain=self.world.calendar_years)
+        year = variable(CalendarYear, domain=self.world.years_in_question())
         joint_return = variable(JointReturn, domain=self.world.joint_returns)
         return an(
             entity(
@@ -1013,7 +1013,7 @@ class AbsentSpouseTest(Provision[AbsentSpouse]):
             domain=MarriedUnderGeneralRuleTest(world=self.world).conclusions,
         )
         household = variable(Household, domain=self.world.households())
-        year = variable(CalendarYear, domain=self.world.calendar_years)
+        year = variable(CalendarYear, domain=self.world.years_in_question())
         residence = variable(
             Residence,
             domain=[
@@ -1416,7 +1416,7 @@ class SharedAbodeTest(Provision[SharedAbode]):
         )
         residence = variable(Residence, domain=self.world.residences)
         taxpayer_residence = variable(Residence, domain=self.world.residences)
-        year = variable(CalendarYear, domain=self.world.calendar_years)
+        year = variable(CalendarYear, domain=self.world.years_in_question())
         return an(
             entity(
                 inference(SharedAbode)(
@@ -1475,7 +1475,7 @@ class AgeRequirementTest(Provision[AgeRequirement]):
     def query(self) -> Query:
         individual = variable(Party, domain=self.world.parties)
         taxpayer = variable(Party, domain=self.world.parties)
-        year = variable(CalendarYear, domain=self.world.calendar_years)
+        year = variable(CalendarYear, domain=self.world.years_in_question())
         birth = variable(Birth, domain=self.world.births)
         any_birth = variable(Birth, domain=self.world.births)
         taxpayer_birth = variable(Birth, domain=self.world.births)
@@ -1590,7 +1590,7 @@ class NoJointReturnTest(Provision[NoJointReturn]):
 
     def query(self) -> Query:
         individual = variable(Party, domain=self.world.parties)
-        year = variable(CalendarYear, domain=self.world.calendar_years)
+        year = variable(CalendarYear, domain=self.world.years_in_question())
         filing = variable(
             JointFiling, domain=JointFilingTest(world=self.world).conclusions
         )
@@ -1931,7 +1931,7 @@ class HouseholdMemberTest(Provision[HouseholdMemberRelationship]):
         taxpayer_residence = variable(Residence, domain=residences)
         individual = variable(Party, domain=self.world.parties)
         taxpayer = variable(Party, domain=self.world.parties)
-        year = variable(CalendarYear, domain=self.world.calendar_years)
+        year = variable(CalendarYear, domain=self.world.years_in_question())
         marriage = variable(
             Marriage,
             domain=[
@@ -2008,7 +2008,7 @@ class QualifyingRelativeRelationshipTest(Provision[QualifyingRelativeRelationshi
         relationship = variable(
             RelationshipToTaxpayer, domain=self.relationships_regardless_of_year()
         )
-        year = variable(CalendarYear, domain=self.world.calendar_years)
+        year = variable(CalendarYear, domain=self.world.years_in_question())
         member = variable(
             HouseholdMemberRelationship,
             domain=HouseholdMemberTest(world=self.world).conclusions,
@@ -2123,7 +2123,7 @@ class NoGrossIncomeTest(Provision[NoGrossIncome]):
 
     def query(self) -> Query:
         individual = variable(Party, domain=self.world.parties)
-        year = variable(CalendarYear, domain=self.world.calendar_years)
+        year = variable(CalendarYear, domain=self.world.years_in_question())
         income = variable(
             GrossIncome, domain=GrossIncomeOfParty(world=self.world).conclusions
         )
@@ -2167,7 +2167,7 @@ class NoQualifyingChildTest(Provision[NoQualifyingChild]):
 
     def query(self) -> Query:
         individual = variable(Party, domain=self.world.parties)
-        year = variable(CalendarYear, domain=self.world.calendar_years)
+        year = variable(CalendarYear, domain=self.world.years_in_question())
         child = variable(
             QualifyingChild, domain=QualifyingChildTest(world=self.world).conclusions
         )
@@ -2556,7 +2556,7 @@ class DependencyExceptionTest(Provision[DependencyException]):
     def query(self) -> Query:
         individual = variable(Party, domain=self.world.parties)
         taxpayer = variable(Party, domain=self.world.parties)
-        year = variable(CalendarYear, domain=self.world.calendar_years)
+        year = variable(CalendarYear, domain=self.world.years_in_question())
         dependent_taxpayer = variable(
             DependentOfOtherTaxpayer,
             domain=DependentOfOtherTaxpayerTest(world=self.world).conclusions,
@@ -2724,7 +2724,7 @@ class DeceasedSpouseTest(Provision[DeceasedSpouse]):
         death = variable(
             Death, domain=[death for death in self.world.deaths if death.day]
         )
-        year = variable(CalendarYear, domain=self.world.calendar_years)
+        year = variable(CalendarYear, domain=self.world.years_in_question())
         return an(
             entity(
                 inference(DeceasedSpouse)(
@@ -2776,7 +2776,7 @@ class HomeForDependentChildTest(Provision[HomeForDependentChild]):
             HouseholdMaintenance,
             domain=HouseholdMaintenanceTest(world=self.world).conclusions,
         )
-        year = variable(CalendarYear, domain=self.world.calendar_years)
+        year = variable(CalendarYear, domain=self.world.years_in_question())
         residences = [
             residence
             for residence in self.world.residences
@@ -2923,7 +2923,7 @@ class RemarriedTaxpayerTest(Provision[RemarriedTaxpayer]):
         previous_marriage = variable(Marriage, domain=marriages)
         remarriage = variable(Marriage, domain=marriages)
         taxpayer = variable(Party, domain=self.world.parties)
-        year = variable(CalendarYear, domain=self.world.calendar_years)
+        year = variable(CalendarYear, domain=self.world.years_in_question())
         return an(
             entity(
                 inference(RemarriedTaxpayer)(
@@ -2967,7 +2967,7 @@ class SpousesWithoutNonresidentAlienTest(Provision[SpousesWithoutNonresidentAlie
         marriage = variable(Marriage, domain=self.world.marriages)
         taxpayer = variable(Party, domain=self.world.parties)
         spouse = variable(Party, domain=self.world.parties)
-        year = variable(CalendarYear, domain=self.world.calendar_years)
+        year = variable(CalendarYear, domain=self.world.years_in_question())
         status = variable(
             NonresidentAlienStatus, domain=self.world.nonresident_alien_statuses
         )
@@ -3134,7 +3134,7 @@ class NonresidentAlienSpouseTest(Provision[NonresidentAlienSpouse]):
         status = variable(
             NonresidentAlienStatus, domain=self.world.nonresident_alien_statuses
         )
-        year = variable(CalendarYear, domain=self.world.calendar_years)
+        year = variable(CalendarYear, domain=self.world.years_in_question())
         return an(
             entity(
                 inference(NonresidentAlienSpouse)(
@@ -3178,7 +3178,7 @@ class SpouseDeceasedInYearTest(Provision[SpouseDeceasedInYear]):
         death = variable(
             Death, domain=[death for death in self.world.deaths if death.day]
         )
-        year = variable(CalendarYear, domain=self.world.calendar_years)
+        year = variable(CalendarYear, domain=self.world.years_in_question())
         nonresident_spouse = variable(
             NonresidentAlienSpouse,
             domain=NonresidentAlienSpouseTest(world=self.world).conclusions,
@@ -3425,7 +3425,7 @@ class HomeForQualifyingIndividualTest(Provision[HomeForQualifyingIndividual]):
             HouseholdMaintenance,
             domain=HouseholdMaintenanceTest(world=self.world).conclusions,
         )
-        year = variable(CalendarYear, domain=self.world.calendar_years)
+        year = variable(CalendarYear, domain=self.world.years_in_question())
         residence = variable(Residence, domain=self.world.residences)
         taxpayer_residence = variable(Residence, domain=self.world.residences)
         return an(
@@ -3487,7 +3487,7 @@ class HomeForParentTest(Provision[HomeForParent]):
             HouseholdMaintenance,
             domain=HouseholdMaintenanceTest(world=self.world).conclusions,
         )
-        year = variable(CalendarYear, domain=self.world.calendar_years)
+        year = variable(CalendarYear, domain=self.world.years_in_question())
         residence = variable(
             Residence,
             domain=[
@@ -3569,7 +3569,7 @@ class HeadOfHouseholdHomeTest(Provision[HeadOfHouseholdHome]):
         survivor = variable(
             SurvivingSpouse, domain=SurvivingSpouseTest(world=self.world).conclusions
         )
-        year = variable(CalendarYear, domain=self.world.calendar_years)
+        year = variable(CalendarYear, domain=self.world.years_in_question())
         return an(
             entity(
                 inference(HeadOfHouseholdHome)(
@@ -3725,7 +3725,7 @@ class NonresidentAlienTaxpayerTest(Provision[NonresidentAlienTaxpayer]):
                 if status.period.start is None
             ],
         )
-        year = variable(CalendarYear, domain=self.world.calendar_years)
+        year = variable(CalendarYear, domain=self.world.years_in_question())
         return an(
             entity(
                 inference(NonresidentAlienTaxpayer)(
@@ -3746,7 +3746,7 @@ class NonresidentAlienTaxpayerTest(Provision[NonresidentAlienTaxpayer]):
                 if status.period.start is not None
             ],
         )
-        year = variable(CalendarYear, domain=self.world.calendar_years)
+        year = variable(CalendarYear, domain=self.world.years_in_question())
         return an(
             entity(
                 inference(NonresidentAlienTaxpayer)(
@@ -3785,7 +3785,7 @@ class HouseholdMemberDependentTest(Provision[HouseholdMemberDependent]):
             HouseholdMemberRelationship,
             domain=HouseholdMemberTest(world=self.world).conclusions,
         )
-        year = variable(CalendarYear, domain=self.world.calendar_years)
+        year = variable(CalendarYear, domain=self.world.years_in_question())
         exception = variable(
             DependencyException,
             domain=DependencyExceptionTest(world=self.world).conclusions,
@@ -3899,7 +3899,7 @@ class HeadOfHouseholdLimitationTest(Provision[HeadOfHouseholdLimitation]):
     def query(self) -> Query:
         taxpayer = variable(Party, domain=self.world.parties)
         individual = variable(Party, domain=self.world.parties)
-        year = variable(CalendarYear, domain=self.world.calendar_years)
+        year = variable(CalendarYear, domain=self.world.years_in_question())
         nonresident = variable(
             NonresidentAlienTaxpayer,
             domain=NonresidentAlienTaxpayerTest(world=self.world).conclusions,
@@ -4122,7 +4122,7 @@ class UnmarriedApplicableAmountTest(Provision[UnmarriedApplicableAmount]):
 
     def query(self) -> Query:
         taxpayer = variable(Party, domain=self.world.parties)
-        year = variable(CalendarYear, domain=self.world.calendar_years)
+        year = variable(CalendarYear, domain=self.world.years_in_question())
         married = variable(
             MarriedIndividual,
             domain=MarriedIndividualTest(world=self.world).conclusions,
@@ -4305,7 +4305,7 @@ class SuspendedExemptionAmountTest(Provision[SuspendedExemptionAmount]):
         return 2025
 
     def query(self) -> Query:
-        year = variable(CalendarYear, domain=self.world.calendar_years)
+        year = variable(CalendarYear, domain=self.world.years_in_question())
         return an(
             entity(inference(SuspendedExemptionAmount)(year=year.number)).where(
                 year.number >= self.first_year, year.number <= self.last_year
@@ -4558,7 +4558,7 @@ class ExemptionAmountTest(Provision[ExemptionAmount]):
     def zero_amounts(self) -> list[ExemptionAmount]:
         """:return: The zero exemption amounts of `(2) <https://www.law.cornell.edu/uscode/text/26/151#d_2>`__ and `(5) <https://www.law.cornell.edu/uscode/text/26/151#d_5>`__."""
         taxpayer = variable(Party, domain=self.world.parties)
-        year = variable(CalendarYear, domain=self.world.calendar_years)
+        year = variable(CalendarYear, domain=self.world.years_in_question())
         return an(
             entity(
                 inference(ExemptionAmount)(
@@ -4570,7 +4570,7 @@ class ExemptionAmountTest(Provision[ExemptionAmount]):
     def phased_out_amounts(self) -> list[ExemptionAmount]:
         """:return: The exemption amounts phased out under `(3) <https://www.law.cornell.edu/uscode/text/26/151#d_3>`__, where they are not zero."""
         taxpayer = variable(Party, domain=self.world.parties)
-        year = variable(CalendarYear, domain=self.world.calendar_years)
+        year = variable(CalendarYear, domain=self.world.years_in_question())
         phased_out = variable(
             PhasedOutExemptionAmount,
             domain=PhasedOutExemptionAmountTest(world=self.world).conclusions,
@@ -4592,7 +4592,7 @@ class ExemptionAmountTest(Provision[ExemptionAmount]):
     def general_amounts(self) -> list[ExemptionAmount]:
         """:return: The exemption amounts of `(1) <https://www.law.cornell.edu/uscode/text/26/151#d_1>`__, where none of `(2) <https://www.law.cornell.edu/uscode/text/26/151#d_2>`__, `(3) <https://www.law.cornell.edu/uscode/text/26/151#d_3>`__ and `(5) <https://www.law.cornell.edu/uscode/text/26/151#d_5>`__ applies."""
         taxpayer = variable(Party, domain=self.world.parties)
-        year = variable(CalendarYear, domain=self.world.calendar_years)
+        year = variable(CalendarYear, domain=self.world.years_in_question())
         phased_out = variable(
             PhasedOutExemptionAmount,
             domain=PhasedOutExemptionAmountTest(world=self.world).conclusions,

@@ -348,7 +348,7 @@ class ItemizedDeductionsTest(Provision[ItemizedDeductions]):
                 if deduction.day is not None and deduction.amount is not None
             ],
         )
-        year = variable(CalendarYear, domain=self.world.calendar_years)
+        year = variable(CalendarYear, domain=self.world.years_in_question())
         return an(
             entity(
                 inference(ItemizedDeductions)(
@@ -426,7 +426,7 @@ class SuspendedLimitationTest(Provision[SuspendedLimitation]):
         return 2025
 
     def query(self) -> Query:
-        year = variable(CalendarYear, domain=self.world.calendar_years)
+        year = variable(CalendarYear, domain=self.world.years_in_question())
         return an(
             entity(inference(SuspendedLimitation)(year=year.number)).where(
                 year.number >= self.first_year, year.number <= self.last_year
@@ -723,7 +723,7 @@ class TemporaryBasicAmountTest(Provision[ConclusionType], ABC):
 
     def query(self) -> Query:
         conclusion_type = self.get_type_of_generic_parameter(parameter=ConclusionType)
-        year = variable(CalendarYear, domain=self.world.calendar_years)
+        year = variable(CalendarYear, domain=self.world.years_in_question())
         return an(
             entity(
                 inference(conclusion_type)(year=year.number, amount=self.amount)
@@ -809,7 +809,7 @@ class BasicAmountInOtherCasesTest(Provision[BasicAmountInOtherCases]):
             TemporaryBasicAmountInOtherCases,
             domain=TemporaryBasicAmountInOtherCasesTest(world=self.world).conclusions,
         )
-        year = variable(CalendarYear, domain=self.world.calendar_years)
+        year = variable(CalendarYear, domain=self.world.years_in_question())
         amount = variable(
             BasicAmountInOtherCases,
             domain=an(
@@ -1032,7 +1032,7 @@ class BasicStandardDeductionTest(Provision[BasicStandardDeduction]):
 
     def query(self) -> Query:
         taxpayer = variable(Party, domain=self.world.parties)
-        year = variable(CalendarYear, domain=self.world.calendar_years)
+        year = variable(CalendarYear, domain=self.world.years_in_question())
         other_cases = variable(
             BasicAmountInOtherCases,
             domain=BasicAmountInOtherCasesTest(world=self.world).conclusions,
@@ -1073,7 +1073,7 @@ class BasicStandardDeductionTest(Provision[BasicStandardDeduction]):
             HeadOfHouseholdBasicAmount,
             domain=HeadOfHouseholdBasicAmountTest(world=self.world).conclusions,
         )
-        year = variable(CalendarYear, domain=self.world.calendar_years)
+        year = variable(CalendarYear, domain=self.world.years_in_question())
         return an(
             entity(
                 inference(BasicStandardDeduction)(
@@ -1265,7 +1265,7 @@ class AgedTaxpayerTest(Provision[AgedTaxpayer]):
 
     def query(self) -> Query:
         birth = variable(Birth, domain=self.world.births)
-        year = variable(CalendarYear, domain=self.world.calendar_years)
+        year = variable(CalendarYear, domain=self.world.years_in_question())
         return an(
             entity(
                 inference(AgedTaxpayer)(taxpayer=birth.person, year=year.number)
@@ -1298,7 +1298,7 @@ class BlindTaxpayerTest(Provision[BlindTaxpayer]):
 
     def query(self) -> Query:
         blindness = variable(Blindness, domain=self.world.blindnesses)
-        year = variable(CalendarYear, domain=self.world.calendar_years)
+        year = variable(CalendarYear, domain=self.world.years_in_question())
         return an(
             entity(
                 inference(BlindTaxpayer)(taxpayer=blindness.person, year=year.number)
@@ -1435,7 +1435,7 @@ class EntitlementCountTest(Provision[ConclusionType], ABC):
         """:return: The count of each taxpayer entitled, or not, for themself and for their spouse."""
         conclusion_type = self.get_type_of_generic_parameter(parameter=ConclusionType)
         taxpayer = variable(Party, domain=self.world.parties)
-        year = variable(CalendarYear, domain=self.world.calendar_years)
+        year = variable(CalendarYear, domain=self.world.years_in_question())
         own = variable(TaxpayerConclusion, domain=self.taxpayer_entitlements())
         spouse = variable(TaxpayerConclusion, domain=self.spouse_entitlements())
         is_entitled = exists(
@@ -1536,7 +1536,7 @@ class HigherAdditionalAmountTest(Provision[HigherAdditionalAmount]):
 
     def query(self) -> Query:
         taxpayer = variable(Party, domain=self.world.parties)
-        year = variable(CalendarYear, domain=self.world.calendar_years)
+        year = variable(CalendarYear, domain=self.world.years_in_question())
         married = variable(
             MarriedIndividual,
             domain=MarriedIndividualTest(world=self.world).conclusions,
@@ -1755,7 +1755,7 @@ class SpouseItemizingTest(Provision[SpouseItemizing]):
                 if deduction.day is not None
             ],
         )
-        year = variable(CalendarYear, domain=self.world.calendar_years)
+        year = variable(CalendarYear, domain=self.world.years_in_question())
         return an(
             entity(
                 inference(SpouseItemizing)(
@@ -1800,7 +1800,7 @@ class NonresidentAlienIndividualTest(Provision[NonresidentAlienIndividual]):
         status = variable(
             NonresidentAlienStatus, domain=self.world.nonresident_alien_statuses
         )
-        year = variable(CalendarYear, domain=self.world.calendar_years)
+        year = variable(CalendarYear, domain=self.world.years_in_question())
         return an(
             entity(
                 inference(NonresidentAlienIndividual)(
@@ -1840,7 +1840,7 @@ class TrustOrPartnershipTest(Provision[TrustOrPartnership]):
         status = variable(
             BusinessTrustStatus, domain=self.world.business_trust_statuses
         )
-        year = variable(CalendarYear, domain=self.world.calendar_years)
+        year = variable(CalendarYear, domain=self.world.years_in_question())
         return an(
             entity(
                 inference(TrustOrPartnership)(taxpayer=status.party, year=year.number)

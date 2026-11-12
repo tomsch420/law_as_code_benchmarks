@@ -23,6 +23,7 @@ from law_as_code_benchmarks.sara.domain import (
 )
 from law_as_code_benchmarks.sara.exceptions import ConflictingFacts, MissingFact
 from law_as_code_benchmarks.sara.prolog_term import CompoundTerm, PrologText
+from law_as_code_benchmarks.sara.provision import SaraPredicate
 
 # %% facts
 
@@ -111,6 +112,46 @@ def test_a_place_named_as_the_united_states_lies_in_it() -> None:
         ]
     ).read()
     assert world.services[0].places[1].country is world.united_states
+
+
+def test_a_fact_about_every_event_holds_for_each_service() -> None:
+    """
+    A fact leaving its event open, such as ``purpose_(_,"domestic service")``, holds for
+    every service, as in Prolog.
+    """
+    service = (
+        WorldReader.from_facts(
+            service_facts("alice")
+            + [fact(Relation.PURPOSE, None, PrologText(SaraName.DOMESTIC_SERVICE))]
+        )
+        .read()
+        .services[0]
+    )
+    assert service.kinds == {LaborKind.AGRICULTURAL_LABOR, LaborKind.DOMESTIC_SERVICE}
+
+
+def test_a_service_stated_as_employment_of_several_employees_is_one_for_each() -> None:
+    """
+    A service name a case states employment of several employees under names a service
+    of each of them.
+    """
+    world = WorldReader.from_facts(
+        [
+            fact(
+                SaraPredicate.EMPLOYMENT,
+                "harvest",
+                "alice",
+                employee,
+                PrologText("2017-01-24"),
+                None,
+            )
+            for employee in ("bob", "carol")
+        ]
+    ).read()
+    assert [
+        (conclusion.service.name, conclusion.service.employee.name)
+        for conclusion in world.stated_conclusions
+    ] == [("harvest", "bob"), ("harvest", "carol")]
 
 
 # %% facts the domain model cannot read

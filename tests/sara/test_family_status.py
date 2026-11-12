@@ -30,6 +30,7 @@ from law_as_code_benchmarks.sara.family_status import (
 )
 from law_as_code_benchmarks.sara.family_status_conclusions import MarriedIndividual
 from law_as_code_benchmarks.sara.prolog_term import CompoundTerm
+from law_as_code_benchmarks.sara.scoring import CaseResult
 
 # %% a world of one family
 
@@ -157,6 +158,15 @@ def test_the_first_day_of_a_child_relation_counts_as_a_birthday() -> None:
     assert AgeRequirementTest(world=world).holds(
         goal(AgeRequirementTest.predicate, "charlie", "alice", 2018)
     )
+
+
+def test_an_individual_named_only_in_the_goal_has_no_gross_income(swipl: str) -> None:
+    """
+    An individual a case states nothing of but its question names has no gross income,
+    as in SARA's program (``s152_d_1_B_pos``).
+    """
+    result = CaseResult.from_identifier("s152_d_1_B_pos", swipl)
+    assert (result.is_modelled, result.is_correct) == (True, True)
 
 
 # %% surviving spouse

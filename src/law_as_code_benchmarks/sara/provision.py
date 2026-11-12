@@ -91,6 +91,57 @@ class SaraPredicate(StrEnum):
     EMPLOYER_OF_DOMESTIC_SERVICE = "s3306_a_3"
     """`§ 3306(a)(3) <https://www.law.cornell.edu/uscode/text/26/3306#a_3>`__: a person who paid $1,000 or more in cash for domestic service."""
 
+    EMPLOYER_UNDER_GENERAL_RULE = "s3306_a_1"
+    """`§ 3306(a)(1) <https://www.law.cornell.edu/uscode/text/26/3306#a_1>`__: an employer by wages paid or days of employment, agricultural labor and domestic service aside."""
+
+    EMPLOYER_BY_DAYS_OF_AGRICULTURAL_LABOR = "s3306_a_2_B"
+    """`§ 3306(a)(2)(B) <https://www.law.cornell.edu/uscode/text/26/3306#a_2_B>`__: a person who employed 5 or more individuals in agricultural labor on each of 10 days in different weeks."""
+
+    SICKNESS_OR_ACCIDENT_DISABILITY_PLAN = "s3306_b_2_A"
+    """`§ 3306(b)(2)(A) <https://www.law.cornell.edu/uscode/text/26/3306#b_2_A>`__: a plan making provision for employees in case of sickness or accident disability."""
+
+    PAYMENT_IN_KIND_OUTSIDE_BUSINESS = "s3306_b_7"
+    """`§ 3306(b)(7) <https://www.law.cornell.edu/uscode/text/26/3306#b_7>`__: remuneration in a medium other than cash for service not in the course of the employer's business."""
+
+    PAYMENT_AFTER_TERMINATION = "s3306_b_10_A"
+    """`§ 3306(b)(10)(A) <https://www.law.cornell.edu/uscode/text/26/3306#b_10_A>`__: a payment upon or after the termination of employment for death or disability."""
+
+    PAYMENT_FROM_PLAN_FOR_EMPLOYEES = "s3306_b_10_B"
+    """`§ 3306(b)(10)(B) <https://www.law.cornell.edu/uscode/text/26/3306#b_10_B>`__: a payment from a plan an employer established for its employees or their dependents."""
+
+    AGRICULTURAL_LABOR_PAID_IN_KIND = "s3306_b_11"
+    """`§ 3306(b)(11) <https://www.law.cornell.edu/uscode/text/26/3306#b_11>`__: remuneration for agricultural labor paid in a medium other than cash."""
+
+    PAYMENT_TO_SURVIVING_SPOUSE = "s3306_b_15"
+    """`§ 3306(b)(15) <https://www.law.cornell.edu/uscode/text/26/3306#b_15>`__: a payment to the surviving spouse of an employee after the year of the death."""
+
+    SERVICE_IN_UNITED_STATES = "s3306_c_A"
+    """`§ 3306(c)(A) <https://www.law.cornell.edu/uscode/text/26/3306#c>`__: service performed within the United States."""
+
+    EXCLUDED_AGRICULTURAL_LABOR = "s3306_c_1"
+    """`§ 3306(c)(1) <https://www.law.cornell.edu/uscode/text/26/3306#c_1>`__: agricultural labor excluded from employment."""
+
+    EXCLUDED_DOMESTIC_SERVICE = "s3306_c_2"
+    """`§ 3306(c)(2) <https://www.law.cornell.edu/uscode/text/26/3306#c_2>`__: domestic service excluded from employment."""
+
+    SERVICE_FOR_FAMILY_MEMBER = "s3306_c_5"
+    """`§ 3306(c)(5) <https://www.law.cornell.edu/uscode/text/26/3306#c_5>`__: service for one's child or spouse, or by a child under 21 for a parent."""
+
+    SERVICE_OF_STUDENT = "s3306_c_10_A"
+    """`§ 3306(c)(10)(A) <https://www.law.cornell.edu/uscode/text/26/3306#c_10_A>`__: service for a school, college or university by a student of it, or a student's spouse."""
+
+    STUDENT_AT_SCHOOL = "s3306_c_10_A_i"
+    """`§ 3306(c)(10)(A)(i) <https://www.law.cornell.edu/uscode/text/26/3306#c_10_A_i>`__: a student enrolled and regularly attending classes at a school."""
+
+    MARRIED_STUDENT = "s3306_c_10_A_ii"
+    """`§ 3306(c)(10)(A)(ii) <https://www.law.cornell.edu/uscode/text/26/3306#c_10_A_ii>`__: a student married to someone, as SARA's program reads the spouse of a student."""
+
+    SERVICE_OF_STUDENT_NURSE = "s3306_c_13"
+    """`§ 3306(c)(13) <https://www.law.cornell.edu/uscode/text/26/3306#c_13>`__: service by a student nurse for a hospital or nurses' training school."""
+
+    SERVICE_OF_INMATE = "s3306_c_21"
+    """`§ 3306(c)(21) <https://www.law.cornell.edu/uscode/text/26/3306#c_21>`__: service by an inmate of a penal institution."""
+
     TOTAL_WAGES = "total_wages_employer"
     """The wages an employer paid in a period, each employee's capped at $7,000 by `§ 3306(b)(1) <https://www.law.cornell.edu/uscode/text/26/3306#b_1>`__."""
 
@@ -670,6 +721,11 @@ class Provision(Generic[ConclusionType], SubClassSafeGeneric, ABC):
         """The position of the calendar year among the predicate's arguments; None where it takes none."""
         return None
 
+    @classproperty
+    def party_positions(cls) -> tuple[int, ...]:
+        """The positions among the predicate's arguments of the parties a goal may name though the case states nothing of them."""
+        return ()
+
     @abstractmethod
     def query(self) -> Query:
         """:return: A query inferring the provision's conclusions about the case."""
@@ -684,11 +740,15 @@ class Provision(Generic[ConclusionType], SubClassSafeGeneric, ABC):
 
     @classmethod
     def from_goal(cls, goal: CompoundTerm, world: World) -> Provision:
-        """:return: The provision about *world*, the calendar year *goal* names among the years it considers."""
+        """:return: The provision about *world*, the calendar year and the parties at :attr:`party_positions` *goal* names among those it considers."""
         if cls.year_position is not None:
             year = goal.arguments[cls.year_position]
             if isinstance(year, int):
                 world.include_calendar_year(year)
+        for position in cls.party_positions:
+            name = goal.arguments[position]
+            if isinstance(name, str):
+                world.include_party(name)
         return cls(world=world)
 
     @property

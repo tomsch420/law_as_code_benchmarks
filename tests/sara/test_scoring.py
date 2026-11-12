@@ -25,18 +25,6 @@ def test_a_tax_case_asks_for_an_amount() -> None:
     assert AnswerKind.from_predicate(AmountPredicate.TAX) == AnswerKind.AMOUNT
 
 
-def test_a_case_about_an_unmodelled_provision_is_not_modelled(swipl: str) -> None:
-    """
-    A case asking about an unmodelled provision counts as unmodelled and not correct.
-    """
-    result = CaseResult.from_identifier("s3306_a_1_pos", swipl)
-    assert (result.kind, result.is_modelled, result.is_correct) == (
-        AnswerKind.ENTAILMENT,
-        False,
-        False,
-    )
-
-
 # %% the test split
 
 
@@ -62,13 +50,6 @@ def test_a_modelled_case_times_every_stage(swipl: str) -> None:
     assert set(result.durations) == set(TimedStage)
     assert all(seconds >= 0 for seconds in result.durations.values())
     assert result.reference_passed
-
-
-def test_an_unmodelled_case_is_not_timed(swipl: str) -> None:
-    """
-    A case about an unmodelled provision is not answered, so no stage is timed.
-    """
-    assert CaseResult.from_identifier("s3306_a_1_pos", swipl).durations == {}
 
 
 def timed_result(identifier: str, seconds: float) -> CaseResult:

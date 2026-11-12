@@ -13,11 +13,14 @@ from decimal import ROUND_HALF_UP, Decimal
 from krrood.symbol_graph.symbol_graph import Symbol
 
 from law_as_code_benchmarks.sara.domain import (
+    Business,
     CalendarYear,
+    Death,
+    EmployeeBenefitPlan,
     Party,
     Payment,
-    EmployeeBenefitPlan,
     Service,
+    Termination,
 )
 from law_as_code_benchmarks.sara.prolog_term import Term
 from law_as_code_benchmarks.sara.provision import SaraConclusion
@@ -103,9 +106,9 @@ class Wages(SaraConclusion):
 
 
 @dataclass(eq=False)
-class DeathBenefitPlan(SaraConclusion):
+class BenefitPlanConclusion(SaraConclusion, ABC):
     """
-    A plan making provision for employees in case of death.
+    A conclusion about a plan an employer establishes for its employees.
     """
 
     benefit_plan: EmployeeBenefitPlan
@@ -115,6 +118,150 @@ class DeathBenefitPlan(SaraConclusion):
 
     def prolog_arguments(self) -> tuple[Term, ...]:
         return (self.benefit_plan.name,)
+
+
+@dataclass(eq=False)
+class DeathBenefitPlan(BenefitPlanConclusion):
+    """
+    A plan making provision for employees in case of death.
+    """
+
+
+@dataclass(eq=False)
+class SicknessOrAccidentDisabilityPlan(BenefitPlanConclusion):
+    """
+    A plan making provision for employees in case of sickness or accident disability.
+    """
+
+
+# %% payments that are no wages
+
+
+@dataclass(eq=False)
+class PaymentInKindOutsideBusiness(SaraConclusion):
+    """
+    A payment in a medium other than cash for employment outside the employer's trade or
+    business.
+    """
+
+    payment: Payment
+    """
+    The payment.
+    """
+
+    service: Service
+    """
+    The employment it is paid for.
+    """
+
+    business: Business
+    """
+    The employer's trade or business, which the employment is of another sort than.
+    """
+
+    def prolog_arguments(self) -> tuple[Term, ...]:
+        return (
+            self.payment.name,
+            self.service.name,
+            self.service.employer.name,
+            self.service.employee.name,
+            self.payment.medium,
+            self.business.type_description,
+        )
+
+
+@dataclass(eq=False)
+class PaymentAfterTermination(SaraConclusion):
+    """
+    A payment upon or after an employer ended an employment for the employee's death or
+    disability.
+    """
+
+    payment: Payment
+    """
+    The payment.
+    """
+
+    termination: Termination
+    """
+    The termination.
+    """
+
+    def prolog_arguments(self) -> tuple[Term, ...]:
+        return (
+            self.payment.name,
+            self.termination.service.name,
+            self.termination.service.employee.name,
+            self.termination.employer.name,
+            None,
+            None,
+        )
+
+
+@dataclass(eq=False)
+class PaymentFromPlanForEmployees(SaraConclusion):
+    """
+    A payment from a plan its payer established for employees or their dependents.
+    """
+
+    payment: Payment
+    """
+    The payment.
+    """
+
+    def prolog_arguments(self) -> tuple[Term, ...]:
+        return (
+            self.payment.benefit_plan_drawn_on.sponsor.name,
+            self.payment.name,
+            self.payment.benefit_plan_drawn_on.name,
+        )
+
+
+@dataclass(eq=False)
+class AgriculturalLaborPaidInKind(SaraConclusion):
+    """
+    A payment for agricultural labor in a medium other than cash.
+    """
+
+    payment: Payment
+    """
+    The payment.
+    """
+
+    def prolog_arguments(self) -> tuple[Term, ...]:
+        return self.payment.name, self.payment.service.name, self.payment.medium
+
+
+@dataclass(eq=False)
+class PaymentToSurvivingSpouse(SaraConclusion):
+    """
+    A payment by an employer to the surviving spouse of an employee after the calendar
+    year the employee died in.
+    """
+
+    payment: Payment
+    """
+    The payment.
+    """
+
+    employment: Employment
+    """
+    The deceased's employment by the payer.
+    """
+
+    death: Death
+    """
+    The employee's death.
+    """
+
+    def prolog_arguments(self) -> tuple[Term, ...]:
+        return (
+            self.payment.name,
+            self.payment.payer.name,
+            self.payment.recipient.name,
+            self.death.person.name,
+            self.death.day.year,
+        )
 
 
 # %% employers
@@ -251,6 +398,67 @@ class EmployerByDaysOfEmployment(Employer):
             self.party.name,
             [workday.isoformat() for workday in self.workdays],
             [employee.name for employee in self.employees],
+            self.year,
+        )
+
+
+@dataclass(eq=False)
+class EmployerUnderGeneralRule(Employer):
+    """
+    An employer under `§ 3306(a)(1) <https://www.law.cornell.edu/uscode/text/26/3306#a_1>`__, by wages paid or by days of employment.
+    """
+
+
+@dataclass(eq=False)
+class AgriculturalWorkday(Symbol):
+    """
+    A day a person employed 5 or more individuals in agricultural labor on.
+    """
+
+    employer: Party
+    """
+    The person employing them.
+    """
+
+    workday: datetime.date
+    """
+    The day.
+    """
+
+    employees: list[Party] = field(default_factory=list)
+    """
+    The individuals employed on it.
+    """
+
+    def calendar_week(self) -> tuple[int, int]:
+        """:return: The year and number of the calendar week, Monday to Sunday, of the day."""
+        year, week, _ = self.workday.isocalendar()
+        return year, week
+
+
+@dataclass(eq=False)
+class EmployerByDaysOfAgriculturalLabor(Employer):
+    """
+    An employer for having employed 5 or more individuals in agricultural labor on
+    enough days, each in a different week.
+    """
+
+    workdays: list[AgriculturalWorkday] = field(default_factory=list)
+    """
+    The days counted.
+    """
+
+    def prolog_arguments(self) -> tuple[Term, ...]:
+        """
+        Orders the arguments as `§ 3306(a)(2)(B) <https://www.law.cornell.edu/uscode/text/26/3306#a_2_B>`__ does, the days, services, employees and
+        weeks inserted; the services are left open.
+        """
+        return (
+            self.party.name,
+            [workday.workday.isoformat() for workday in self.workdays],
+            None,
+            [[employee.name for employee in day.employees] for day in self.workdays],
+            sorted({workday.calendar_week() for workday in self.workdays}),
             self.year,
         )
 

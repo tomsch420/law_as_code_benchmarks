@@ -119,6 +119,21 @@ class InternationalOrganization(Role[Party]):
 
 
 @dataclass(eq=False)
+class EducationalInstitution(Role[Party]):
+    """A party that is a school, college or university."""
+
+
+@dataclass(eq=False)
+class NursesTrainingSchool(Role[Party]):
+    """A party that is a nurses' training school."""
+
+
+@dataclass(eq=False)
+class PenalInstitution(Role[Party]):
+    """A party that is a penal institution."""
+
+
+@dataclass(eq=False)
 class AmericanEmployer(Role[Party]):
     """A party that is an American employer."""
 
@@ -164,6 +179,9 @@ class Service(Symbol):
     purposes: set[LaborKind] = field(default_factory=set)
     """The kinds of work among :attr:`kinds` the case states as its purpose rather than its type."""
 
+    type_descriptions: list[str] = field(default_factory=list)
+    """The sorts of work the case states it to be, in the case's words."""
+
     def countries(self) -> list[Country | None]:
         """:return: The country of each place it is performed at, None for a place in no stated country."""
         return [place.country for place in self.places]
@@ -171,6 +189,13 @@ class Service(Symbol):
     def is_performed_at_any(self, place_names: list[str]) -> bool:
         """:return: Whether it is performed at a place of one of *place_names*."""
         return any(place.name in place_names for place in self.places)
+
+    @symbolic_function
+    def has_type_other_than(self, type_description: str) -> bool:
+        """:return: Whether the case states it to be of a sort other than *type_description*."""
+        return any(
+            stated_type != type_description for stated_type in self.type_descriptions
+        )
 
 
 class DomesticServicePlace(StrEnum):
@@ -208,6 +233,59 @@ class HospitalStay(Symbol):
     def includes(self, day: datetime.date) -> bool:
         """:return: Whether *day* falls within the stay, its first and last day included."""
         return self.start <= day and (self.end is None or day <= self.end)
+
+
+@dataclass(eq=False)
+class Enrollment(Symbol):
+    """A party's enrollment as a student at an institution."""
+
+    student: Party
+    """The student."""
+
+    institution: Party
+    """The institution enrolled at."""
+
+    period: Period = field(default_factory=Period)
+    """The days of the enrollment."""
+
+
+@dataclass(eq=False)
+class ClassAttendance(Symbol):
+    """A party's regular attendance at classes at an institution."""
+
+    student: Party
+    """The student."""
+
+    institution: Party
+    """The institution the classes are held at."""
+
+    period: Period = field(default_factory=Period)
+    """The days of the attendance."""
+
+
+@dataclass(eq=False)
+class Incarceration(Symbol):
+    """A party's confinement in an institution."""
+
+    inmate: Party
+    """Who is confined."""
+
+    institution: Party
+    """Where they are confined."""
+
+    period: Period = field(default_factory=Period)
+    """The days of the confinement."""
+
+
+@dataclass(eq=False)
+class Business(Symbol):
+    """A trade or business a party carries on."""
+
+    owner: Party
+    """Who carries it on."""
+
+    type_description: str | None = None
+    """The sort of trade or business it is, in the case's words; None where the case does not say."""
 
 
 @dataclass(eq=False)
@@ -400,9 +478,9 @@ class Termination(Symbol):
     reasons: list[Death | Disability] = field(default_factory=list)
     """Why the service is ended."""
 
-    def is_for_death_or_disability_of(self, person: Party) -> bool:
-        """:return: Whether one of its reasons is the death or disability of *person*."""
-        return any(reason.person is person for reason in self.reasons)
+    def is_for_death_or_disability_of_employee(self) -> bool:
+        """:return: Whether one of its reasons is the death or disability of the employee whose service it ends."""
+        return any(reason.person is self.service.employee for reason in self.reasons)
 
     def ending_day(self) -> datetime.date | None:
         """:return: The day the termination takes effect: its own day, else the last day of the service."""
@@ -461,6 +539,10 @@ class Birth(Symbol):
 
     day: datetime.date
     """The day of the birth."""
+
+    def period_under_age_21(self, days_until_21: int = 7_671) -> Period:
+        """:return: The days before the person turns 21, as SARA's program counts them: those before *days_until_21* days after the birth."""
+        return Period(end=self.day + datetime.timedelta(days=days_until_21 - 1))
 
 
 @dataclass(eq=False)
@@ -695,6 +777,27 @@ class World:
     hospital_stays: list[HospitalStay] = field(default_factory=list)
     """The stays of patients in hospitals."""
 
+    educational_institutions: list[EducationalInstitution] = field(default_factory=list)
+    """The schools, colleges and universities."""
+
+    nurses_training_schools: list[NursesTrainingSchool] = field(default_factory=list)
+    """The nurses' training schools."""
+
+    penal_institutions: list[PenalInstitution] = field(default_factory=list)
+    """The penal institutions."""
+
+    enrollments: list[Enrollment] = field(default_factory=list)
+    """The enrollments of students."""
+
+    class_attendances: list[ClassAttendance] = field(default_factory=list)
+    """The attendances of students at classes."""
+
+    incarcerations: list[Incarceration] = field(default_factory=list)
+    """The confinements of parties in institutions."""
+
+    businesses: list[Business] = field(default_factory=list)
+    """The trades or businesses parties carry on."""
+
     international_organizations: list[InternationalOrganization] = field(
         default_factory=list
     )
@@ -792,6 +895,13 @@ class World:
             self.calendar_years.append(year)
             self.calendar_years.sort(key=lambda calendar_year: calendar_year.number)
         self.asked_years.append(year)
+        self.drawn_conclusions.clear()
+
+    def include_party(self, name: str) -> None:
+        """Adds a party named *name* to :attr:`parties`, unless one is among them, so conclusions are drawn anew."""
+        if any(party.name == name for party in self.parties):
+            return
+        self.parties.append(Party(name=name))
         self.drawn_conclusions.clear()
 
     def years_in_question(self) -> list[CalendarYear]:

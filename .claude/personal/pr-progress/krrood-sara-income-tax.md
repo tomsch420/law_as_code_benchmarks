@@ -1,12 +1,11 @@
-## PR krrood-sara-income-tax (stacked on #8, #7)
+## PR #9 krrood-sara-income-tax (stacked on #8, #7; merges bug PRs #10, #11)
 
 ### Plan
-- § 1 rate schedules as data; bracket predicates take the goal's amounts
-- § 1(a)-(d), § 1, tax = income tax + employment tax; score all 120 test cases
-- § 3306 (b)(2), (b)(10) for dependents and spouses, as far as tax cases need
+- § 1 schedules and brackets, § 1(a)-(d), § 1, tax; score all 120 test cases
 
 ### Done
-- Bootstrap, draft PR, item recorded in progress
+- 120/120 test cases (100 entailment, 20 amounts); train: all modelled correct but s152_d_1_B_pos
+- years_in_question (tax_case_9 226 s -> 4 s); tests changed as agreed; 167 tests pass at 0c4a57b; pushed; PR description updated
 
 ### Next
-- Schedules and bracket predicates, then § 1, then tax cases
+- Open, not needed by any case: § 3306(b)(2), (b)(10) for dependents and spouses; 32 train cases of folded § 3306 predicates

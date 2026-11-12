@@ -44,7 +44,6 @@ items:
   branch: krrood-law-as-code-report
   track: krrood-benchmarks
   depends_on:
-  - krrood-sara-income-tax
   - krrood-catala-family-benefits
   - krrood-openfisca-family-benefits
   status: not started
@@ -52,45 +51,16 @@ items:
     and what it lacks, with each gap filed as an issue on cram2/cognitive_robot_abstract_machine.
 
     '
-- id: krrood-sara-family-status
-  title: Model SARA's marital, dependent and filing status, sections 7703, 152, 151 and 2,
-    in krrood
-  branch: krrood-sara-family-status
+- id: krrood-sara-complete
+  title: Model the rest of SARA's section 3306 and answer all 376 cases
+  branch: krrood-sara-complete
   track: krrood-benchmarks
-  pull_request_number: 7
+  pull_request_number: 12
   session: local Claude Code session f386fcc5-179d-4148-8ad3-a7db9ad9905c
   depends_on: []
   status: in progress
-  notes: 'Model marital status (7703), dependents (152), personal exemptions (151) and surviving
-    spouse and head of household (2), scored on their 36 test-split cases.
-
-    '
-- id: krrood-sara-taxable-income
-  title: Model SARA's taxable income, sections 63 and 68, in krrood
-  branch: krrood-sara-taxable-income
-  track: krrood-benchmarks
-  pull_request_number: 8
-  session: local Claude Code session f386fcc5-179d-4148-8ad3-a7db9ad9905c
-  depends_on:
-  - krrood-sara-family-status
-  status: in progress
-  notes: 'Model taxable income and the standard deduction (63) and the limit on itemized deductions
-    (68), scored on their 24 test-split cases.
-
-    '
-- id: krrood-sara-income-tax
-  title: Model SARA's income tax, section 1, and score all 120 test cases
-  branch: krrood-sara-income-tax
-  track: krrood-benchmarks
-  pull_request_number: 9
-  session: local Claude Code session f386fcc5-179d-4148-8ad3-a7db9ad9905c
-  depends_on:
-  - krrood-sara-family-status
-  - krrood-sara-taxable-income
-  status: in progress
-  notes: 'Model the tax rates of section 1 and the tax a person owes (income tax plus employment
-    tax), connect section 3306''s references to dependents (152) and spouses (7703), and score
-    the share of all 120 test-split cases answered as SARA''s Prolog program answers them,
-    entailment and amounts scored apart.
+  notes: 'Model every paragraph of section 3306 a SARA case asks on its own, let a goal name
+    a party the case states nothing of (s152_d_1_B_pos), and answer all 376 train and test
+    cases. 21 helper and union predicates of the program, which no case asks, stay unmodelled.
 
     '

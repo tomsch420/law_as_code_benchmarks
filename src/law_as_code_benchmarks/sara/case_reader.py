@@ -19,13 +19,18 @@ from law_as_code_benchmarks.sara.domain import (
     Country,
     Birth,
     Blindness,
+    Business,
     BusinessTrustStatus,
+    ClassAttendance,
     Death,
     Disability,
+    EducationalInstitution,
+    Enrollment,
     ForeignGovernment,
     Hospital,
     HospitalStay,
     Household,
+    Incarceration,
     Income,
     InternationalOrganization,
     ItemizedDeduction,
@@ -36,8 +41,10 @@ from law_as_code_benchmarks.sara.domain import (
     Marriage,
     Migration,
     NonresidentAlienStatus,
+    NursesTrainingSchool,
     Party,
     Payment,
+    PenalInstitution,
     Period,
     Place,
     Residence,
@@ -177,6 +184,27 @@ class EventType(StrEnum):
 
     BUSINESS_TRUST = "business_trust_"
     """That its agent is a business trust."""
+
+    EDUCATIONAL_INSTITUTION = "educational_institution_"
+    """That its agent is a school, college or university."""
+
+    NURSES_TRAINING_SCHOOL = "nurses_training_school_"
+    """That its agent is a nurses' training school."""
+
+    PENAL_INSTITUTION = "penal_institution_"
+    """That its agent is a penal institution."""
+
+    ENROLLMENT = "enrollment_"
+    """The enrollment of its agent as a student at its patient."""
+
+    ATTENDING_CLASSES = "attending_classes_"
+    """Its agent attending classes at its location."""
+
+    INCARCERATION = "incarceration_"
+    """The confinement of its agent in its patient."""
+
+    BUSINESS = "business_"
+    """A trade or business its agent carries on."""
 
 
 class Relation(StrEnum):
@@ -396,8 +424,11 @@ class FactIndex:
         return index
 
     def values(self, relation: Relation, event: Term) -> list[Term]:
-        """:return: The values *relation* relates *event* to."""
-        return self.related.get((relation, event), [])
+        """:return: The values *relation* relates *event* to, those it relates every event to included."""
+        values = self.related.get((relation, event), [])
+        if event is None:
+            return values
+        return values + self.related.get((relation, None), [])
 
     def value(self, relation: Relation, event: Term) -> Term:
         """
@@ -441,6 +472,11 @@ class WorldReader:
 
     services: dict[str, Service] = field(default_factory=dict)
     """The services read so far, by name, those only a stated conclusion names included."""
+
+    services_of_other_parties: dict[tuple[str, str, str], Service] = field(
+        default_factory=dict
+    )
+    """The services a stated conclusion names by the name of a service of other parties, by name, employee and employer."""
 
     benefit_plans: dict[str, EmployeeBenefitPlan] = field(default_factory=dict)
     """The plans, by name."""
@@ -507,6 +543,67 @@ class WorldReader:
             hospital_stays=[
                 self.hospital_stay(event)
                 for event in self.facts.typed[EventType.MEDICAL_PATIENT]
+            ],
+            educational_institutions=[
+                EducationalInstitution(role_taker=party)
+                for party in self.agents_of(EventType.EDUCATIONAL_INSTITUTION)
+            ],
+            nurses_training_schools=[
+                NursesTrainingSchool(role_taker=party)
+                for party in self.agents_of(EventType.NURSES_TRAINING_SCHOOL)
+            ],
+            penal_institutions=[
+                PenalInstitution(role_taker=party)
+                for party in self.agents_of(EventType.PENAL_INSTITUTION)
+            ],
+            enrollments=[
+                Enrollment(
+                    student=self.party(
+                        self.facts.required_value(Relation.AGENT, event)
+                    ),
+                    institution=self.party(
+                        self.facts.required_value(Relation.PATIENT, event)
+                    ),
+                    period=self.period(event),
+                )
+                for event in self.facts.typed[EventType.ENROLLMENT]
+            ],
+            class_attendances=[
+                ClassAttendance(
+                    student=self.party(
+                        self.facts.required_value(Relation.AGENT, event)
+                    ),
+                    institution=self.party(
+                        self.facts.required_value(Relation.LOCATION, event)
+                    ),
+                    period=self.period(event),
+                )
+                for event in self.facts.typed[EventType.ATTENDING_CLASSES]
+            ],
+            incarcerations=[
+                Incarceration(
+                    inmate=self.party(self.facts.required_value(Relation.AGENT, event)),
+                    institution=self.party(
+                        self.facts.required_value(Relation.PATIENT, event)
+                    ),
+                    period=self.period(event),
+                )
+                for event in self.facts.typed[EventType.INCARCERATION]
+            ],
+            businesses=[
+                Business(
+                    owner=self.party(self.facts.required_value(Relation.AGENT, event)),
+                    type_description=next(
+                        (
+                            self.text(type_description)
+                            for type_description in self.facts.values(
+                                Relation.TYPE, event
+                            )
+                        ),
+                        None,
+                    ),
+                )
+                for event in self.facts.typed[EventType.BUSINESS]
             ],
             international_organizations=[
                 InternationalOrganization(role_taker=party)
@@ -611,13 +708,31 @@ class WorldReader:
         )
 
     def service_by(self, event: Term, employee: Term, employer: Term) -> Service:
-        """:return: The service *event* is, by *employee* for *employer*, read once from its facts."""
+        """
+        :return: The service *event* is, by *employee* for *employer*, read once from its
+            facts; a name stated for several employees or employers names a service for each.
+        """
         name = self.text(event)
-        if name in self.services:
-            return self.services[name]
+        if name not in self.services:
+            self.services[name] = self.new_service(event, employee, employer)
+        service = self.services[name]
+        if service.employee is self.party(employee) and service.employer is self.party(
+            employer
+        ):
+            return service
+        key = (name, self.text(employee), self.text(employer))
+        if key not in self.services_of_other_parties:
+            self.services_of_other_parties[key] = self.new_service(
+                event, employee, employer
+            )
+        return self.services_of_other_parties[key]
+
+    def new_service(self, event: Term, employee: Term, employer: Term) -> Service:
+        """:return: The service *event* is, by *employee* for *employer*, as its facts describe it."""
+        name = self.text(event)
         start = self.facts.value(Relation.START, event)
         end = self.facts.value(Relation.END, event)
-        self.services[name] = Service(
+        return Service(
             name=name,
             employee=self.party(employee),
             employer=self.party(employer),
@@ -632,8 +747,11 @@ class WorldReader:
                 + self.facts.values(Relation.TYPE, event)
             ),
             purposes=self.labor_kinds(self.facts.values(Relation.PURPOSE, event)),
+            type_descriptions=[
+                self.text(type_description)
+                for type_description in self.facts.values(Relation.TYPE, event)
+            ],
         )
-        return self.services[name]
 
     def benefit_plan(self, event: Term) -> EmployeeBenefitPlan:
         """:return: The plan *event* names."""

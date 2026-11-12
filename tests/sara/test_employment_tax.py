@@ -23,8 +23,12 @@ from law_as_code_benchmarks.sara.domain import (
     Service,
     World,
 )
+from law_as_code_benchmarks.sara.employment_exclusions import (
+    ServiceForFamilyMemberTest,
+)
 from law_as_code_benchmarks.sara.employment_tax import (
     DaysOfEmploymentEmployerTest,
+    EmployerDefinition,
     EmploymentDefinition,
     ExciseTaxOnEmployer,
     TotalWagesOfEmployer,
@@ -35,6 +39,7 @@ from law_as_code_benchmarks.sara.employment_tax_conclusions import (
     Employment,
     TotalWages,
 )
+from law_as_code_benchmarks.sara.family_status_conclusions import Dependent
 from law_as_code_benchmarks.sara.prolog_term import CompoundTerm
 from law_as_code_benchmarks.sara.scoring import CaseResult
 
@@ -54,6 +59,42 @@ def test_an_employment_tax_case_is_answered_as_its_test_goal_states(
 ) -> None:
     """
     Each test case about the employment tax is answered as its test goal states.
+    """
+    result = CaseResult.from_identifier(identifier, swipl)
+    assert (result.is_modelled, result.is_correct) == (True, True)
+
+
+@pytest.mark.parametrize(
+    "identifier",
+    [
+        f"{predicate}_{suffix}"
+        for predicate in (
+            "s3306_a_1",
+            "s3306_a_2_B",
+            "s3306_b_2_A",
+            "s3306_b_7",
+            "s3306_b_10_A",
+            "s3306_b_10_B",
+            "s3306_b_11",
+            "s3306_b_15",
+            "s3306_c_A",
+            "s3306_c_1",
+            "s3306_c_2",
+            "s3306_c_5",
+            "s3306_c_10_A_i",
+            "s3306_c_10_A_ii",
+            "s3306_c_13",
+            "s3306_c_21",
+        )
+        for suffix in ("pos", "neg")
+    ],
+)
+def test_an_employment_tax_train_case_is_answered_as_its_test_goal_states(
+    identifier: str, swipl: str
+) -> None:
+    """
+    Each train case about a paragraph of `§ 3306 <https://www.law.cornell.edu/uscode/text/26/3306>`__ asked on its own is answered as its
+    test goal states.
     """
     result = CaseResult.from_identifier(identifier, swipl)
     assert (result.is_modelled, result.is_correct) == (True, True)
@@ -176,7 +217,64 @@ def test_a_payment_into_a_plan_for_death_of_the_employee_is_no_wages() -> None:
     assert WagesDefinition(world=world).conclusions == []
 
 
+def test_a_payment_into_a_sickness_plan_for_a_dependent_of_the_employee_is_no_wages() -> (
+    None
+):
+    """
+    `§ 3306(b)(2)(A) <https://www.law.cornell.edu/uscode/text/26/3306#b_2_A>`__: a payment by the employer into a plan making provision for a
+    dependent of the employee in case of sickness is no wages.
+    """
+    world = world_of_one_service()
+    service = world.services[0]
+    child = Party(name="carol")
+    plan = EmployeeBenefitPlan(
+        name="health insurance",
+        benefits={EmployeeBenefit.SICKNESS},
+        beneficiaries=[child],
+    )
+    payment = payment_for_work(world, 1_000)
+    payment.recipient = plan
+    world.benefit_plans = [plan]
+    world.payments = [payment]
+    world.stated_conclusions = [
+        Dependent(individual=child, taxpayer=service.employee, year=2017)
+    ]
+    assert WagesDefinition(world=world).conclusions == []
+
+
+# %% employment on a day
+
+
+def test_service_for_ones_child_is_excluded_whatever_the_day() -> None:
+    """
+    `§ 3306(c)(5) <https://www.law.cornell.edu/uscode/text/26/3306#c_5>`__ excludes service for one's child on any day, so a goal leaving the
+    day open has an answer.
+    """
+    world = world_of_one_service()
+    service = world.services[0]
+    world.kinships = [Kinship(parent=service.employee, child=service.employer)]
+    assert ServiceForFamilyMemberTest(world=world).holds(
+        CompoundTerm(
+            functor=ServiceForFamilyMemberTest.predicate,
+            arguments=("work", "alice", "bob", None),
+        )
+    )
+
+
 # %% employers
+
+
+def test_a_person_paying_enough_wages_is_an_employer_under_section_3306_a() -> None:
+    """
+    A goal of `§ 3306(a) <https://www.law.cornell.edu/uscode/text/26/3306#a>`__ itself, naming the employer and the year, holds for a person
+    paying wages of $1,500 or more.
+    """
+    world = world_of_one_service()
+    world.payments = [payment_for_work(world, 2_000)]
+    world.calendar_years = [CalendarYear(number=2017)]
+    assert EmployerDefinition(world=world).holds(
+        CompoundTerm(functor=EmployerDefinition.predicate, arguments=("alice", 2017))
+    )
 
 
 def employment_on(service: Service, workday: datetime.date) -> Employment:

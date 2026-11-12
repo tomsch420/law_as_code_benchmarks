@@ -2121,6 +2121,14 @@ class NoGrossIncomeTest(Provision[NoGrossIncome]):
         """
         return 1
 
+    @classproperty
+    def party_positions(cls) -> tuple[int, ...]:
+        """
+        The first argument: an individual of whom the case states nothing has no gross
+        income, as in SARA's program.
+        """
+        return (0,)
+
     def query(self) -> Query:
         individual = variable(Party, domain=self.world.parties)
         year = variable(CalendarYear, domain=self.world.years_in_question())

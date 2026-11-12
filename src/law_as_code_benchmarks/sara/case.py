@@ -64,6 +64,18 @@ class GoalFunctor(StrEnum):
     NEGATION = "\\+"
     """Negation as failure: the test passes if its argument has no solution."""
 
+    CONJUNCTION = ","
+    """Conjunction: the goal holds where both its arguments hold, with the same bindings."""
+
+    UNBOUND = "var"
+    """That its argument is unbound: here, bound to an argument a conclusion leaves open."""
+
+    FIRST_DAY_OF_YEAR = "first_day_year"
+    """SARA's utility relating a year to the ``YYYY-MM-DD`` string of its January 1."""
+
+    DAY_ORDER = "is_before"
+    """SARA's utility holding where its first day is not after its second."""
+
 
 @dataclass(frozen=True)
 class TestGoal:

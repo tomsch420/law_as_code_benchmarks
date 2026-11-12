@@ -796,7 +796,7 @@ class HouseholdMemberRelationship(AnnualRelationship):
             self.individual.name,
             self.taxpayer.name,
             self.year,
-            self.household.name,
+            None if self.household is None else self.household.name,
             self.day_text(self.period.start),
             self.day_text(self.period.end),
         )
@@ -1106,6 +1106,69 @@ class ApplicableAmount(SaraConclusion):
         return self.taxpayer.name, self.amount, self.year
 
 
+@dataclass(eq=False)
+class JointReturnOrSurvivorApplicableAmount(SaraConclusion):
+    """
+    `§ 68(b)(1)(A) <https://www.law.cornell.edu/uscode/text/26/68#b_1_A>`__: the applicable amount for a joint return or a surviving spouse.
+    """
+
+    taxpayer: Party
+    """
+    The taxpayer.
+    """
+
+    amount: float
+    """
+    The applicable amount.
+    """
+
+    year: int
+    """
+    The calendar year.
+    """
+
+    joint_return: JointReturn | None = None
+    """
+    The joint return; None for a surviving spouse.
+    """
+
+    surviving_spouse: Party | None = None
+    """
+    The surviving spouse, the taxpayer; None for a joint return.
+    """
+
+    def prolog_arguments(self) -> tuple[Term, ...]:
+        return (
+            self.taxpayer.name,
+            None if self.joint_return is None else self.joint_return.name,
+            None if self.surviving_spouse is None else self.surviving_spouse.name,
+            self.amount,
+            self.year,
+        )
+
+
+@dataclass(eq=False)
+class HeadOfHouseholdApplicableAmount(ApplicableAmount):
+    """
+    `§ 68(b)(1)(B) <https://www.law.cornell.edu/uscode/text/26/68#b_1_B>`__: the applicable amount for a head of household.
+    """
+
+
+@dataclass(eq=False)
+class UnmarriedApplicableAmount(ApplicableAmount):
+    """
+    `§ 68(b)(1)(C) <https://www.law.cornell.edu/uscode/text/26/68#b_1_C>`__: the applicable amount for an individual not married, no surviving
+    spouse and no head of household.
+    """
+
+
+@dataclass(eq=False)
+class SeparateReturnApplicableAmount(ApplicableAmount):
+    """
+    `§ 68(b)(1)(D) <https://www.law.cornell.edu/uscode/text/26/68#b_1_D>`__: the applicable amount for a married individual filing separately.
+    """
+
+
 # %% surviving spouse and head of household
 
 
@@ -1120,18 +1183,18 @@ class SurvivingSpouse(SaraConclusion):
     The taxpayer.
     """
 
-    spouse: Party
-    """
-    The spouse who died.
-    """
-
     year: int
     """
     The calendar year.
     """
 
+    spouse: Party | None = None
+    """
+    The spouse who died; None where the case states the conclusion without them.
+    """
+
     def prolog_arguments(self) -> tuple[Term, ...]:
-        return self.taxpayer.name, self.spouse.name, self.year
+        return self.taxpayer.name, self.name_of(self.spouse), self.year
 
 
 @dataclass(eq=False)
@@ -1353,18 +1416,18 @@ class HeadOfHousehold(SaraConclusion):
     The taxpayer.
     """
 
-    individual: Party
-    """
-    The individual.
-    """
-
     year: int
     """
     The calendar year.
     """
 
+    individual: Party | None = None
+    """
+    The individual; None where the case states the conclusion without them.
+    """
+
     def prolog_arguments(self) -> tuple[Term, ...]:
-        return self.taxpayer.name, self.individual.name, self.year
+        return self.taxpayer.name, self.name_of(self.individual), self.year
 
 
 @dataclass(eq=False)

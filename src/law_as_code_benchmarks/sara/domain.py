@@ -432,6 +432,23 @@ class Income(Symbol, Revenue):
         return self.day
 
 
+@dataclass(eq=False)
+class ItemizedDeduction(Symbol):
+    """A deduction a party claims, which they itemize."""
+
+    name: str
+    """The name the case gives the deduction."""
+
+    claimant: Party
+    """Who claims it."""
+
+    amount: float | None
+    """How much is deducted; None where the case does not say."""
+
+    day: datetime.date | None = None
+    """The day it is claimed for; None where the case does not say."""
+
+
 # %% families and homes
 
 
@@ -552,6 +569,28 @@ class JointReturn(Symbol):
 
 
 @dataclass(eq=False)
+class Blindness(Symbol):
+    """A party being blind."""
+
+    person: Party
+    """Who is blind."""
+
+    start: datetime.date
+    """The first day they are blind."""
+
+
+@dataclass(eq=False)
+class BusinessTrustStatus(Symbol):
+    """That a party is a business trust."""
+
+    party: Party
+    """The business trust."""
+
+    period: Period = field(default_factory=Period)
+    """The days it is one."""
+
+
+@dataclass(eq=False)
 class NonresidentAlienStatus(Symbol):
     """That a party is a nonresident alien."""
 
@@ -624,12 +663,14 @@ class CalendarYear(Symbol):
         return (end - start).days
 
     @symbolic_function
-    def counts_younger_than_25(self, birth_day: datetime.date) -> bool:
-        """:return: Whether someone born on *birth_day* is less than 25 years old at the close of the year, as SARA counts."""
-        close_25_years_later = datetime.date(self.number + 25, 12, 31)
-        return (self.closing_day - birth_day).days <= (
-            close_25_years_later - self.closing_day
-        ).days
+    def days_lived_by_close(self, birth_day: datetime.date) -> int:
+        """:return: The number of days from *birth_day* to the close of the year, as SARA counts an age."""
+        return (self.closing_day - birth_day).days
+
+    @symbolic_function
+    def days_of_years_after_close(self, years: int) -> int:
+        """:return: The number of days from the close of the year to the close *years* later, which SARA compares an age with."""
+        return (datetime.date(self.number + years, 12, 31) - self.closing_day).days
 
 
 # %% the circumstances of a case
@@ -706,11 +747,23 @@ class World:
     )
     """When parties are nonresident aliens."""
 
+    itemized_deductions: list[ItemizedDeduction] = field(default_factory=list)
+    """The itemized deductions claimed."""
+
+    blindnesses: list[Blindness] = field(default_factory=list)
+    """When parties become blind."""
+
+    business_trust_statuses: list[BusinessTrustStatus] = field(default_factory=list)
+    """When parties are business trusts."""
+
     stated_conclusions: list[SaraConclusion] = field(default_factory=list)
     """The conclusions of provisions the case states itself instead of the circumstances behind them."""
 
     calendar_years: list[CalendarYear] = field(default_factory=list)
     """The calendar years the case's days fall in, and each year after one of them."""
+
+    drawn_conclusions: dict[type, list[SaraConclusion]] = field(default_factory=dict)
+    """The conclusions each provision has drawn about the case, by the provision's class; emptied when the case changes."""
 
     @symbolic_function
     def lifetime(self, person: Party) -> Period:
@@ -725,8 +778,9 @@ class World:
         return list(dict.fromkeys(residence.household for residence in self.residences))
 
     def include_calendar_year(self, number: int) -> None:
-        """Adds the calendar year numbered *number* to :attr:`calendar_years`, unless it is among them."""
+        """Adds the calendar year numbered *number* to :attr:`calendar_years`, unless it is among them, so conclusions are drawn anew."""
         if any(year.number == number for year in self.calendar_years):
             return
         self.calendar_years.append(CalendarYear(number=number))
         self.calendar_years.sort(key=lambda year: year.number)
+        self.drawn_conclusions.clear()

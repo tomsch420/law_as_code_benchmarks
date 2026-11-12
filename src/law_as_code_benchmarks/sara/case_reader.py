@@ -18,6 +18,8 @@ from law_as_code_benchmarks.sara.domain import (
     CalendarYear,
     Country,
     Birth,
+    Blindness,
+    BusinessTrustStatus,
     Death,
     Disability,
     ForeignGovernment,
@@ -26,6 +28,7 @@ from law_as_code_benchmarks.sara.domain import (
     Household,
     Income,
     InternationalOrganization,
+    ItemizedDeduction,
     JointReturn,
     Kinship,
     LaborKind,
@@ -60,6 +63,8 @@ from law_as_code_benchmarks.sara.family_status_conclusions import (
     DependentExemptionAmount,
     ExemptionForDependent,
     ExemptionForSpouse,
+    HeadOfHousehold,
+    HouseholdMemberRelationship,
     JointFiling,
     MarriedIndividual,
     QualifyingChild,
@@ -68,6 +73,18 @@ from law_as_code_benchmarks.sara.family_status_conclusions import (
     SurvivingSpouse,
 )
 from law_as_code_benchmarks.sara.exceptions import ConflictingFacts, MissingFact
+from law_as_code_benchmarks.sara.taxable_income_conclusions import (
+    AdditionalAmountsForAgedOrBlind,
+    AgedSpouse,
+    AgedTaxpayer,
+    BasicStandardDeduction,
+    ItemizedDeductions,
+    PersonalExemptions,
+    StandardDeduction,
+    StandardDeductionUnderGeneralRule,
+    TaxableIncome,
+    TaxpayerExemption,
+)
 from law_as_code_benchmarks.sara.prolog_term import CompoundTerm, PrologText, Term
 from law_as_code_benchmarks.sara.provision import SaraConclusion, SaraPredicate
 
@@ -151,6 +168,15 @@ class EventType(StrEnum):
 
     NONRESIDENT_ALIEN = "nonresident_alien_"
     """That its agent is a nonresident alien."""
+
+    DEDUCTION = "deduction_"
+    """An itemized deduction its agent claims."""
+
+    BLINDNESS = "blindness_"
+    """That its agent is blind."""
+
+    BUSINESS_TRUST = "business_trust_"
+    """That its agent is a business trust."""
 
 
 class Relation(StrEnum):
@@ -287,6 +313,46 @@ class StatedPredicate(StrEnum):
 
     SURVIVING_SPOUSE = SaraPredicate.SURVIVING_SPOUSE
     """`§ 2(a) <https://www.law.cornell.edu/uscode/text/26/2#a>`__: a surviving spouse."""
+
+    HEAD_OF_HOUSEHOLD = SaraPredicate.HEAD_OF_HOUSEHOLD
+    """`§ 2(b) <https://www.law.cornell.edu/uscode/text/26/2#b>`__: a head of household."""
+
+    TAXABLE_INCOME = SaraPredicate.TAXABLE_INCOME
+    """`§ 63 <https://www.law.cornell.edu/uscode/text/26/63>`__: taxable income."""
+
+    STANDARD_DEDUCTION_UNDER_GENERAL_RULE = (
+        SaraPredicate.STANDARD_DEDUCTION_UNDER_GENERAL_RULE
+    )
+    """`§ 63(c)(1) <https://www.law.cornell.edu/uscode/text/26/63#c_1>`__: the standard deduction."""
+
+    ITEMIZED_DEDUCTIONS = SaraPredicate.ITEMIZED_DEDUCTIONS
+    """`§ 63(d) <https://www.law.cornell.edu/uscode/text/26/63#d>`__: itemized deductions."""
+
+    PERSONAL_EXEMPTIONS = SaraPredicate.PERSONAL_EXEMPTIONS
+    """`§ 151 <https://www.law.cornell.edu/uscode/text/26/151>`__: the exemptions a taxpayer deducts."""
+
+    TAXPAYER_OR_SPOUSE_EXEMPTION = SaraPredicate.TAXPAYER_OR_SPOUSE_EXEMPTION
+    """`§ 151(b) <https://www.law.cornell.edu/uscode/text/26/151#b>`__: the exemption for the taxpayer."""
+
+    HOUSEHOLD_MEMBER = SaraPredicate.HOUSEHOLD_MEMBER
+    """`§ 152(d)(2)(H) <https://www.law.cornell.edu/uscode/text/26/152#d_2_H>`__: a member of the taxpayer's household."""
+
+    STANDARD_DEDUCTION = SaraPredicate.STANDARD_DEDUCTION
+    """`§ 63(c) <https://www.law.cornell.edu/uscode/text/26/63#c>`__: the standard deduction."""
+
+    BASIC_STANDARD_DEDUCTION = SaraPredicate.BASIC_STANDARD_DEDUCTION
+    """`§ 63(c)(2) <https://www.law.cornell.edu/uscode/text/26/63#c_2>`__: the basic standard deduction."""
+
+    ADDITIONAL_AMOUNTS_FOR_AGED_OR_BLIND = (
+        SaraPredicate.ADDITIONAL_AMOUNTS_FOR_AGED_OR_BLIND
+    )
+    """`§ 63(c)(3) <https://www.law.cornell.edu/uscode/text/26/63#c_3>`__: the additional standard deduction."""
+
+    AGED_TAXPAYER = SaraPredicate.AGED_TAXPAYER
+    """`§ 63(f)(1)(A) <https://www.law.cornell.edu/uscode/text/26/63#f_1_A>`__: a taxpayer aged 65."""
+
+    AGED_SPOUSE = SaraPredicate.AGED_SPOUSE
+    """`§ 63(f)(1)(B) <https://www.law.cornell.edu/uscode/text/26/63#f_1_B>`__: a spouse aged 65."""
 
 
 # %% the facts of a case, indexed
@@ -479,6 +545,25 @@ class WorldReader:
                 for income in self.incomes_of(event)
             ],
             joint_returns=joint_returns,
+            itemized_deductions=[
+                deduction
+                for event in self.facts.typed[EventType.DEDUCTION]
+                for deduction in self.itemized_deductions_of(event)
+            ],
+            blindnesses=[
+                Blindness(
+                    person=self.party(self.facts.required_value(Relation.AGENT, event)),
+                    start=self.date(self.facts.required_value(Relation.START, event)),
+                )
+                for event in self.facts.typed[EventType.BLINDNESS]
+            ],
+            business_trust_statuses=[
+                BusinessTrustStatus(
+                    party=self.party(self.facts.required_value(Relation.AGENT, event)),
+                    period=self.period(event),
+                )
+                for event in self.facts.typed[EventType.BUSINESS_TRUST]
+            ],
             nonresident_alien_statuses=[
                 NonresidentAlienStatus(
                     person=self.party(self.facts.required_value(Relation.AGENT, event)),
@@ -737,6 +822,19 @@ class WorldReader:
             for amount in self.facts.values(Relation.AMOUNT, event)
         ]
 
+    def itemized_deductions_of(self, event: Term) -> list[ItemizedDeduction]:
+        """:return: The itemized deduction *event* is, once for each amount the case states of it, or once without one."""
+        day = self.facts.value(Relation.START, event)
+        return [
+            ItemizedDeduction(
+                name=self.text(event),
+                claimant=self.party(self.facts.required_value(Relation.AGENT, event)),
+                amount=amount,
+                day=None if day is None else self.date(day),
+            )
+            for amount in self.facts.values(Relation.AMOUNT, event) or [None]
+        ]
+
     def joint_return(self, event: Term) -> JointReturn:
         """:return: The joint return *event* is."""
         self.joint_returns[self.text(event)] = JointReturn(
@@ -785,7 +883,9 @@ class WorldReader:
     def stated_conclusions(self) -> list[SaraConclusion]:
         """:return: The conclusions the case states as facts, each read into the domain model."""
         return (
-            self.stated_employment_tax_conclusions() + self.stated_family_conclusions()
+            self.stated_employment_tax_conclusions()
+            + self.stated_family_conclusions()
+            + self.stated_taxable_income_conclusions()
         )
 
     def stated_employment_tax_conclusions(self) -> list[SaraConclusion]:
@@ -915,13 +1015,116 @@ class WorldReader:
             ]
             + [
                 SurvivingSpouse(
-                    taxpayer=self.party(taxpayer), spouse=self.party(spouse), year=year
+                    taxpayer=self.party(taxpayer),
+                    year=year,
+                    spouse=self.optional_party(spouse),
                 )
                 for taxpayer, spouse, year in self.stated_arguments(
                     SaraPredicate.SURVIVING_SPOUSE, 3
                 )
             ]
+            + [
+                HouseholdMemberRelationship(
+                    individual=self.party(individual),
+                    taxpayer=self.party(taxpayer),
+                    year=year,
+                    household=None
+                    if household is None
+                    else self.households.get(self.text(household)),
+                    period=Period(
+                        start=None if start is None else self.date(start),
+                        end=None if end is None else self.date(end),
+                    ),
+                )
+                for individual, taxpayer, year, household, start, end in (
+                    self.stated_arguments(SaraPredicate.HOUSEHOLD_MEMBER, 6)
+                )
+            ]
+            + [
+                HeadOfHousehold(
+                    taxpayer=self.party(taxpayer),
+                    year=year,
+                    individual=self.optional_party(individual),
+                )
+                for taxpayer, individual, year in self.stated_arguments(
+                    SaraPredicate.HEAD_OF_HOUSEHOLD, 3
+                )
+            ]
         )
+
+    def stated_taxable_income_conclusions(self) -> list[SaraConclusion]:
+        """:return: The conclusions of §§ `63 <https://www.law.cornell.edu/uscode/text/26/63>`__ and `151 <https://www.law.cornell.edu/uscode/text/26/151>`__ the case states as facts."""
+        return (
+            [
+                conclusion_type(taxpayer=self.party(taxpayer), year=year, amount=amount)
+                for predicate, conclusion_type in (
+                    (SaraPredicate.TAXABLE_INCOME, TaxableIncome),
+                    (SaraPredicate.STANDARD_DEDUCTION, StandardDeduction),
+                    (
+                        SaraPredicate.STANDARD_DEDUCTION_UNDER_GENERAL_RULE,
+                        StandardDeductionUnderGeneralRule,
+                    ),
+                    (SaraPredicate.BASIC_STANDARD_DEDUCTION, BasicStandardDeduction),
+                )
+                for taxpayer, year, amount in self.stated_arguments(predicate, 3)
+            ]
+            + [
+                AdditionalAmountsForAgedOrBlind(
+                    taxpayer=self.party(taxpayer), year=year, amount=amount
+                )
+                for taxpayer, amount, year in self.stated_arguments(
+                    SaraPredicate.ADDITIONAL_AMOUNTS_FOR_AGED_OR_BLIND, 3
+                )
+            ]
+            + [
+                TaxpayerExemption(
+                    taxpayer=self.party(taxpayer), amount=amount, year=year
+                )
+                for taxpayer, amount, year in self.stated_arguments(
+                    SaraPredicate.TAXPAYER_OR_SPOUSE_EXEMPTION, 3
+                )
+            ]
+            + [
+                AgedTaxpayer(taxpayer=self.party(taxpayer), year=year)
+                for taxpayer, year in self.stated_arguments(
+                    SaraPredicate.AGED_TAXPAYER, 2
+                )
+            ]
+            + [
+                AgedSpouse(
+                    taxpayer=self.party(taxpayer), year=year, spouse=self.party(spouse)
+                )
+                for taxpayer, spouse, year in self.stated_arguments(
+                    SaraPredicate.AGED_SPOUSE, 3
+                )
+            ]
+            + [
+                ItemizedDeductions(
+                    taxpayer=self.party(taxpayer), total=total, year=year
+                )
+                for taxpayer, _, total, year in self.stated_arguments(
+                    SaraPredicate.ITEMIZED_DEDUCTIONS, 4
+                )
+            ]
+            + [
+                PersonalExemptions(
+                    taxpayer=self.party(taxpayer),
+                    total=total,
+                    year=year,
+                    persons=None
+                    if persons is None
+                    else [self.party(person) for person in persons],
+                    amounts=amounts,
+                )
+                for taxpayer, total, persons, amounts, year in self.stated_arguments(
+                    SaraPredicate.PERSONAL_EXEMPTIONS, 5
+                )
+            ]
+        )
+
+    def optional_party(self, term: Term) -> Party | None:
+        """:return: The party named *term*; None for an argument a stated fact leaves open."""
+        return None if term is None else self.party(term)
 
     def stated_arguments(
         self, predicate: SaraPredicate, arity: int

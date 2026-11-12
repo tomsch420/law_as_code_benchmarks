@@ -3,8 +3,9 @@
 % Usage, from SARA's root directory: swipl ground_case.pl -- <case file>
 % Prints {"facts": [...], "tests": [...]}: a fact for every solution of every clause the
 % case defines, and each test directive's goal. Atoms are JSON strings, Prolog strings
-% are {"text": ...}, compound terms are {"functor": ..., "arguments": [...]} and unbound
-% variables are null. The test goals are not run.
+% are {"text": ...}, compound terms are {"functor": ..., "arguments": [...]}, a named
+% variable of a test goal is {"variable": ...} and any other unbound variable is null.
+% The test goals are not run.
 
 :- use_module(library(lists)).
 :- use_module(library(apply)).
@@ -20,7 +21,7 @@ main :-
     sub_string(Text, Before, _, 0, TestsText),
     terminated(FactsText, TerminatedFactsText),
     terms(TerminatedFactsText, FactTerms),
-    terms(TestsText, TestTerms),
+    named_terms(TestsText, TestTerms),
     foldl(load_case_term, FactTerms, [], ReversedClauses),
     reverse(ReversedClauses, Clauses),
     include(test_directive, TestTerms, TestDirectives),
@@ -43,6 +44,22 @@ terminated(Text, Terminated) :-
 % terms(+Text, -Terms): the terms Text holds, in order.
 terms(Text, Terms) :-
     setup_call_cleanup(open_string(Text, Stream), read_terms(Stream, Terms), close(Stream)).
+
+% named_terms(+Text, -Terms): the terms Text holds, each named variable replaced by
+% '$variable'(Name), so that conjuncts sharing a variable can be told apart.
+named_terms(Text, Terms) :-
+    setup_call_cleanup(open_string(Text, Stream), read_named_terms(Stream, Terms), close(Stream)).
+
+read_named_terms(Stream, Terms) :-
+    read_term(Stream, Term, [variable_names(Names)]),
+    (   Term == end_of_file
+    ->  Terms = []
+    ;   maplist(name_variable, Names),
+        Terms = [Term|More],
+        read_named_terms(Stream, More)
+    ).
+
+name_variable(Name = '$variable'(Name)).
 
 read_terms(Stream, Terms) :-
     read_term(Stream, Term, []),
@@ -130,6 +147,7 @@ enumerable_once_named(Head-Body, Names) :-
 
 % term_json(+Term, -Json): Term in the JSON form the header describes.
 term_json(Term, null) :- var(Term), !.
+term_json('$variable'(Name), _{variable: Name}) :- !.
 term_json(Term, Term) :- number(Term), !.
 term_json(Term, _{text: Term}) :- string(Term), !.
 term_json([], []) :- !.

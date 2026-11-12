@@ -420,7 +420,10 @@ class WagesDefinition(Provision[Wages]):
                         and_(
                             in_(death.person, marriage.spouses),
                             in_(payee, marriage.spouses),
-                            or_(marriage.end == None, marriage.end == death.day),
+                            or_(
+                                marriage.period.end == None,
+                                marriage.period.end == death.day,
+                            ),
                         ),
                     ),
                 ),

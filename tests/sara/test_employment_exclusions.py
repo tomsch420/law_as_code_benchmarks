@@ -116,4 +116,4 @@ def test_an_unmodelled_predicate_has_no_provision() -> None:
     """
     A predicate no provision declares finds none.
     """
-    assert Provision.modelling("s151_a") is None
+    assert Provision.modelling("s3306_a_2_B") is None

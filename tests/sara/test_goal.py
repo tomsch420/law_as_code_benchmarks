@@ -12,27 +12,16 @@ from law_as_code_benchmarks.sara.prolog_term import (
     CompoundTerm,
     PrologText,
     PrologVariable,
-    TermKey,
-    TermReader,
 )
 
-# %% reading named variables
+# %% named variables of test goals
 
 
-def test_a_named_variable_reads_back_by_its_name() -> None:
-    """
-    A named variable of a test goal reads back as a variable of that name.
-    """
-    assert TermReader().read({TermKey.VARIABLE: "Day"}) == PrologVariable("Day")
-
-
-def test_a_conjunctive_test_goal_keeps_the_variables_its_conjuncts_share(
-    swipl: str,
-) -> None:
+def test_a_conjunctive_test_goal_keeps_the_variables_its_conjuncts_share() -> None:
     """
     The conjuncts of a test goal name the variables they share alike.
     """
-    goal = SaraCase.load("s152_d_2_G_pos", swipl).test.goal
+    goal = SaraCase.load("s152_d_2_G_pos").test.goal
     relationship, constraints = goal.arguments
     assert goal.functor == GoalFunctor.CONJUNCTION
     assert relationship.arguments[3] == constraints.arguments[0].arguments[0]

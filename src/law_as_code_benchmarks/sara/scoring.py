@@ -59,8 +59,8 @@ class AnswerKind(StrEnum):
 class TimedStage(StrEnum):
     """The stages of answering a case that are timed, each named as the summary reports it."""
 
-    EXPANDING_FACTS = "expanding the case's facts (SWI-Prolog)"
-    """Expanding the facts the case states, those its rules generate included."""
+    EXPANDING_FACTS = "reading the case file"
+    """Reading the case file, its rules expanded into facts."""
 
     READING_DOMAIN_MODEL = "reading the domain model"
     """Building the domain model from the facts."""
@@ -123,11 +123,11 @@ class CaseResult:
     def from_identifier(cls, identifier: str, swipl: str = "swipl") -> CaseResult:
         """
         :param identifier: The case's identifier.
-        :param swipl: The SWI-Prolog executable that expands the case's facts and runs SARA's program.
+        :param swipl: The SWI-Prolog executable that runs SARA's program.
         :return: How the modelled provisions answer the case, and how long each stage took.
         """
         stopwatch = Stopwatch()
-        case = SaraCase.load(identifier, swipl)
+        case = SaraCase.load(identifier)
         expanding_facts = stopwatch.lap()
         goal = Goal.from_term(case.test.goal)
         kind = AnswerKind.from_predicate(case.test.goal.functor)
@@ -221,7 +221,7 @@ class SplitScore:
     def from_split(cls, split: SaraSplit, swipl: str = "swipl") -> SplitScore:
         """
         :param split: The split to score.
-        :param swipl: The SWI-Prolog executable that expands the cases' facts and runs SARA's program.
+        :param swipl: The SWI-Prolog executable that runs SARA's program.
         :return: The score of every case of the split.
         """
         return cls(

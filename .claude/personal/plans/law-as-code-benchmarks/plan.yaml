@@ -62,9 +62,11 @@ items:
   title: Model Catala's small examples in krrood and score them
   branch: krrood-catala-small-examples
   track: krrood-benchmarks
+  pull_request_number: 16
+  session: https://claude.ai/code/session_01LzY41KXVD15Tr3P8n3nwfr
   depends_on:
   - krrood-catala-family-benefits
-  status: not started
+  status: in progress
   notes: 'From catala-examples 9e251b932288: NSW community gaming (catala_en, 25 tests),
     US tax code sections 121 and 132 (catala_en, 9), Polish civil-law transactions tax (catala_pl,
     8) and French inheritance law (droit_successions, 4). The test reader learns Catala''s English

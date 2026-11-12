@@ -137,3 +137,81 @@ def test_two_starts_of_a_service_conflict() -> None:
                 fact(Relation.START, "work", PrologText("2017-03-01")),
             ]
         ).read()
+
+
+# %% families and homes
+
+
+def home_facts() -> list[CompoundTerm]:
+    """:return: The facts of Alice and Charlie living in Alice's house since 2017, and Alice paying for its upkeep."""
+    return [
+        fact(EventType.RESIDENCE, "home"),
+        fact(Relation.AGENT, "home", "alice"),
+        fact(Relation.AGENT, "home", "charlie"),
+        fact(Relation.PATIENT, "home", "alice_s_house"),
+        fact(Relation.START, "home", PrologText("2017-09-16")),
+        fact(EventType.PAYMENT, "upkeep"),
+        fact(Relation.AGENT, "upkeep", "alice"),
+        fact(Relation.AMOUNT, "upkeep", 40),
+        fact(Relation.PURPOSE, "upkeep", "home"),
+        fact(Relation.START, "upkeep", PrologText("2018-01-01")),
+    ]
+
+
+def test_a_residence_reads_its_residents_household_and_days() -> None:
+    """
+    A residence's facts become one residence of its residents in its household, from its
+    start on.
+    """
+    residence = WorldReader.from_facts(home_facts()).read().residences[0]
+    assert [resident.name for resident in residence.residents] == ["alice", "charlie"]
+    assert residence.household.name == "alice_s_house"
+    assert (residence.period.start, residence.period.end) == (
+        datetime.date(2017, 9, 16),
+        None,
+    )
+
+
+def test_a_payment_for_a_residence_maintains_its_household() -> None:
+    """
+    A payment whose purpose is a residence maintains the residence's household.
+    """
+    world = WorldReader.from_facts(home_facts()).read()
+    assert world.payments[0].household_maintained is world.residences[0].household
+
+
+def test_a_brother_relation_makes_its_agent_and_patient_siblings() -> None:
+    """
+    A brother relation makes siblings of its agent and its patient alike.
+    """
+    world = WorldReader.from_facts(
+        [
+            fact(EventType.BROTHER, "alice_and_bob"),
+            fact(Relation.AGENT, "alice_and_bob", "bob"),
+            fact(Relation.PATIENT, "alice_and_bob", "alice"),
+        ]
+    ).read()
+    assert [sibling.name for sibling in world.siblinghoods[0].siblings] == [
+        "bob",
+        "alice",
+    ]
+
+
+def test_a_marriage_stated_with_two_starts_is_read_once_for_each() -> None:
+    """
+    A marriage the case states two starts of is read as one marriage for each start, as
+    SARA's program tries each.
+    """
+    world = WorldReader.from_facts(
+        [
+            fact(EventType.MARRIAGE, "alice_and_bob"),
+            fact(Relation.AGENT, "alice_and_bob", "alice"),
+            fact(Relation.AGENT, "alice_and_bob", "bob"),
+            fact(Relation.START, "alice_and_bob", PrologText("2017-02-03")),
+            fact(Relation.START, "alice_and_bob", PrologText("2012-04-05")),
+        ]
+    ).read()
+    assert [marriage.period.start for marriage in world.marriages] == [
+        datetime.date(2017, 2, 3),
+        datetime.date(2012, 4, 5),
+    ]

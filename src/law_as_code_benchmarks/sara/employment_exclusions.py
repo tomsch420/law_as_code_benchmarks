@@ -35,7 +35,7 @@ from law_as_code_benchmarks.sara.domain import (
     StateGovernment,
     UnitedStatesGovernment,
 )
-from law_as_code_benchmarks.sara.prolog_term import CompoundTerm, Term
+from law_as_code_benchmarks.sara.prolog_term import Term
 from law_as_code_benchmarks.sara.provision import (
     Provision,
     SaraConclusion,
@@ -96,20 +96,16 @@ class ServiceOfHospitalPatient(ExcludedService):
             None,
         )
 
-    def answers(self, goal: CompoundTerm) -> bool:
+    def agrees_with_argument(self, position: int, asked: Term) -> bool:
         """
-        Extends :meth:`SaraConclusion.answers`: the goal must name a day of the stay.
+        Extends :meth:`SaraConclusion.agrees_with_argument`: the day must be a day of
+        the stay.
 
         A goal naming no day has no answer, as in SARA.
         """
-        *arguments, workday = goal.arguments
-        return (
-            workday is not None
-            and self.stay.includes(WorldReader.date(workday))
-            and super().answers(
-                CompoundTerm(functor=goal.functor, arguments=(*arguments, None))
-            )
-        )
+        if position < len(self.prolog_arguments()) - 1:
+            return super().agrees_with_argument(position, asked)
+        return asked is not None and self.stay.includes(WorldReader.date(asked))
 
 
 @dataclass(eq=False)

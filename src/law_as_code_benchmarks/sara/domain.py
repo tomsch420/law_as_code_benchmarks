@@ -1,21 +1,52 @@
 """
 The circumstances SARA's cases describe, as a domain model: parties, the services they
-perform for one another, where, what is paid for them, and the roles, relations and
-events the employment-tax provisions ask about.
+perform for one another, where, what is paid for them, their families and homes, and
+the roles, relations and events the provisions ask about.
 """
 
 from __future__ import annotations
 
 import datetime
+from abc import ABC, abstractmethod
 from dataclasses import dataclass, field
 from enum import Enum, StrEnum, auto
 
+from krrood.entity_query_language.predicate import symbolic_function
 from krrood.patterns.role import Role
 from krrood.symbol_graph.symbol_graph import Symbol
 from typing_extensions import TYPE_CHECKING
 
 if TYPE_CHECKING:
     from law_as_code_benchmarks.sara.provision import SaraConclusion
+
+# %% periods
+
+
+@dataclass(frozen=True)
+class Period:
+    """The days something lasts, from its first to its last, either of which a case may leave open."""
+
+    start: datetime.date | None = None
+    """The first day; None where the case does not say."""
+
+    end: datetime.date | None = None
+    """The last day; None where it goes on."""
+
+    @symbolic_function
+    def intersect(self, other: Period) -> Period:
+        """:return: The period from the later stated start of the two to the earlier stated end."""
+        starts = [start for start in (self.start, other.start) if start is not None]
+        ends = [end for end in (self.end, other.end) if end is not None]
+        return Period(
+            start=max(starts) if starts else None, end=min(ends) if ends else None
+        )
+
+    def includes(self, day: datetime.date) -> bool:
+        """:return: Whether *day* falls within the period, an open start or end bounding nothing."""
+        return (self.start is None or self.start <= day) and (
+            self.end is None or day <= self.end
+        )
+
 
 # %% places
 
@@ -196,6 +227,22 @@ class Migration(Symbol):
 # %% payments
 
 
+class Revenue(ABC):
+    """Money a party receives, which counts towards their gross income."""
+
+    @abstractmethod
+    def earner(self) -> Party | None:
+        """:return: Who receives the money; None where it goes to no party."""
+
+    @abstractmethod
+    def received_amount(self) -> float:
+        """:return: How much is received."""
+
+    @abstractmethod
+    def received_day(self) -> datetime.date | None:
+        """:return: The day it is received; None where the case does not say."""
+
+
 class EmployeeBenefit(Enum):
     """The benefits an employee benefit plan provides, among those `§ 3306(b) <https://www.law.cornell.edu/uscode/text/26/3306#b>`__ treats apart."""
 
@@ -241,7 +288,15 @@ class PaymentMedium(StrEnum):
 
 
 @dataclass(eq=False)
-class Payment(Symbol):
+class Household(Symbol):
+    """A home, which its residents live in and someone maintains."""
+
+    name: str
+    """The household's name."""
+
+
+@dataclass(eq=False)
+class Payment(Symbol, Revenue):
     """A payment from one party to another party or into a plan."""
 
     name: str | None
@@ -267,6 +322,18 @@ class Payment(Symbol):
 
     benefit_plan_drawn_on: EmployeeBenefitPlan | None = None
     """The plan it is paid from; None where it is not paid from a plan."""
+
+    household_maintained: Household | None = None
+    """The household whose upkeep it pays for; None where it pays for none."""
+
+    def earner(self) -> Party | None:
+        return self.recipient if isinstance(self.recipient, Party) else None
+
+    def received_amount(self) -> float:
+        return self.amount
+
+    def received_day(self) -> datetime.date | None:
+        return self.day
 
     def amount_up_to(self, limit: float) -> float:
         """:return: The amount, counted up to *limit*."""
@@ -343,14 +410,89 @@ class Termination(Symbol):
 
 
 @dataclass(eq=False)
+class Income(Symbol, Revenue):
+    """Money a party earns other than by a payment the case states."""
+
+    earning_party: Party
+    """Who earns it."""
+
+    amount: float
+    """How much is earned."""
+
+    day: datetime.date | None = None
+    """The day it is earned; None where the case does not say."""
+
+    def earner(self) -> Party | None:
+        return self.earning_party
+
+    def received_amount(self) -> float:
+        return self.amount
+
+    def received_day(self) -> datetime.date | None:
+        return self.day
+
+
+# %% families and homes
+
+
+@dataclass(eq=False)
+class Birth(Symbol):
+    """A party's birth."""
+
+    person: Party
+    """Who is born."""
+
+    day: datetime.date
+    """The day of the birth."""
+
+
+@dataclass(eq=False)
 class Marriage(Symbol):
     """A marriage between two parties."""
+
+    name: str
+    """The name the case gives the marriage."""
 
     spouses: list[Party]
     """The spouses."""
 
-    end: datetime.date | None = None
-    """The last day of it; None where it goes on."""
+    period: Period = field(default_factory=Period)
+    """The days it lasts."""
+
+    def is_between(self, person: Party, other_person: Party) -> bool:
+        """:return: Whether *person* and *other_person*, two different parties, are its spouses."""
+        return (
+            person is not other_person
+            and person in self.spouses
+            and other_person in self.spouses
+        )
+
+
+class SeparationDecree(StrEnum):
+    """The decrees `§ 7703(a)(2) <https://www.law.cornell.edu/uscode/text/26/7703#a_2>`__ legally separates spouses by, each named as SARA names it."""
+
+    DIVORCE = "decree of divorce"
+    """A decree of divorce."""
+
+    SEPARATE_MAINTENANCE = "decree of separate maintenance"
+    """A decree of separate maintenance."""
+
+
+@dataclass(eq=False)
+class LegalSeparation(Symbol):
+    """The legal separation of spouses under a decree."""
+
+    name: str
+    """The name the case gives the separation."""
+
+    marriage: Marriage
+    """The marriage whose spouses are separated."""
+
+    decree: SeparationDecree
+    """The decree they are separated by."""
+
+    day: datetime.date
+    """The day it takes effect."""
 
 
 @dataclass(eq=False)
@@ -362,6 +504,62 @@ class Kinship(Symbol):
 
     child: Party
     """The child."""
+
+    period: Period = field(default_factory=Period)
+    """The days the relation lasts."""
+
+
+@dataclass(eq=False)
+class Siblinghood(Symbol):
+    """That two parties are brothers or sisters."""
+
+    siblings: list[Party]
+    """The siblings."""
+
+    period: Period = field(default_factory=Period)
+    """The days the relation lasts."""
+
+
+@dataclass(eq=False)
+class Residence(Symbol):
+    """Parties living in a household."""
+
+    name: str
+    """The name the case gives the residence."""
+
+    residents: list[Party]
+    """Who lives there."""
+
+    household: Household
+    """Where they live."""
+
+    period: Period = field(default_factory=Period)
+    """The days they live there."""
+
+
+@dataclass(eq=False)
+class JointReturn(Symbol):
+    """A single return of income taxes, made jointly by spouses."""
+
+    name: str
+    """The name the case gives the return."""
+
+    filers: list[Party]
+    """Who makes it."""
+
+    period: Period = field(default_factory=Period)
+    """The taxable period it is made for."""
+
+
+@dataclass(eq=False)
+class NonresidentAlienStatus(Symbol):
+    """That a party is a nonresident alien."""
+
+    person: Party
+    """The nonresident alien."""
+
+    period: Period = field(default_factory=Period)
+    """The days they are one."""
 
 
 # %% calendar years
@@ -383,11 +581,55 @@ class CalendarYear(Symbol):
     opening_day_of_preceding_year: datetime.date = field(init=False)
     """January 1 of the year before."""
 
+    opening_day_of_following_year: datetime.date = field(init=False)
+    """January 1 of the year after."""
+
+    closing_day_of_preceding_year: datetime.date = field(init=False)
+    """December 31 of the year before."""
+
+    opening_day_of_year_before_preceding: datetime.date = field(init=False)
+    """January 1 of the year two years before."""
+
+    opening_day_of_last_six_months: datetime.date = field(init=False)
+    """July 2, the first day SARA counts in the last 6 months of the year, which end on January 1 of the next."""
+
+    half_length: float = field(init=False)
+    """Half the number of days from its first to its last day, which SARA compares half a year with."""
+
     def __post_init__(self) -> None:
-        """Sets the days the year opens and closes on, and the day the year before opens on."""
+        """Sets the days the year and the years around it open and close on, and its half length."""
         self.opening_day = datetime.date(self.number, 1, 1)
         self.closing_day = datetime.date(self.number, 12, 31)
         self.opening_day_of_preceding_year = datetime.date(self.number - 1, 1, 1)
+        self.opening_day_of_following_year = datetime.date(self.number + 1, 1, 1)
+        self.closing_day_of_preceding_year = datetime.date(self.number - 1, 12, 31)
+        self.opening_day_of_year_before_preceding = datetime.date(self.number - 2, 1, 1)
+        self.opening_day_of_last_six_months = datetime.date(self.number, 7, 2)
+        self.half_length = (self.closing_day - self.opening_day).days / 2
+
+    @symbolic_function
+    def days_within(self, period: Period) -> int:
+        """
+        :return: The number of days from the first to the last day the year shares with
+            *period*, an open start or end bounded by the year; negative where they share none.
+        """
+        shared = Period(start=self.opening_day, end=self.closing_day).intersect(period)
+        return (shared.end - shared.start).days
+
+    @symbolic_function
+    def days_spanned(self, period: Period) -> int:
+        """:return: The number of days from the first to the last day of *period*, an open start or end taken as the year's."""
+        start = self.opening_day if period.start is None else period.start
+        end = self.closing_day if period.end is None else period.end
+        return (end - start).days
+
+    @symbolic_function
+    def counts_younger_than_25(self, birth_day: datetime.date) -> bool:
+        """:return: Whether someone born on *birth_day* is less than 25 years old at the close of the year, as SARA counts."""
+        close_25_years_later = datetime.date(self.number + 25, 12, 31)
+        return (self.closing_day - birth_day).days <= (
+            close_25_years_later - self.closing_day
+        ).days
 
 
 # %% the circumstances of a case
@@ -399,6 +641,9 @@ class World:
 
     united_states: Country
     """The United States, as the case's places and citizenships refer to it."""
+
+    parties: list[Party] = field(default_factory=list)
+    """Every party the case names."""
 
     services: list[Service] = field(default_factory=list)
     """The services performed."""
@@ -435,11 +680,53 @@ class World:
     marriages: list[Marriage] = field(default_factory=list)
     """The marriages between parties."""
 
+    legal_separations: list[LegalSeparation] = field(default_factory=list)
+    """The legal separations of spouses."""
+
     kinships: list[Kinship] = field(default_factory=list)
     """The relations of parents to their children."""
+
+    siblinghoods: list[Siblinghood] = field(default_factory=list)
+    """The relations of brothers and sisters."""
+
+    births: list[Birth] = field(default_factory=list)
+    """The births of parties."""
+
+    residences: list[Residence] = field(default_factory=list)
+    """Who lives in which household, and when."""
+
+    incomes: list[Income] = field(default_factory=list)
+    """The incomes earned other than by stated payments."""
+
+    joint_returns: list[JointReturn] = field(default_factory=list)
+    """The joint returns made."""
+
+    nonresident_alien_statuses: list[NonresidentAlienStatus] = field(
+        default_factory=list
+    )
+    """When parties are nonresident aliens."""
 
     stated_conclusions: list[SaraConclusion] = field(default_factory=list)
     """The conclusions of provisions the case states itself instead of the circumstances behind them."""
 
     calendar_years: list[CalendarYear] = field(default_factory=list)
     """The calendar years the case's days fall in, and each year after one of them."""
+
+    @symbolic_function
+    def lifetime(self, person: Party) -> Period:
+        """:return: The days up to *person*'s death, open where the case states no day of it."""
+        days = [
+            death.day for death in self.deaths if death.person is person and death.day
+        ]
+        return Period(end=days[0] if days else None)
+
+    def households(self) -> list[Household]:
+        """:return: The households parties reside in, each once."""
+        return list(dict.fromkeys(residence.household for residence in self.residences))
+
+    def include_calendar_year(self, number: int) -> None:
+        """Adds the calendar year numbered *number* to :attr:`calendar_years`, unless it is among them."""
+        if any(year.number == number for year in self.calendar_years):
+            return
+        self.calendar_years.append(CalendarYear(number=number))
+        self.calendar_years.sort(key=lambda year: year.number)

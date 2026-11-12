@@ -17,19 +17,29 @@ from law_as_code_benchmarks.sara.domain import (
     AmericanEmployer,
     CalendarYear,
     Country,
+    Birth,
     Death,
     Disability,
     ForeignGovernment,
     Hospital,
     HospitalStay,
+    Household,
+    Income,
     InternationalOrganization,
+    JointReturn,
     Kinship,
     LaborKind,
+    LegalSeparation,
     Marriage,
     Migration,
+    NonresidentAlienStatus,
     Party,
     Payment,
+    Period,
     Place,
+    Residence,
+    SeparationDecree,
+    Siblinghood,
     EmployeeBenefitPlan,
     EmployeeBenefit,
     Service,
@@ -43,6 +53,19 @@ from law_as_code_benchmarks.sara.employment_tax_conclusions import (
     Employment,
     TotalWages,
     Wages,
+)
+from law_as_code_benchmarks.sara.family_status_conclusions import (
+    AgeRequirement,
+    ApplicableAmount,
+    DependentExemptionAmount,
+    ExemptionForDependent,
+    ExemptionForSpouse,
+    JointFiling,
+    MarriedIndividual,
+    QualifyingChild,
+    QualifyingChildRelationship,
+    QualifyingChildUnderGeneralRule,
+    SurvivingSpouse,
 )
 from law_as_code_benchmarks.sara.exceptions import ConflictingFacts, MissingFact
 from law_as_code_benchmarks.sara.prolog_term import CompoundTerm, PrologText, Term
@@ -104,6 +127,30 @@ class EventType(StrEnum):
 
     MOTHER = "mother_"
     """That its agent is the mother of its patient."""
+
+    BROTHER = "brother_"
+    """That its agents and patients are brothers or sisters."""
+
+    SISTER = "sister_"
+    """That its agents and patients are brothers or sisters."""
+
+    BIRTH = "birth_"
+    """The birth of its agent."""
+
+    LEGAL_SEPARATION = "legal_separation_"
+    """The legal separation of the spouses of its patient, a marriage, under its agent, a decree."""
+
+    RESIDENCE = "residence_"
+    """Its agents living in its patient, a household."""
+
+    INCOME = "income_"
+    """Income its agent earns."""
+
+    JOINT_RETURN = "joint_return_"
+    """A joint return its agents make."""
+
+    NONRESIDENT_ALIEN = "nonresident_alien_"
+    """That its agent is a nonresident alien."""
 
 
 class Relation(StrEnum):
@@ -206,6 +253,41 @@ class StatedPredicate(StrEnum):
     TOTAL_WAGES = SaraPredicate.TOTAL_WAGES
     """The total wages of an employer in a period."""
 
+    MARRIED = SaraPredicate.MARRIED
+    """`§ 7703 <https://www.law.cornell.edu/uscode/text/26/7703>`__: an individual married for a year."""
+
+    JOINT_FILING = SaraPredicate.JOINT_FILING
+    """`§ 152(b)(2) <https://www.law.cornell.edu/uscode/text/26/152#b_2>`__: an individual who made a joint return with their spouse."""
+
+    QUALIFYING_CHILD = SaraPredicate.QUALIFYING_CHILD
+    """`§ 152(c) <https://www.law.cornell.edu/uscode/text/26/152#c>`__: a qualifying child."""
+
+    QUALIFYING_CHILD_UNDER_GENERAL_RULE = (
+        SaraPredicate.QUALIFYING_CHILD_UNDER_GENERAL_RULE
+    )
+    """`§ 152(c)(1) <https://www.law.cornell.edu/uscode/text/26/152#c_1>`__: a qualifying child."""
+
+    QUALIFYING_CHILD_RELATIONSHIP = SaraPredicate.QUALIFYING_CHILD_RELATIONSHIP
+    """`§ 152(c)(2) <https://www.law.cornell.edu/uscode/text/26/152#c_2>`__: a relationship of a qualifying child."""
+
+    AGE_REQUIREMENT = SaraPredicate.AGE_REQUIREMENT
+    """`§ 152(c)(3) <https://www.law.cornell.edu/uscode/text/26/152#c_3>`__: the age requirements of a qualifying child."""
+
+    EXEMPTION_FOR_DEPENDENT = SaraPredicate.EXEMPTION_FOR_DEPENDENT
+    """`§ 151(c) <https://www.law.cornell.edu/uscode/text/26/151#c>`__: an exemption for a dependent."""
+
+    EXEMPTION_FOR_SPOUSE = SaraPredicate.EXEMPTION_FOR_SPOUSE
+    """`§ 151(b) <https://www.law.cornell.edu/uscode/text/26/151#b>`__: an exemption for a spouse."""
+
+    DEPENDENT_EXEMPTION_AMOUNT = SaraPredicate.DEPENDENT_EXEMPTION_AMOUNT
+    """`§ 151(c) <https://www.law.cornell.edu/uscode/text/26/151#c>`__: the exemption amount for a dependent."""
+
+    APPLICABLE_AMOUNT = SaraPredicate.APPLICABLE_AMOUNT
+    """`§ 68(b) <https://www.law.cornell.edu/uscode/text/26/68#b>`__: the applicable amount."""
+
+    SURVIVING_SPOUSE = SaraPredicate.SURVIVING_SPOUSE
+    """`§ 2(a) <https://www.law.cornell.edu/uscode/text/26/2#a>`__: a surviving spouse."""
+
 
 # %% the facts of a case, indexed
 
@@ -300,6 +382,18 @@ class WorldReader:
     payments: dict[str, Payment] = field(default_factory=dict)
     """The payments read so far, by name, those only a stated conclusion names included."""
 
+    households: dict[str, Household] = field(default_factory=dict)
+    """The households read so far, by name."""
+
+    residences: dict[str, Residence] = field(default_factory=dict)
+    """The residences, by name."""
+
+    marriages: dict[str, Marriage] = field(default_factory=dict)
+    """The marriages, by name."""
+
+    joint_returns: dict[str, JointReturn] = field(default_factory=dict)
+    """The joint returns, by name."""
+
     @classmethod
     def from_facts(cls, facts: list[CompoundTerm]) -> WorldReader:
         """:return: A reader of the case stating *facts*."""
@@ -319,10 +413,22 @@ class WorldReader:
         benefit_plans = [
             self.benefit_plan(event) for event in self.facts.typed[EventType.PLAN]
         ]
+        residences = [
+            self.residence(event) for event in self.facts.typed[EventType.RESIDENCE]
+        ]
+        marriages = [
+            marriage
+            for event in self.facts.typed[EventType.MARRIAGE]
+            for marriage in self.marriages_of(event)
+        ]
         payments = [
             payment
             for event in self.facts.typed[EventType.PAYMENT]
             for payment in self.payments_of(event)
+        ]
+        joint_returns = [
+            self.joint_return(event)
+            for event in self.facts.typed[EventType.JOINT_RETURN]
         ]
         stated_conclusions = self.stated_conclusions()
         return World(
@@ -354,11 +460,34 @@ class WorldReader:
                 for event in self.facts.typed[EventType.TERMINATION]
             ],
             deaths=[self.death(event) for event in self.facts.typed[EventType.DEATH]],
-            marriages=[
-                self.marriage(event) for event in self.facts.typed[EventType.MARRIAGE]
+            marriages=marriages,
+            legal_separations=[
+                self.legal_separation(event)
+                for event in self.facts.typed[EventType.LEGAL_SEPARATION]
             ],
             kinships=self.kinships(),
+            siblinghoods=[
+                self.siblinghood(event)
+                for event_type in (EventType.BROTHER, EventType.SISTER)
+                for event in self.facts.typed[event_type]
+            ],
+            births=[self.birth(event) for event in self.facts.typed[EventType.BIRTH]],
+            residences=residences,
+            incomes=[
+                income
+                for event in self.facts.typed[EventType.INCOME]
+                for income in self.incomes_of(event)
+            ],
+            joint_returns=joint_returns,
+            nonresident_alien_statuses=[
+                NonresidentAlienStatus(
+                    person=self.party(self.facts.required_value(Relation.AGENT, event)),
+                    period=self.period(event),
+                )
+                for event in self.facts.typed[EventType.NONRESIDENT_ALIEN]
+            ],
             stated_conclusions=stated_conclusions,
+            parties=list(self.parties.values()),
             calendar_years=self.calendar_years(
                 [payment.day for payment in payments]
                 + [
@@ -447,7 +576,7 @@ class WorldReader:
         return plan
 
     def payments_of(self, event: Term) -> list[Payment]:
-        """:return: The payments *event* is, one for each day and amount the case states of it; plans are read beforehand."""
+        """:return: The payments *event* is, one for each day and amount the case states of it; plans and residences are read beforehand."""
         payer = self.facts.value(Relation.AGENT, event)
         recipient = self.facts.value(Relation.PATIENT, event)
         days = self.facts.values(Relation.START, event) or [None]
@@ -456,6 +585,11 @@ class WorldReader:
             self.services[self.text(purpose)]
             for purpose in self.facts.values(Relation.PURPOSE, event)
             if self.text(purpose) in self.services
+        ]
+        households = [
+            self.household_of(self.text(purpose))
+            for purpose in self.facts.values(Relation.PURPOSE, event)
+            if self.household_of(self.text(purpose)) is not None
         ]
         payments = [
             Payment(
@@ -474,6 +608,7 @@ class WorldReader:
                 benefit_plan_drawn_on=None
                 if means is None
                 else self.benefit_plans.get(self.text(means)),
+                household_maintained=next(iter(households), None),
             )
             for day in days
             for amount in self.facts.values(Relation.AMOUNT, event)
@@ -514,14 +649,111 @@ class WorldReader:
             day=None if day is None else self.date(day),
         )
 
-    def marriage(self, event: Term) -> Marriage:
-        """:return: The marriage *event* is."""
+    def marriages_of(self, event: Term) -> list[Marriage]:
+        """:return: The marriage *event* is, once for each start the case states of it."""
         end = self.facts.value(Relation.END, event)
-        return Marriage(
-            spouses=[
-                self.party(spouse)
-                for spouse in self.facts.values(Relation.AGENT, event)
+        marriages = [
+            Marriage(
+                name=self.text(event),
+                spouses=[
+                    self.party(spouse)
+                    for spouse in self.facts.values(Relation.AGENT, event)
+                ],
+                period=Period(
+                    start=None if start is None else self.date(start),
+                    end=None if end is None else self.date(end),
+                ),
+            )
+            for start in self.facts.values(Relation.START, event) or [None]
+        ]
+        self.marriages[marriages[0].name] = marriages[0]
+        return marriages
+
+    def legal_separation(self, event: Term) -> LegalSeparation:
+        """:return: The legal separation *event* is; marriages are read beforehand."""
+        return LegalSeparation(
+            name=self.text(event),
+            marriage=self.marriages[
+                self.text(self.facts.required_value(Relation.PATIENT, event))
             ],
+            decree=SeparationDecree(
+                self.text(self.facts.required_value(Relation.AGENT, event))
+            ),
+            day=self.date(self.facts.required_value(Relation.START, event)),
+        )
+
+    def siblinghood(self, event: Term) -> Siblinghood:
+        """:return: The relation of brothers or sisters *event* is."""
+        return Siblinghood(
+            siblings=[
+                self.party(sibling)
+                for relation in (Relation.AGENT, Relation.PATIENT)
+                for sibling in self.facts.values(relation, event)
+            ],
+            period=self.period(event),
+        )
+
+    def birth(self, event: Term) -> Birth:
+        """:return: The birth *event* is."""
+        return Birth(
+            person=self.party(self.facts.required_value(Relation.AGENT, event)),
+            day=self.date(self.facts.required_value(Relation.START, event)),
+        )
+
+    def residence(self, event: Term) -> Residence:
+        """:return: The residence *event* is."""
+        household = self.text(self.facts.required_value(Relation.PATIENT, event))
+        if household not in self.households:
+            self.households[household] = Household(name=household)
+        residence = Residence(
+            name=self.text(event),
+            residents=[
+                self.party(resident)
+                for resident in self.facts.values(Relation.AGENT, event)
+            ],
+            household=self.households[household],
+            period=self.period(event),
+        )
+        self.residences[residence.name] = residence
+        return residence
+
+    def household_of(self, name: str) -> Household | None:
+        """:return: The household named *name*, or that of the residence named *name*; None if neither is read."""
+        if name in self.residences:
+            return self.residences[name].household
+        return self.households.get(name)
+
+    def incomes_of(self, event: Term) -> list[Income]:
+        """:return: The income *event* is, once for each amount the case states of it."""
+        day = self.facts.value(Relation.START, event)
+        return [
+            Income(
+                earning_party=self.party(
+                    self.facts.required_value(Relation.AGENT, event)
+                ),
+                amount=amount,
+                day=None if day is None else self.date(day),
+            )
+            for amount in self.facts.values(Relation.AMOUNT, event)
+        ]
+
+    def joint_return(self, event: Term) -> JointReturn:
+        """:return: The joint return *event* is."""
+        self.joint_returns[self.text(event)] = JointReturn(
+            name=self.text(event),
+            filers=[
+                self.party(filer) for filer in self.facts.values(Relation.AGENT, event)
+            ],
+            period=self.period(event),
+        )
+        return self.joint_returns[self.text(event)]
+
+    def period(self, event: Term) -> Period:
+        """:return: The days from the start to the end the case states of *event*, either left open where it states none."""
+        start = self.facts.value(Relation.START, event)
+        end = self.facts.value(Relation.END, event)
+        return Period(
+            start=None if start is None else self.date(start),
             end=None if end is None else self.date(end),
         )
 
@@ -543,13 +775,21 @@ class WorldReader:
                         if self.party(parent) is not self.party(child):
                             kinships.append(
                                 Kinship(
-                                    parent=self.party(parent), child=self.party(child)
+                                    parent=self.party(parent),
+                                    child=self.party(child),
+                                    period=self.period(event),
                                 )
                             )
         return kinships
 
     def stated_conclusions(self) -> list[SaraConclusion]:
         """:return: The conclusions the case states as facts, each read into the domain model."""
+        return (
+            self.stated_employment_tax_conclusions() + self.stated_family_conclusions()
+        )
+
+    def stated_employment_tax_conclusions(self) -> list[SaraConclusion]:
+        """:return: The conclusions of §§ `3306 <https://www.law.cornell.edu/uscode/text/26/3306>`__ and `3301 <https://www.law.cornell.edu/uscode/text/26/3301>`__ the case states as facts."""
         return (
             [
                 Employment(
@@ -558,16 +798,16 @@ class WorldReader:
                     year=year,
                 )
                 for service, employer, employee, workday, year in self.stated_arguments(
-                    SaraPredicate.EMPLOYMENT
+                    SaraPredicate.EMPLOYMENT, 5
                 )
             ]
             + [
                 self.stated_wages(*arguments)
-                for arguments in self.stated_arguments(SaraPredicate.WAGES)
+                for arguments in self.stated_arguments(SaraPredicate.WAGES, 8)
             ]
             + [
                 Employer(party=self.party(employer), year=year)
-                for employer, year in self.stated_arguments(SaraPredicate.EMPLOYER)
+                for employer, year in self.stated_arguments(SaraPredicate.EMPLOYER, 2)
             ]
             + [
                 TotalWages(
@@ -577,14 +817,121 @@ class WorldReader:
                     last_day=self.date(last_day),
                 )
                 for employer, amount, _, _, first_day, last_day in self.stated_arguments(
-                    SaraPredicate.TOTAL_WAGES
+                    SaraPredicate.TOTAL_WAGES, 6
                 )
             ]
         )
 
-    def stated_arguments(self, predicate: SaraPredicate) -> list[tuple[Term, ...]]:
-        """:return: The arguments of each fact the case states of *predicate*."""
-        return [fact.arguments for fact in self.facts.stated[predicate]]
+    def stated_family_conclusions(self) -> list[SaraConclusion]:
+        """:return: The conclusions of §§ `7703 <https://www.law.cornell.edu/uscode/text/26/7703>`__, `152 <https://www.law.cornell.edu/uscode/text/26/152>`__, `151 <https://www.law.cornell.edu/uscode/text/26/151>`__, `2 <https://www.law.cornell.edu/uscode/text/26/2>`__ and `68(b) <https://www.law.cornell.edu/uscode/text/26/68#b>`__ the case states as facts; marriages and joint returns are read beforehand."""
+        return (
+            [
+                MarriedIndividual(
+                    person=self.party(person),
+                    spouse=self.party(spouse),
+                    marriage=self.marriages.get(self.text(marriage))
+                    or Marriage(
+                        name=self.text(marriage),
+                        spouses=[self.party(person), self.party(spouse)],
+                    ),
+                    year=year,
+                )
+                for person, spouse, marriage, year in self.stated_arguments(
+                    SaraPredicate.MARRIED, 4
+                )
+            ]
+            + [
+                JointFiling(
+                    individual=self.party(individual),
+                    spouse=self.party(spouse),
+                    year=year,
+                    joint_return=None
+                    if joint_return is None
+                    else self.joint_returns.get(self.text(joint_return)),
+                )
+                for individual, joint_return, spouse, year in self.stated_arguments(
+                    SaraPredicate.JOINT_FILING, 4
+                )
+            ]
+            + [
+                conclusion_type(
+                    individual=self.party(individual),
+                    taxpayer=self.party(taxpayer),
+                    year=year,
+                )
+                for predicate, conclusion_type in (
+                    (SaraPredicate.QUALIFYING_CHILD, QualifyingChild),
+                    (
+                        SaraPredicate.QUALIFYING_CHILD_UNDER_GENERAL_RULE,
+                        QualifyingChildUnderGeneralRule,
+                    ),
+                    (SaraPredicate.AGE_REQUIREMENT, AgeRequirement),
+                )
+                for individual, taxpayer, year in self.stated_arguments(predicate, 3)
+            ]
+            + [
+                conclusion_type(
+                    individual=self.party(individual),
+                    taxpayer=self.party(taxpayer),
+                    year=year,
+                )
+                for predicate, conclusion_type in (
+                    (SaraPredicate.EXEMPTION_FOR_DEPENDENT, ExemptionForDependent),
+                    (SaraPredicate.EXEMPTION_FOR_SPOUSE, ExemptionForSpouse),
+                )
+                for taxpayer, individual, year in self.stated_arguments(predicate, 3)
+            ]
+            + [
+                QualifyingChildRelationship(
+                    individual=self.party(individual),
+                    taxpayer=self.party(taxpayer),
+                    period=Period(
+                        start=None if start is None else self.date(start),
+                        end=None if end is None else self.date(end),
+                    ),
+                )
+                for individual, taxpayer, start, end in self.stated_arguments(
+                    SaraPredicate.QUALIFYING_CHILD_RELATIONSHIP, 4
+                )
+            ]
+            + [
+                DependentExemptionAmount(
+                    taxpayer=self.party(taxpayer),
+                    amount=amount,
+                    year=year,
+                    individual=None if individual is None else self.party(individual),
+                )
+                for taxpayer, individual, amount, year in self.stated_arguments(
+                    SaraPredicate.DEPENDENT_EXEMPTION_AMOUNT, 4
+                )
+            ]
+            + [
+                ApplicableAmount(
+                    taxpayer=self.party(taxpayer), amount=amount, year=year
+                )
+                for taxpayer, amount, year in self.stated_arguments(
+                    SaraPredicate.APPLICABLE_AMOUNT, 3
+                )
+            ]
+            + [
+                SurvivingSpouse(
+                    taxpayer=self.party(taxpayer), spouse=self.party(spouse), year=year
+                )
+                for taxpayer, spouse, year in self.stated_arguments(
+                    SaraPredicate.SURVIVING_SPOUSE, 3
+                )
+            ]
+        )
+
+    def stated_arguments(
+        self, predicate: SaraPredicate, arity: int
+    ) -> list[tuple[Term, ...]]:
+        """:return: The arguments of each fact of *arity* arguments the case states of *predicate*; facts of another arity are not the program's."""
+        return [
+            fact.arguments
+            for fact in self.facts.stated[predicate]
+            if len(fact.arguments) == arity
+        ]
 
     def stated_wages(
         self,

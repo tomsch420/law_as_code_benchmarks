@@ -1,0 +1,432 @@
+"""
+The amounts and rates the family benefits are computed from, each in force for a period
+and set by the text named with it: the monthly base of family allowances, the minimum
+wage, the resource ceilings and the rates of Mayotte.
+"""
+
+from __future__ import annotations
+
+import datetime
+from dataclasses import dataclass, field
+from enum import Enum
+from fractions import Fraction
+
+from law_as_code_benchmarks.catala.domain import DatedValue, Money, Period, Territory
+
+# %% the monthly base of family allowances
+
+
+@dataclass(frozen=True)
+class MonthlyBase(DatedValue):
+    """
+    The monthly base of family allowances (*base mensuelle des allocations familiales*),
+    of which `L551-1 <https://www.legifrance.gouv.fr/codes/article_lc/LEGIARTI000031688371>`__
+    makes every family benefit a percentage.
+    """
+
+    amount: Money = field(default_factory=lambda: Money.zero)
+    """The monthly base."""
+
+
+class MonthlyBases(Enum):
+    """The monthly bases, revalued every April 1."""
+
+    APRIL_2019 = MonthlyBase(
+        period=Period(datetime.date(2019, 4, 1), datetime.date(2020, 3, 31)),
+        source="Instruction ministérielle N°DSS/SD2B/2019/65 du 25 mars 2019",
+        amount=Money(cents=41316),
+    )
+    """From April 1, 2019."""
+
+    APRIL_2020 = MonthlyBase(
+        period=Period(datetime.date(2020, 4, 1), datetime.date(2021, 3, 31)),
+        source="Instruction interministérielle no DSS/SD2B/2020/33 du 18 février 2020",
+        amount=Money(cents=41440),
+    )
+    """From April 1, 2020."""
+
+    APRIL_2021 = MonthlyBase(
+        period=Period(datetime.date(2021, 4, 1), datetime.date(2022, 3, 31)),
+        source="Instruction interministérielle n°DSS/2B/2021/65 du 19 mars 2021",
+        amount=Money(cents=41481),
+    )
+    """From April 1, 2021."""
+
+    APRIL_2022 = MonthlyBase(
+        period=Period(datetime.date(2022, 4, 1), datetime.date(2023, 3, 31)),
+        source="Instruction interministérielle n°DSS/2B/2022/82 du 28 mars 2022",
+        amount=Money(cents=42228),
+    )
+    """From April 1, 2022."""
+
+    APRIL_2023 = MonthlyBase(
+        period=Period(datetime.date(2023, 4, 1)),
+        source="Instruction interministérielle N° DSS/2B/2023/41 du 24 mars 2023",
+        amount=Money(cents=44593),
+    )
+    """From April 1, 2023."""
+
+
+# %% the minimum wage
+
+
+@dataclass(frozen=True)
+class HourlyMinimumWage(DatedValue):
+    """
+    The gross hourly minimum wage (*salaire minimum interprofessionnel de croissance*)
+    in some territories.
+    """
+
+    amount: Money = field(default_factory=lambda: Money.zero)
+    """The gross wage of an hour."""
+
+    territories: frozenset[Territory] = frozenset()
+    """The territories it is in force in."""
+
+
+class MinimumWages(Enum):
+    """
+    The gross hourly minimum wages, the same everywhere but in Mayotte, each decree
+    setting one for Mayotte and one for the other territories.
+    """
+
+    YEAR_2019 = HourlyMinimumWage(
+        period=Period(datetime.date(2019, 1, 1), datetime.date(2019, 12, 31)),
+        source="Décret n° 2018-1173 du 19 décembre 2018",
+        amount=Money(cents=1003),
+        territories=frozenset(set(Territory) - {Territory.MAYOTTE}),
+    )
+    """2019, outside Mayotte."""
+
+    YEAR_2019_MAYOTTE = HourlyMinimumWage(
+        period=Period(datetime.date(2019, 1, 1), datetime.date(2019, 12, 31)),
+        source="Décret n° 2018-1173 du 19 décembre 2018",
+        amount=Money(cents=757),
+        territories=frozenset({Territory.MAYOTTE}),
+    )
+    """2019, in Mayotte."""
+
+    YEAR_2020 = HourlyMinimumWage(
+        period=Period(datetime.date(2020, 1, 1), datetime.date(2020, 12, 31)),
+        source="Décret n° 2019-1387 du 18 décembre 2019",
+        amount=Money(cents=1015),
+        territories=frozenset(set(Territory) - {Territory.MAYOTTE}),
+    )
+    """2020, outside Mayotte."""
+
+    YEAR_2020_MAYOTTE = HourlyMinimumWage(
+        period=Period(datetime.date(2020, 1, 1), datetime.date(2020, 12, 31)),
+        source="Décret n° 2019-1387 du 18 décembre 2019",
+        amount=Money(cents=766),
+        territories=frozenset({Territory.MAYOTTE}),
+    )
+    """2020, in Mayotte."""
+
+    YEAR_2021 = HourlyMinimumWage(
+        period=Period(datetime.date(2021, 1, 1), datetime.date(2021, 12, 31)),
+        source="Décret n° 2020-1598 du 16 décembre 2020",
+        amount=Money(cents=1025),
+        territories=frozenset(set(Territory) - {Territory.MAYOTTE}),
+    )
+    """2021, outside Mayotte."""
+
+    YEAR_2021_MAYOTTE = HourlyMinimumWage(
+        period=Period(datetime.date(2021, 1, 1), datetime.date(2021, 12, 31)),
+        source="Décret n° 2020-1598 du 16 décembre 2020",
+        amount=Money(cents=774),
+        territories=frozenset({Territory.MAYOTTE}),
+    )
+    """2021, in Mayotte."""
+
+    JANUARY_2022 = HourlyMinimumWage(
+        period=Period(datetime.date(2022, 1, 1), datetime.date(2022, 4, 30)),
+        source="Décret n° 2021-1741 du 22 décembre 2021",
+        amount=Money(cents=1057),
+        territories=frozenset(set(Territory) - {Territory.MAYOTTE}),
+    )
+    """January to April 2022, outside Mayotte."""
+
+    JANUARY_2022_MAYOTTE = HourlyMinimumWage(
+        period=Period(datetime.date(2022, 1, 1), datetime.date(2022, 4, 30)),
+        source="Décret n° 2021-1741 du 22 décembre 2021",
+        amount=Money(cents=798),
+        territories=frozenset({Territory.MAYOTTE}),
+    )
+    """January to April 2022, in Mayotte."""
+
+    MAY_2022 = HourlyMinimumWage(
+        period=Period(datetime.date(2022, 5, 1), datetime.date(2022, 7, 31)),
+        source="Arrêté du 19 avril 2022 relatif au relèvement du salaire minimum de croissance",
+        amount=Money(cents=1085),
+        territories=frozenset(set(Territory) - {Territory.MAYOTTE}),
+    )
+    """May to July 2022, outside Mayotte."""
+
+    MAY_2022_MAYOTTE = HourlyMinimumWage(
+        period=Period(datetime.date(2022, 5, 1), datetime.date(2022, 7, 31)),
+        source="Arrêté du 19 avril 2022 relatif au relèvement du salaire minimum de croissance",
+        amount=Money(cents=819),
+        territories=frozenset({Territory.MAYOTTE}),
+    )
+    """May to July 2022, in Mayotte."""
+
+    AUGUST_2022 = HourlyMinimumWage(
+        period=Period(datetime.date(2022, 8, 1), datetime.date(2022, 12, 31)),
+        source="Arrêté du 29 juillet 2022 relatif au relèvement du salaire minimum de croissance",
+        amount=Money(cents=1107),
+        territories=frozenset(set(Territory) - {Territory.MAYOTTE}),
+    )
+    """August to December 2022, outside Mayotte."""
+
+    AUGUST_2022_MAYOTTE = HourlyMinimumWage(
+        period=Period(datetime.date(2022, 8, 1), datetime.date(2022, 12, 31)),
+        source="Arrêté du 29 juillet 2022 relatif au relèvement du salaire minimum de croissance",
+        amount=Money(cents=835),
+        territories=frozenset({Territory.MAYOTTE}),
+    )
+    """August to December 2022, in Mayotte."""
+
+    JANUARY_2023 = HourlyMinimumWage(
+        period=Period(datetime.date(2023, 1, 1), datetime.date(2023, 4, 30)),
+        source="Décret n° 2022-1608 du 22 décembre 2022",
+        amount=Money(cents=1127),
+        territories=frozenset(set(Territory) - {Territory.MAYOTTE}),
+    )
+    """January to April 2023, outside Mayotte."""
+
+    JANUARY_2023_MAYOTTE = HourlyMinimumWage(
+        period=Period(datetime.date(2023, 1, 1), datetime.date(2023, 4, 30)),
+        source="Décret n° 2022-1608 du 22 décembre 2022",
+        amount=Money(cents=851),
+        territories=frozenset({Territory.MAYOTTE}),
+    )
+    """January to April 2023, in Mayotte."""
+
+    MAY_2023 = HourlyMinimumWage(
+        period=Period(datetime.date(2023, 5, 1), datetime.date(2023, 12, 31)),
+        source="Arrêté du 26 avril 2023 relatif au relèvement du salaire minimum de croissance",
+        amount=Money(cents=1152),
+        territories=frozenset(set(Territory) - {Territory.MAYOTTE}),
+    )
+    """May to December 2023, outside Mayotte."""
+
+    MAY_2023_MAYOTTE = HourlyMinimumWage(
+        period=Period(datetime.date(2023, 5, 1), datetime.date(2023, 12, 31)),
+        source="Arrêté du 26 avril 2023 relatif au relèvement du salaire minimum de croissance",
+        amount=Money(cents=870),
+        territories=frozenset({Territory.MAYOTTE}),
+    )
+    """May to December 2023, in Mayotte."""
+
+    JANUARY_2024 = HourlyMinimumWage(
+        period=Period(datetime.date(2024, 1, 1), datetime.date(2024, 10, 31)),
+        source="Décret n° 2023-1216 du 20 décembre 2023",
+        amount=Money(cents=1165),
+        territories=frozenset(set(Territory) - {Territory.MAYOTTE}),
+    )
+    """January to October 2024, outside Mayotte."""
+
+    JANUARY_2024_MAYOTTE = HourlyMinimumWage(
+        period=Period(datetime.date(2024, 1, 1), datetime.date(2024, 10, 31)),
+        source="Décret n° 2023-1216 du 20 décembre 2023",
+        amount=Money(cents=880),
+        territories=frozenset({Territory.MAYOTTE}),
+    )
+    """January to October 2024, in Mayotte."""
+
+    NOVEMBER_2024 = HourlyMinimumWage(
+        period=Period(datetime.date(2024, 11, 1)),
+        source="Décret n° 2024-951 du 23 octobre 2024",
+        amount=Money(cents=1188),
+        territories=frozenset(set(Territory) - {Territory.MAYOTTE}),
+    )
+    """From November 2024, outside Mayotte."""
+
+    NOVEMBER_2024_MAYOTTE = HourlyMinimumWage(
+        period=Period(datetime.date(2024, 11, 1)),
+        source="Décret n° 2024-951 du 23 octobre 2024",
+        amount=Money(cents=898),
+        territories=frozenset({Territory.MAYOTTE}),
+    )
+    """From November 2024, in Mayotte."""
+
+
+# %% resource ceilings
+
+
+@dataclass(frozen=True)
+class ResourceCeilings(DatedValue):
+    """
+    The two ceilings on a household's yearly resources that set its bracket for family
+    allowances, each raised by the same amount for every child in its charge.
+    """
+
+    first_ceiling: Money = field(default_factory=lambda: Money.zero)
+    """The ceiling of I of `D521-3 <https://www.legifrance.gouv.fr/codes/article_lc/LEGIARTI000044809227>`__, before the raise for children."""
+
+    second_ceiling: Money = field(default_factory=lambda: Money.zero)
+    """The ceiling of II of `D521-3 <https://www.legifrance.gouv.fr/codes/article_lc/LEGIARTI000044809227>`__, before the raise for children."""
+
+    raise_per_child: Money = field(default_factory=lambda: Money.zero)
+    """What each ceiling is raised by for every child in the household's charge."""
+
+
+class ResourceCeilingRevaluations(Enum):
+    """
+    The ceilings revalued for a calendar year by III of
+    `D521-3 <https://www.legifrance.gouv.fr/codes/article_lc/LEGIARTI000044809227>`__.
+    """
+
+    YEAR_2018 = ResourceCeilings(
+        period=Period(datetime.date(2018, 1, 1), datetime.date(2018, 12, 31)),
+        source="Circulaire interministérielle N° DSS/SD2B/2017/352 du 22 décembre 2017",
+        first_ceiling=Money.from_euros(56286),
+        second_ceiling=Money.from_euros(78770),
+        raise_per_child=Money.from_euros(5628),
+    )
+    """2018."""
+
+    YEAR_2019 = ResourceCeilings(
+        period=Period(datetime.date(2019, 1, 1), datetime.date(2019, 12, 31)),
+        source="Instruction interministérielle n° DSS/SD2B/2018/279 du 17 décembre 2018",
+        first_ceiling=Money.from_euros(56849),
+        second_ceiling=Money.from_euros(79558),
+        raise_per_child=Money.from_euros(5684),
+    )
+    """2019."""
+
+    YEAR_2020 = ResourceCeilings(
+        period=Period(datetime.date(2020, 1, 1), datetime.date(2020, 12, 31)),
+        source="Instruction interministerielle no DSS/SD2B/2019/261 du 18 décembre 2019",
+        first_ceiling=Money.from_euros(57759),
+        second_ceiling=Money.from_euros(80831),
+        raise_per_child=Money.from_euros(5775),
+    )
+    """2020."""
+
+    YEAR_2021 = ResourceCeilings(
+        period=Period(datetime.date(2021, 1, 1), datetime.date(2021, 12, 31)),
+        source="Arrêté du 14 décembre 2020, article 1",
+        first_ceiling=Money.from_euros(58279),
+        second_ceiling=Money.from_euros(81558),
+        raise_per_child=Money.from_euros(5827),
+    )
+    """2021."""
+
+
+# %% the rates of Mayotte
+
+
+@dataclass(frozen=True)
+class MayotteRates(DatedValue):
+    """
+    The rates of the monthly base that family allowances in Mayotte pay for the first,
+    second and third child, raised year by year towards those of article 7 of the
+    décret n°2002-423.
+    """
+
+    first_child: Fraction = Fraction(0)
+    """The rate for a household with one child, which had none in its charge before 2012."""
+
+    second_child: Fraction = Fraction(0)
+    """The rate for the second child."""
+
+    third_child: Fraction = Fraction(0)
+    """The rate for the third child."""
+
+
+class MayotteRateSchedule(Enum):
+    """
+    The rates of the annex to the décret n°2002-423 (LEGIARTI000036326574), from 2011
+    to 2020, each for a calendar year.
+    """
+
+    YEAR_2011 = MayotteRates(
+        period=Period(datetime.date(2011, 1, 1), datetime.date(2011, 12, 31)),
+        source="Décret n°2002-423, annexe",
+        first_child=Fraction("14.50") / 100,
+        second_child=Fraction("23.2") / 100,
+        third_child=Fraction("4.63") / 100,
+    )
+    """2011."""
+
+    YEAR_2012 = MayotteRates(
+        period=Period(datetime.date(2012, 1, 1), datetime.date(2012, 12, 31)),
+        source="Décret n°2002-423, annexe",
+        first_child=Fraction("13.93") / 100,
+        second_child=Fraction("23.79") / 100,
+        third_child=Fraction("5.39") / 100,
+    )
+    """2012."""
+
+    YEAR_2013 = MayotteRates(
+        period=Period(datetime.date(2013, 1, 1), datetime.date(2013, 12, 31)),
+        source="Décret n°2002-423, annexe",
+        first_child=Fraction("13.35") / 100,
+        second_child=Fraction("24.37") / 100,
+        third_child=Fraction("6.15") / 100,
+    )
+    """2013."""
+
+    YEAR_2014 = MayotteRates(
+        period=Period(datetime.date(2014, 1, 1), datetime.date(2014, 12, 31)),
+        source="Décret n°2002-423, annexe",
+        first_child=Fraction("12.78") / 100,
+        second_child=Fraction("24.96") / 100,
+        third_child=Fraction("6.90") / 100,
+    )
+    """2014."""
+
+    YEAR_2015 = MayotteRates(
+        period=Period(datetime.date(2015, 1, 1), datetime.date(2015, 12, 31)),
+        source="Décret n°2002-423, annexe",
+        first_child=Fraction("12.20") / 100,
+        second_child=Fraction("25.55") / 100,
+        third_child=Fraction("7.66") / 100,
+    )
+    """2015."""
+
+    YEAR_2016 = MayotteRates(
+        period=Period(datetime.date(2016, 1, 1), datetime.date(2016, 12, 31)),
+        source="Décret n°2002-423, annexe",
+        first_child=Fraction("11.63") / 100,
+        second_child=Fraction("26.13") / 100,
+        third_child=Fraction("8.42") / 100,
+    )
+    """2016."""
+
+    YEAR_2017 = MayotteRates(
+        period=Period(datetime.date(2017, 1, 1), datetime.date(2017, 12, 31)),
+        source="Décret n°2002-423, annexe",
+        first_child=Fraction("11.05") / 100,
+        second_child=Fraction("26.72") / 100,
+        third_child=Fraction("9.18") / 100,
+    )
+    """2017."""
+
+    YEAR_2018 = MayotteRates(
+        period=Period(datetime.date(2018, 1, 1), datetime.date(2018, 12, 31)),
+        source="Décret n°2002-423, annexe",
+        first_child=Fraction("9.76") / 100,
+        second_child=Fraction("28.04") / 100,
+        third_child=Fraction("10.89") / 100,
+    )
+    """2018."""
+
+    YEAR_2019 = MayotteRates(
+        period=Period(datetime.date(2019, 1, 1), datetime.date(2019, 12, 31)),
+        source="Décret n°2002-423, annexe",
+        first_child=Fraction("8.47") / 100,
+        second_child=Fraction("29.36") / 100,
+        third_child=Fraction("12.59") / 100,
+    )
+    """2019."""
+
+    YEAR_2020 = MayotteRates(
+        period=Period(datetime.date(2020, 1, 1), datetime.date(2020, 12, 31)),
+        source="Décret n°2002-423, annexe",
+        first_child=Fraction("7.17") / 100,
+        second_child=Fraction("30.68") / 100,
+        third_child=Fraction("14.30") / 100,
+    )
+    """2020."""

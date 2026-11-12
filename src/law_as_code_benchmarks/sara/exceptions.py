@@ -33,6 +33,23 @@ class UnexpectedTestDirectives(DataclassException):
         return "Check that the case file is one of SARA's, unchanged."
 
 
+@dataclass
+class UnrecognizedCaseRule(DataclassException):
+    """
+    A clause of a case in a shape none of the kinds of rules of
+    :mod:`law_as_code_benchmarks.sara.case_rules` has.
+    """
+
+    clause: Any
+    """The clause."""
+
+    def error_message(self) -> str:
+        return f"The case states a rule of no known shape: {self.clause}."
+
+    def suggest_correction(self) -> str:
+        return "Add a kind of rule for this shape to the case's fact expansion."
+
+
 # %% reading a case into the domain model
 
 

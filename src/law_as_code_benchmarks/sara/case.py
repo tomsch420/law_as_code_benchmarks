@@ -4,8 +4,6 @@ SARA's cases: the facts each states, the goal it tests, and the split it belongs
 
 from __future__ import annotations
 
-import json
-import subprocess
 from dataclasses import dataclass, field
 from enum import StrEnum
 from pathlib import Path
@@ -13,7 +11,15 @@ from pathlib import Path
 from krrood.patterns.path_enumeration import PathEnumeration
 
 from law_as_code_benchmarks.sara.exceptions import UnexpectedTestDirectives
-from law_as_code_benchmarks.sara.prolog_term import CompoundTerm, TermReader
+from law_as_code_benchmarks.sara.case_rules import FactExpansion
+from law_as_code_benchmarks.sara.prolog_term import (
+    BuiltinPredicate,
+    Clause,
+    CompoundTerm,
+    Directive,
+    Operator,
+    PrologReader,
+)
 
 # %% where SARA's files are
 
@@ -48,33 +54,33 @@ class SaraSplit(StrEnum):
 # %% a case
 
 
-class CasePayloadKey(StrEnum):
-    """The keys of the JSON object :file:`ground_case.pl` writes a case as."""
+class CaseFileHeading(StrEnum):
+    """The comment lines a case file opens its sections with."""
 
-    FACTS = "facts"
-    """The ground facts the case states."""
-
-    TESTS = "tests"
-    """The goals of the case's test directives."""
+    TEST = "\n% Test"
+    """Opens the test directives, after the facts."""
 
 
 class GoalFunctor(StrEnum):
     """The functors of goals with a meaning of their own in a test directive."""
 
-    NEGATION = "\\+"
+    NEGATION = Operator.NEGATION.value
     """Negation as failure: the test passes if its argument has no solution."""
 
-    CONJUNCTION = ","
+    CONJUNCTION = Operator.CONJUNCTION.value
     """Conjunction: the goal holds where both its arguments hold, with the same bindings."""
 
-    UNBOUND = "var"
+    UNBOUND = BuiltinPredicate.UNBOUND.value
     """That its argument is unbound: here, bound to an argument a conclusion leaves open."""
 
-    FIRST_DAY_OF_YEAR = "first_day_year"
+    FIRST_DAY_OF_YEAR = BuiltinPredicate.FIRST_DAY_OF_YEAR.value
     """SARA's utility relating a year to the ``YYYY-MM-DD`` string of its January 1."""
 
-    DAY_ORDER = "is_before"
+    DAY_ORDER = BuiltinPredicate.DAY_ORDER.value
     """SARA's utility holding where its first day is not after its second."""
+
+    HALT = "halt"
+    """Ends the Prolog session; a case's last directive, testing nothing."""
 
 
 @dataclass(frozen=True)
@@ -112,33 +118,40 @@ class SaraCase:
     """The goal the case tests."""
 
     @classmethod
-    def load(cls, identifier: str, swipl: str = "swipl") -> SaraCase:
+    def load(cls, identifier: str) -> SaraCase:
         """
         :param identifier: The case's identifier.
-        :param swipl: The SWI-Prolog executable that expands the case's rules into facts.
-        :return: The case, its facts expanded.
+        :return: The case, its rules expanded into facts.
+        :raises UnexpectedTestDirectives: For a case testing other than one goal.
         """
-        output = subprocess.run(
-            [
-                swipl,
-                str(Path(__file__).with_name("ground_case.pl")),
-                "--",
-                str(SaraDirectory.CASES / f"{identifier}.pl"),
-            ],
-            cwd=SaraDirectory.ROOT,
-            capture_output=True,
-            text=True,
-            check=True,
-        ).stdout
-        payload = json.loads(output)
-        reader = TermReader()
-        tests = [reader.read(test) for test in payload[CasePayloadKey.TESTS]]
+        text = (SaraDirectory.CASES / f"{identifier}.pl").read_text()
+        facts_text, tests_text = text.split(CaseFileHeading.TEST, maxsplit=1)
+        reader = PrologReader()
+        clauses = [
+            statement
+            for statement in reader.read_clauses(cls.terminated(facts_text))
+            if isinstance(statement, Clause)
+        ]
+        tests = [
+            statement.goal
+            for statement in reader.read_clauses(tests_text)
+            if isinstance(statement, Directive) and statement.goal != GoalFunctor.HALT
+        ]
         if len(tests) != 1:
             raise UnexpectedTestDirectives(
                 identifier=identifier, number_of_tests=len(tests)
             )
         return cls(
             identifier=identifier,
-            facts=[reader.read(fact) for fact in payload[CasePayloadKey.FACTS]],
+            facts=FactExpansion(clauses=clauses).facts,
             test=TestGoal.from_directive(tests[0]),
         )
+
+    @staticmethod
+    def terminated(text: str) -> str:
+        """
+        :return: *text*, ending in a full stop: a few cases leave the full stop off their
+            last fact.
+        """
+        stripped = text.rstrip()
+        return stripped if stripped.endswith(Operator.END) else stripped + Operator.END

@@ -8,7 +8,7 @@ from __future__ import annotations
 import statistics
 from dataclasses import dataclass, field
 
-from law_as_code_benchmarks.catala.case import CatalaTest, CatalaTestFile
+from law_as_code_benchmarks.catala.case import CatalaTestFile, FamilyBenefitsTest
 from law_as_code_benchmarks.stopwatch import Stopwatch
 
 # %% one test
@@ -41,7 +41,7 @@ class ScopeResult:
     """
 
     @classmethod
-    def from_test(cls, test: CatalaTest) -> ScopeResult:
+    def from_test(cls, test: FamilyBenefitsTest) -> ScopeResult:
         """:return: How the model answers *test*, timed."""
         stopwatch = Stopwatch()
         is_reproduced = test.is_reproduced()
@@ -74,7 +74,7 @@ class CatalaScore:
             results=[
                 ScopeResult.from_test(test)
                 for test_file in CatalaTestFile
-                for test in CatalaTest.from_file(test_file)
+                for test in FamilyBenefitsTest.from_file(test_file)
             ]
         )
 

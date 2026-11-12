@@ -7,68 +7,16 @@ from __future__ import annotations
 
 import calendar
 import datetime
-import math
 from dataclasses import dataclass, field
-from decimal import Decimal
 from enum import Enum, StrEnum
 from fractions import Fraction
 
 from krrood.entity_query_language.predicate import symbolic_function
-from krrood.ormatic.utils import classproperty
 from krrood.symbol_graph.symbol_graph import Symbol
-from typing_extensions import TYPE_CHECKING, Hashable
 
+from law_as_code_benchmarks.catala.assessment import AssessedCase
 from law_as_code_benchmarks.catala.exceptions import AmbiguousBirthday
-
-if TYPE_CHECKING:
-    from law_as_code_benchmarks.catala.provision import FamilyBenefitsConclusion
-
-# %% money
-
-
-@dataclass(frozen=True, order=True)
-class Money:
-    """An amount of euros, kept in whole cents as Catala's ``argent``."""
-
-    cents: int
-    """The amount in cents."""
-
-    @classproperty
-    def zero(cls) -> Money:
-        """No money."""
-        return cls(cents=0)
-
-    @classmethod
-    def from_euros(cls, euros: Decimal | int) -> Money:
-        """:return: *euros*, which hold whole cents, as money."""
-        return cls(cents=int(Decimal(euros) * 100))
-
-    def __add__(self, other: Money) -> Money:
-        """:return: The sum of both amounts."""
-        return Money(cents=self.cents + other.cents)
-
-    def __sub__(self, other: Money) -> Money:
-        """:return: The amount less *other*."""
-        return Money(cents=self.cents - other.cents)
-
-    def __mul__(self, factor: Fraction | int) -> Money:
-        """:return: The amount times *factor*, rounded to the cent, halves away from zero, as Catala rounds."""
-        exact = self.cents * Fraction(factor)
-        rounded = math.floor(abs(exact) + Fraction(1, 2))
-        return Money(cents=rounded if exact >= 0 else -rounded)
-
-    def __rmul__(self, factor: Fraction | int) -> Money:
-        """:return: The amount times *factor*, as :meth:`__mul__` rounds it."""
-        return self * factor
-
-    def __radd__(self, other: Money | int) -> Money:
-        """:return: The amount added to *other*, which :func:`sum` starts at 0."""
-        return self if other == 0 else self + other
-
-    def __str__(self) -> str:
-        """:return: The amount in euros with two decimals."""
-        return f"{Decimal(self.cents) / 100:.2f} €"
-
+from law_as_code_benchmarks.catala.money import Money
 
 # %% periods
 
@@ -244,7 +192,7 @@ class Child(Symbol):
 
 
 @dataclass(eq=False)
-class Household(Symbol):
+class Household(Symbol, AssessedCase):
     """
     A household claiming family benefits on one day, and what the provisions concluded
     about it.
@@ -264,11 +212,6 @@ class Household(Symbol):
 
     had_child_before_2012: bool = False
     """Whether the household had a child in its charge before January 1, 2012, which matters in Mayotte."""
-
-    drawn_conclusions: dict[Hashable, list[FamilyBenefitsConclusion]] = field(
-        default_factory=dict
-    )
-    """The conclusions each provision drew about the household, by provision."""
 
     @property
     def number_of_children(self) -> int:

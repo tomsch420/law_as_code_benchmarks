@@ -18,7 +18,11 @@ from law_as_code_benchmarks.catala.base_allowance import (
     ResourceCeilingsProvision,
 )
 from law_as_code_benchmarks.catala.conclusions import ResourceBracket
-from law_as_code_benchmarks.catala.domain import ChildCare, Money, Territory
+from law_as_code_benchmarks.catala.domain import (
+    ChildCare,
+    Territory,
+)
+from law_as_code_benchmarks.catala.money import Money
 
 from .families import child_born, children_born, household_of
 

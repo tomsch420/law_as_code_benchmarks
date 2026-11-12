@@ -10,9 +10,9 @@ from law_as_code_benchmarks.catala.domain import (
     Child,
     ChildCare,
     Household,
-    Money,
     Territory,
 )
+from law_as_code_benchmarks.catala.money import Money
 
 # %% children
 

@@ -11,7 +11,12 @@ from dataclasses import dataclass, field
 from enum import Enum
 from fractions import Fraction
 
-from law_as_code_benchmarks.catala.domain import DatedValue, Money, Period, Territory
+from law_as_code_benchmarks.catala.domain import (
+    DatedValue,
+    Period,
+    Territory,
+)
+from law_as_code_benchmarks.catala.money import Money
 
 # %% the monthly base of family allowances
 

@@ -61,3 +61,41 @@ class UnexpectedCatalaStatement(DataclassException):
 
     def suggest_correction(self) -> str:
         return "Check that the test file is the Catala example's own, or teach the reader the statement."
+
+
+@dataclass
+class UnmodelledScope(DataclassException):
+    """
+    A test asserting something of a scope no case of its example models.
+    """
+
+    scope: str
+    """The scope's name."""
+
+    def error_message(self) -> str:
+        return f"A test asserts something of scope {self.scope}, which no case models."
+
+    def suggest_correction(self) -> str:
+        return "Add a case modelling the scope to the example's test file."
+
+
+@dataclass
+class AmbiguousConclusion(DataclassException):
+    """
+    A provision drawing several conclusions about a case where its variable has one
+    value.
+    """
+
+    provision: type
+    """The provision."""
+
+    conclusions: list
+    """
+    Its conclusions.
+    """
+
+    def error_message(self) -> str:
+        return f"{self.provision.__name__} drew {len(self.conclusions)} conclusions where one was expected: {self.conclusions}."
+
+    def suggest_correction(self) -> str:
+        return "Check that the provision's rule tree concludes once for each case, its default included."

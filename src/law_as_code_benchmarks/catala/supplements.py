@@ -527,7 +527,7 @@ class DegressiveSupplementProvision(Provision[ConclusionType]):
         :return: The query concluding the supplement, nothing where no ceiling is
             exceeded by less than twelve allowances or a condition fails.
         """
-        conclusion_type = self.get_type_of_generic_parameter(ConclusionType)
+        conclusion_type = self.get_type_of_generic_parameter(parameter=ConclusionType)
         household = ceilings.household
         yearly = allowance.amount * self.months
         supplement = deduced_variable(conclusion_type)

@@ -19,13 +19,13 @@ from krrood.ormatic.utils import classproperty
 from typing_extensions import Any, Self, get_args, get_origin
 
 from law_as_code_benchmarks.catala.assessment import AssessedCase, CatalaConclusion
-from law_as_code_benchmarks.catala.money import Money
-from law_as_code_benchmarks.catala.provision import ConclusionType, Provision
 from law_as_code_benchmarks.catala.exceptions import (
     AmbiguousConclusion,
     UnexpectedCatalaStatement,
     UnmodelledScope,
 )
+from law_as_code_benchmarks.catala.money import Money
+from law_as_code_benchmarks.catala.provision import ConclusionType, Provision
 from law_as_code_benchmarks.catala.reader import (
     Assertion,
     CatalaLanguage,

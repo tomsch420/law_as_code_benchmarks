@@ -1,9 +1,10 @@
 """
-The exceptions of the model of Catala's family benefits.
+The exceptions of the models of Catala's examples.
 """
 
 from __future__ import annotations
 
+import datetime
 from dataclasses import dataclass
 
 from krrood.exceptions import DataclassException
@@ -99,3 +100,24 @@ class AmbiguousConclusion(DataclassException):
 
     def suggest_correction(self) -> str:
         return "Check that the provision's rule tree concludes once for each case, its default included."
+
+
+@dataclass
+class AmbiguousAnniversary(DataclassException):
+    """
+    A day some years after February 29 that falls in a year without one.
+    """
+
+    day: datetime.date
+    """The day counted from."""
+
+    years: int
+    """
+    The years counted.
+    """
+
+    def error_message(self) -> str:
+        return f"{self.years} years after {self.day} has no day, the year having no February 29."
+
+    def suggest_correction(self) -> str:
+        return "Decide whether it falls on February 28 or March 1, as Catala asks a program to state."

@@ -1,0 +1,31 @@
+> Using Us_tax_code as T
+
+```catala
+declaration scope Data:
+  output price content money
+  output periods content list of T.Period
+
+scope Data:
+  definition price equals $1,500.50
+  definition periods equals [ period_one; ]
+  definition period_one equals T.Period { -- begin: |2019-01-01| -- end: |2020-01-01| }
+```
+
+```catala-metadata
+#[test]
+declaration scope Test1:
+  section scope T.QualifiedEmployeeDiscount
+  data_ scope Data
+
+scope Test1:
+  # A comment, then statements over several lines
+  definition
+    section.customer_price
+  equals
+    data_.price
+  definition section.discount_type equals T.DiscountType.Services
+  definition section.return_type equals T.ReturnType.SingleReturn content data_.periods
+  assertion section.gross_profit_percentage = 0.4
+  assertion not section.is_property
+  assertion section.is_services
+```

@@ -1,12 +1,10 @@
 ### Plan
-- Domain: households, children, money in cents, dated amounts with sources
-- Read the Catala test files (committed under resources/catala) into households and expected answers
-- Entitlement (L512-3, R512-2, L751-1, L821-3, L131-1) as rule trees
-- Family allowance (L521-1..3, R521-1..4, D521-1..3, L755-12, D755-5, Mayotte decree) as rule trees
-- Score script and README section; tests first per part
+- Domain, dated amounts, Catala test reader, entitlement, base allowance, supplements, score
 
 ### Done
-- Bootstrap, draft PR #15
+- All 16 Catala test scopes reproduced (14 amounts, 2 entitlement); 56 tests in tests/catala, tests/sara 212 pass
+- krrood gaps filed: cram2 #948 (else-if loses bindings), #949 (second alternative in a refinement); worked around
+- PR description current at 2cbddc3
 
 ### Next
-- Domain and dated amounts
+- Review by the user; the report item can cite the numbers in the README

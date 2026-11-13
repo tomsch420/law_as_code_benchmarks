@@ -20,10 +20,12 @@ items:
   title: Report what krrood handles, works around or lacks on law as code
   branch: krrood-law-as-code-report
   track: krrood-benchmarks
+  pull_request_number: 23
+  session: local session 6f4d9009-2717-491e-a2db-4e0a09589379
   depends_on:
   - krrood-catala-income-tax
   - krrood-catala-housing-ownership-and-residences
-  status: not started
+  status: in progress
   notes: 'Across SARA, the Catala examples and OpenFisca, what krrood states directly, what
     needed a workaround and what it lacks, with each gap filed as an issue on cram2/cognitive_robot_abstract_machine.
 

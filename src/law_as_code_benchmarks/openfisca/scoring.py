@@ -6,12 +6,11 @@ tests whose values OpenFisca computed itself.
 
 from __future__ import annotations
 
-import statistics
-from dataclasses import dataclass, field
+from dataclasses import dataclass
 from enum import StrEnum
 
 from law_as_code_benchmarks.openfisca.yaml_test import OpenFiscaTest, OpenFiscaTestFile
-from law_as_code_benchmarks.stopwatch import Stopwatch
+from law_as_code_benchmarks.law.scoring import ReproductionResult, Score
 
 # %% where the expected values come from
 
@@ -45,14 +44,9 @@ class ReferenceOrigin(StrEnum):
 
 
 @dataclass(frozen=True)
-class OpenFiscaResult:
+class OpenFiscaResult(ReproductionResult):
     """
     How the model answered one test.
-    """
-
-    identifier: str
-    """
-    The test's file and number.
     """
 
     origin: ReferenceOrigin
@@ -60,41 +54,14 @@ class OpenFiscaResult:
     Where the values the test expects come from.
     """
 
-    is_reproduced: bool
-    """
-    Whether every output computed is within the test's margin.
-    """
-
-    seconds: float
-    """
-    How long the model took to answer, the test file read beforehand.
-    """
-
-    @classmethod
-    def from_test(cls, test: OpenFiscaTest) -> OpenFiscaResult:
-        """:return: How the model answers *test*, timed."""
-        stopwatch = Stopwatch()
-        is_reproduced = test.is_reproduced()
-        return cls(
-            identifier=test.identifier,
-            origin=ReferenceOrigin.from_test(test),
-            is_reproduced=is_reproduced,
-            seconds=stopwatch.lap(),
-        )
-
 
 # %% every test
 
 
 @dataclass
-class OpenFiscaScore:
+class OpenFiscaScore(Score[OpenFiscaResult]):
     """
-    The results of every family allowance test of OpenFisca France.
-    """
-
-    results: list[OpenFiscaResult] = field(default_factory=list)
-    """
-    One result per test, file by file.
+    The results of every family allowance test of OpenFisca France, file by file.
     """
 
     @classmethod
@@ -102,7 +69,7 @@ class OpenFiscaScore:
         """:return: The results of the tests of every file, fetched beforehand."""
         return cls(
             results=[
-                OpenFiscaResult.from_test(test)
+                OpenFiscaResult.from_test(test, origin=ReferenceOrigin.from_test(test))
                 for test_file in OpenFiscaTestFile
                 for test in test_file.read_tests()
             ]
@@ -114,28 +81,18 @@ class OpenFiscaScore:
 
     def summary(self) -> str:
         """:return: The reproduced and total tests by origin and in all, the misses, and the times taken."""
-        lines = [
-            f"{origin.value}: {self.reproduced_count(self.results_of(origin))} of "
-            f"{len(self.results_of(origin))} tests reproduced"
-            for origin in ReferenceOrigin
-        ]
-        lines.append(
-            f"all tests: {self.reproduced_count(self.results)} of "
-            f"{len(self.results)} tests reproduced"
+        return "\n".join(
+            [
+                *(
+                    self.reproduced_line(origin.value, self.results_of(origin))
+                    for origin in ReferenceOrigin
+                ),
+                self.reproduced_line("all tests", self.results),
+                *(
+                    f"not reproduced: {result.identifier}"
+                    for result in self.results
+                    if not result.is_reproduced
+                ),
+                self.answering_time_line(),
+            ]
         )
-        lines.extend(
-            f"not reproduced: {result.identifier}"
-            for result in self.results
-            if not result.is_reproduced
-        )
-        milliseconds = [result.seconds * 1000 for result in self.results]
-        lines.append(
-            f"answering in krrood: median {statistics.median(milliseconds):.1f} ms, "
-            f"maximum {max(milliseconds):.0f} ms"
-        )
-        return "\n".join(lines)
-
-    @staticmethod
-    def reproduced_count(results: list[OpenFiscaResult]) -> int:
-        """:return: How many of *results* are reproduced."""
-        return sum(result.is_reproduced for result in results)

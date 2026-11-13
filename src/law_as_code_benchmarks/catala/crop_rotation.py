@@ -30,9 +30,9 @@ from krrood.entity_query_language.query.query import Query
 from krrood.ormatic.utils import classproperty
 from typing_extensions import Self
 
-from law_as_code_benchmarks.catala.domain import Period
+from law_as_code_benchmarks.law.period import Period
 from law_as_code_benchmarks.catala.exceptions import UncategorisedCrop
-from law_as_code_benchmarks.catala.provision import ConclusionType
+from law_as_code_benchmarks.law.provision import ConclusionType
 from law_as_code_benchmarks.catala.reader import (
     CatalaDirectory,
     CatalaValue,

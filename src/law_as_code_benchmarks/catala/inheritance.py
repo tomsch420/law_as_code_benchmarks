@@ -24,7 +24,7 @@ from krrood.entity_query_language.query.query import Query
 from krrood.ormatic.utils import classproperty
 from krrood.symbol_graph.symbol_graph import Symbol
 
-from law_as_code_benchmarks.catala.assessment import CatalaConclusion
+from law_as_code_benchmarks.law.provision import Conclusion
 from law_as_code_benchmarks.catala.money import Money
 from law_as_code_benchmarks.catala.reader import CatalaDirectory, CatalaValue
 from law_as_code_benchmarks.catala.scope_test import (
@@ -149,7 +149,7 @@ class ReservedPortionCase(ScopeCase):
 
 
 @dataclass(eq=False)
-class ChildCounted(CatalaConclusion):
+class ChildCounted(Conclusion):
     """Article 913: whether a child counts among the children the deceased leaves."""
 
     child: Child

@@ -207,7 +207,7 @@ def test_a_residence_reads_its_residents_household_and_days() -> None:
     residence = WorldReader.from_facts(home_facts()).read().residences[0]
     assert [resident.name for resident in residence.residents] == ["alice", "charlie"]
     assert residence.household.name == "alice_s_house"
-    assert (residence.period.start, residence.period.end) == (
+    assert (residence.period.first_day, residence.period.last_day) == (
         datetime.date(2017, 9, 16),
         None,
     )
@@ -252,7 +252,7 @@ def test_a_marriage_stated_with_two_starts_is_read_once_for_each() -> None:
             fact(Relation.START, "alice_and_bob", PrologText("2012-04-05")),
         ]
     ).read()
-    assert [marriage.period.start for marriage in world.marriages] == [
+    assert [marriage.period.first_day for marriage in world.marriages] == [
         datetime.date(2017, 2, 3),
         datetime.date(2012, 4, 5),
     ]

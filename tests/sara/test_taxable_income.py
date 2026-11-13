@@ -8,6 +8,7 @@ from __future__ import annotations
 import datetime
 
 from law_as_code_benchmarks.sara.case_reader import WorldReader
+from law_as_code_benchmarks.law.period import Period
 from law_as_code_benchmarks.sara.domain import (
     Blindness,
     CalendarYear,
@@ -16,7 +17,6 @@ from law_as_code_benchmarks.sara.domain import (
     ItemizedDeduction,
     Marriage,
     Party,
-    Period,
     World,
 )
 from law_as_code_benchmarks.sara.family_status_conclusions import (
@@ -90,7 +90,7 @@ def test_a_blind_spouse_counts_as_600_additional_amounts_as_in_sara() -> None:
             Marriage(
                 name="alice_and_bob",
                 spouses=[alice, bob],
-                period=Period(start=datetime.date(2010, 1, 1)),
+                period=Period(first_day=datetime.date(2010, 1, 1)),
             )
         ],
         blindnesses=[Blindness(person=alice, start=datetime.date(2014, 2, 28))],

@@ -6,6 +6,10 @@ answer for each case.
 `doc/law_as_code_benchmarks.md` surveys the candidates and picks the ones krrood is tried on.
 `doc/krrood_on_law_as_code.md` reports what krrood handles, works around or lacks across them.
 
+`src/law_as_code_benchmarks/law/` holds what the models of every benchmark share: periods of
+days, provisions drawing conclusions about a case that keeps them, and the score of a model
+on a benchmark's tests.
+
 ## SARA
 
 `resources/sara/` holds SARA's archive (`sara.tar.gz`, SHA-256 `e4f1b845016fc38b…`) unchanged,

@@ -5,8 +5,7 @@ every assertion they reproduce, by example, and how long it takes.
 
 from __future__ import annotations
 
-import statistics
-from dataclasses import dataclass, field
+from dataclasses import dataclass
 from enum import StrEnum
 
 from law_as_code_benchmarks.catala.case import CatalaTestFile, FamilyBenefitsTest
@@ -32,7 +31,7 @@ from law_as_code_benchmarks.catala.scope_test import CatalaTest
 from law_as_code_benchmarks.catala.united_states_tax_code import (
     UnitedStatesTaxCodeTestFile,
 )
-from law_as_code_benchmarks.stopwatch import Stopwatch
+from law_as_code_benchmarks.law.scoring import ReproductionResult, Score
 
 # %% examples
 
@@ -134,7 +133,7 @@ class CatalaExample(StrEnum):
 
 
 @dataclass(frozen=True)
-class ScopeResult:
+class ScopeResult(ReproductionResult):
     """
     How a model answered one test scope.
     """
@@ -144,46 +143,14 @@ class ScopeResult:
     The example the test belongs to.
     """
 
-    identifier: str
-    """
-    The test's file and scope.
-    """
-
-    is_reproduced: bool
-    """
-    Whether the model concludes everything the test asserts.
-    """
-
-    seconds: float
-    """
-    How long the model took to answer, the test file read beforehand.
-    """
-
-    @classmethod
-    def from_test(cls, example: CatalaExample, test: CatalaTest) -> ScopeResult:
-        """:return: How the model of *example* answers *test*, timed."""
-        stopwatch = Stopwatch()
-        is_reproduced = test.is_reproduced()
-        return cls(
-            example=example,
-            identifier=test.identifier,
-            is_reproduced=is_reproduced,
-            seconds=stopwatch.lap(),
-        )
-
 
 # %% every test
 
 
 @dataclass
-class CatalaScore:
+class CatalaScore(Score[ScopeResult]):
     """
-    The results of every test of the examples modelled.
-    """
-
-    results: list[ScopeResult] = field(default_factory=list)
-    """
-    One result per test, example by example.
+    The results of every test of the examples modelled, example by example.
     """
 
     @classmethod
@@ -191,7 +158,7 @@ class CatalaScore:
         """:return: The results of the tests of *examples*, every example where none are given."""
         return cls(
             results=[
-                ScopeResult.from_test(example, test)
+                ScopeResult.from_test(test, example=example)
                 for example in (list(CatalaExample) if examples is None else examples)
                 for test in example.read_tests()
             ]
@@ -203,23 +170,13 @@ class CatalaScore:
 
     def summary(self) -> str:
         """:return: The reproduced and total tests of each example and in all, and the times taken."""
-        lines = [
-            f"{example.value}: {self.reproduced_count(self.results_of(example))} of "
-            f"{len(self.results_of(example))} tests reproduced"
-            for example in CatalaExample
-        ]
-        lines.append(
-            f"all examples: {self.reproduced_count(self.results)} of "
-            f"{len(self.results)} tests reproduced"
+        return "\n".join(
+            [
+                *(
+                    self.reproduced_line(example.value, self.results_of(example))
+                    for example in CatalaExample
+                ),
+                self.reproduced_line("all examples", self.results),
+                self.answering_time_line(),
+            ]
         )
-        milliseconds = [result.seconds * 1000 for result in self.results]
-        lines.append(
-            f"answering in krrood: median {statistics.median(milliseconds):.1f} ms, "
-            f"maximum {max(milliseconds):.0f} ms"
-        )
-        return "\n".join(lines)
-
-    @staticmethod
-    def reproduced_count(results: list[ScopeResult]) -> int:
-        """:return: How many of *results* are reproduced."""
-        return sum(result.is_reproduced for result in results)

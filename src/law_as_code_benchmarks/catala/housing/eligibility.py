@@ -40,7 +40,6 @@ from law_as_code_benchmarks.catala.domain import (
     Child,
     DatedValue,
     Household,
-    Period,
     SchoolingStage,
     Territory,
 )
@@ -85,6 +84,7 @@ from law_as_code_benchmarks.catala.scope_test import (
     ScopeProvision,
     ScopeTestFile,
 )
+from law_as_code_benchmarks.law.period import Period
 
 # %% calendar
 

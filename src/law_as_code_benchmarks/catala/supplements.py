@@ -69,9 +69,9 @@ from law_as_code_benchmarks.catala.entitlement import (
 from law_as_code_benchmarks.catala.money import Money
 from law_as_code_benchmarks.catala.provision import (
     ChildProvision,
-    ConclusionType,
     FamilyBenefitsProvision,
 )
+from law_as_code_benchmarks.law.provision import ConclusionType
 
 # %% age supplements
 

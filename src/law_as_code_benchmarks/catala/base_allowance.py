@@ -55,7 +55,6 @@ from law_as_code_benchmarks.catala.domain import (
     ChildCare,
     DatedValue,
     Household,
-    Period,
     Territory,
 )
 from law_as_code_benchmarks.catala.entitlement import (
@@ -68,6 +67,7 @@ from law_as_code_benchmarks.catala.provision import (
     ChildProvision,
     FamilyBenefitsProvision,
 )
+from law_as_code_benchmarks.law.period import Period
 
 # %% the household's bracket
 

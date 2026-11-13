@@ -23,7 +23,7 @@ from law_as_code_benchmarks.catala.crop_rotation import (
     Parcel,
     ParcelSystem,
 )
-from law_as_code_benchmarks.catala.domain import Period
+from law_as_code_benchmarks.law.period import Period
 from law_as_code_benchmarks.catala.exceptions import UncategorisedCrop
 from law_as_code_benchmarks.catala.fibre_connection_grant import (
     AnnexCommunes,

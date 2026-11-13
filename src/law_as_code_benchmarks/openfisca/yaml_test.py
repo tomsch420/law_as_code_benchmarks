@@ -27,7 +27,6 @@ from law_as_code_benchmarks.catala.conclusions import HouseholdAmount, ResourceB
 from law_as_code_benchmarks.catala.domain import Household
 from law_as_code_benchmarks.catala.exceptions import AmbiguousConclusion
 from law_as_code_benchmarks.catala.provision import (
-    ConclusionType,
     FamilyBenefitsProvision,
 )
 from law_as_code_benchmarks.catala.supplements import (
@@ -41,6 +40,8 @@ from law_as_code_benchmarks.openfisca.exceptions import (
     UnexpectedOpenFiscaVariable,
 )
 from law_as_code_benchmarks.openfisca.situation import Situation
+from law_as_code_benchmarks.law.provision import ConclusionType
+from law_as_code_benchmarks.law.scoring import ReproducibleTest
 
 # %% test files
 
@@ -273,7 +274,7 @@ class YamlKey(StrEnum):
 
 
 @dataclass
-class OpenFiscaTest:
+class OpenFiscaTest(ReproducibleTest):
     """A test of a file: a situation in a month, and the outputs expected for it."""
 
     test_file: OpenFiscaTestFile

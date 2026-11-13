@@ -13,10 +13,10 @@ from fractions import Fraction
 
 from law_as_code_benchmarks.catala.domain import (
     DatedValue,
-    Period,
     Territory,
 )
 from law_as_code_benchmarks.catala.money import Money
+from law_as_code_benchmarks.law.period import Period
 
 # %% the monthly base of family allowances
 

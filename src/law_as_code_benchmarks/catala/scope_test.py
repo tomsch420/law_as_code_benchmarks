@@ -18,7 +18,6 @@ from pathlib import Path
 from krrood.ormatic.utils import classproperty
 from typing_extensions import Any, Self, get_args, get_origin
 
-from law_as_code_benchmarks.catala.assessment import AssessedCase, CatalaConclusion
 from law_as_code_benchmarks.catala.exceptions import (
     AmbiguousConclusion,
     UnexpectedCatalaStatement,
@@ -26,7 +25,13 @@ from law_as_code_benchmarks.catala.exceptions import (
     UnmodelledScope,
 )
 from law_as_code_benchmarks.catala.money import Money
-from law_as_code_benchmarks.catala.provision import ConclusionType, Provision
+from law_as_code_benchmarks.law.scoring import ReproducibleTest
+from law_as_code_benchmarks.law.provision import (
+    AssessedCase,
+    Conclusion,
+    ConclusionType,
+    Provision,
+)
 from law_as_code_benchmarks.catala.reader import (
     Application,
     Assertion,
@@ -55,17 +60,11 @@ class CatalaListFunction(StrEnum):
     """The sum of a list of money."""
 
 
-class CatalaTest(ABC):
-    """A test scope of a Catala example, and whether the model reproduces it."""
-
-    @property
-    @abstractmethod
-    def identifier(self) -> str:
-        """The test's file and scope, which name it uniquely."""
-
-    @abstractmethod
-    def is_reproduced(self) -> bool:
-        """:return: Whether the model concludes everything the test asserts."""
+class CatalaTest(ReproducibleTest, ABC):
+    """
+    A test scope of a Catala example, identified by its file and scope, and whether the
+    model concludes everything it asserts.
+    """
 
 
 # %% records
@@ -253,7 +252,7 @@ class ScopeProvision(Provision[ConclusionType], ABC):
 
 
 @dataclass(eq=False)
-class CaseConclusion(CatalaConclusion):
+class CaseConclusion(Conclusion):
     """A conclusion about a scope case."""
 
     case: ScopeCase

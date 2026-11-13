@@ -19,7 +19,8 @@ from krrood.entity_query_language.predicate import symbolic_function
 from krrood.patterns.path_enumeration import PathEnumeration
 from typing_extensions import Any
 
-from law_as_code_benchmarks.catala.domain import DatedValue, Period
+from law_as_code_benchmarks.catala.domain import DatedValue
+from law_as_code_benchmarks.law.period import Period
 from law_as_code_benchmarks.catala.housing.domain import (
     HousingZone,
     LoanType,

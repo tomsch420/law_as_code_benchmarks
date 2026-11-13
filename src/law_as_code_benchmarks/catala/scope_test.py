@@ -11,7 +11,7 @@ import sys
 import types
 from abc import ABC, abstractmethod
 from dataclasses import dataclass, field
-from enum import Enum
+from enum import Enum, StrEnum
 from fractions import Fraction
 from pathlib import Path
 
@@ -32,9 +32,11 @@ from law_as_code_benchmarks.catala.reader import (
     CatalaProgram,
     CatalaTestReader,
     CatalaValue,
+    ConstructorPattern,
     Definition,
     Reference,
     ScopeBody,
+    ScopeCall,
     StructureLiteral,
 )
 
@@ -131,9 +133,20 @@ class ScopeCase(CatalaRecord, AssessedCase, ABC):
     def catala_scope(cls) -> str:
         """The name of the scope, without its module."""
 
+    @classproperty
+    @abstractmethod
+    def catala_outputs(cls) -> type[StrEnum]:
+        """The outputs of the scope the case answers, each valued as Catala names it."""
+
     @abstractmethod
     def output(self, variable: str) -> CatalaValue:
-        """:return: The value the provisions conclude for the scope's output *variable*."""
+        """:return: The value the provisions conclude for the scope's output *variable*; None where they conclude none."""
+
+    def concludes_every_output(self) -> bool:
+        """:return: Whether the provisions conclude a value for each of :attr:`catala_outputs`."""
+        return all(
+            self.output(variable) is not None for variable in self.catala_outputs
+        )
 
     def sole_conclusion(
         self, provision_type: type[ScopeProvision[ConclusionType]]
@@ -206,12 +219,15 @@ class OutputAssertion:
     variable: str
     """The output."""
 
-    expected: CatalaValue
-    """Its value."""
+    expected: CatalaValue | ConstructorPattern
+    """Its value, or the constructor its value is of."""
 
     def is_reproduced(self) -> bool:
-        """:return: Whether the provisions conclude the value for the output."""
-        return self.case.output(self.variable) == self.expected
+        """:return: Whether the provisions conclude the value for the output, or one of the constructor."""
+        concluded = self.case.output(self.variable)
+        if isinstance(self.expected, ConstructorPattern):
+            return self.expected.is_matched_by(concluded)
+        return concluded == self.expected
 
 
 @dataclass
@@ -227,12 +243,17 @@ class ScopeTest(CatalaTest):
     assertions: list[OutputAssertion] = field(default_factory=list)
     """What the test asserts."""
 
+    unasserted_cases: list[ScopeCase] = field(default_factory=list)
+    """The scopes the test calls but asserts nothing of, which Catala's test still requires to compute every output."""
+
     @property
     def identifier(self) -> str:
         return f"{self.file_name}:{self.scope}"
 
     def is_reproduced(self) -> bool:
-        return all(assertion.is_reproduced() for assertion in self.assertions)
+        return all(assertion.is_reproduced() for assertion in self.assertions) and all(
+            case.concludes_every_output() for case in self.unasserted_cases
+        )
 
     @classmethod
     def from_scope(
@@ -248,17 +269,23 @@ class ScopeTest(CatalaTest):
         :param program: The file's scopes, which resolve variables of its data scopes.
         :param cases: The kinds of case the example models, one per scope.
         :return: The test the scope states, about the subscopes the example models.
-        :raises UnmodelledScope: Where the test asserts something of a subscope whose
-            scope no case models.
+        :raises UnmodelledScope: Where the test asserts something of a subscope, or
+            calls a scope, that no case models.
         """
+        subscopes = dict(scope.subscopes)
         inputs: dict[str, dict[str, CatalaValue]] = {
-            subscope: {} for subscope in scope.subscopes
+            subscope: {} for subscope in subscopes
         }
         asserted = []
         for statement in scope.statements:
             match statement:
                 case Definition(target=Reference(parts=(subscope, variable))):
                     inputs[subscope][variable] = program.resolve(statement.value)
+                case Definition(
+                    target=Reference(parts=(result,)), value=ScopeCall() as call
+                ):
+                    subscopes[result] = call.scope.last_part
+                    inputs[result] = program.resolve(call).arguments
                 case Assertion():
                     asserted.append(statement.asserted_value())
                 case _:
@@ -272,7 +299,7 @@ class ScopeTest(CatalaTest):
             if not (isinstance(expression, Reference) and len(expression.parts) == 2):
                 raise UnexpectedCatalaStatement(scope=scope.name, statement=expression)
             subscope, variable = expression.parts
-            scope_name = scope.subscopes[subscope]
+            scope_name = subscopes[subscope]
             if scope_name not in case_types:
                 raise UnmodelledScope(scope=scope_name)
             if subscope not in built:
@@ -284,7 +311,19 @@ class ScopeTest(CatalaTest):
                     expected=program.resolve(expected),
                 )
             )
-        return cls(file_name=file_name, scope=scope.name, assertions=assertions)
+        unasserted_cases = []
+        for result in sorted(subscopes.keys() - scope.subscopes.keys() - built.keys()):
+            if subscopes[result] not in case_types:
+                raise UnmodelledScope(scope=subscopes[result])
+            unasserted_cases.append(
+                case_types[subscopes[result]].from_catala(inputs[result])
+            )
+        return cls(
+            file_name=file_name,
+            scope=scope.name,
+            assertions=assertions,
+            unasserted_cases=unasserted_cases,
+        )
 
 
 # %% test files

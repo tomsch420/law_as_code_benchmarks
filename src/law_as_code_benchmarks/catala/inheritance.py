@@ -130,6 +130,11 @@ class ReservedPortionCase(ScopeCase):
             "biens_usufruit_rente_viagère": "life_interests",
         }
 
+    @classproperty
+    def catala_outputs(cls) -> type[StrEnum]:
+        """:class:`ReservedPortionOutput`."""
+        return ReservedPortionOutput
+
     def output(self, variable: str) -> CatalaValue:
         match ReservedPortionOutput(variable):
             case ReservedPortionOutput.RESERVED_SHARE:

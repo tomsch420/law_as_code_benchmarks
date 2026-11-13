@@ -6,7 +6,6 @@ the qualified employee discount.
 
 from __future__ import annotations
 
-import calendar
 import datetime
 from abc import ABC, abstractmethod
 from dataclasses import dataclass, field
@@ -33,12 +32,12 @@ from krrood.symbol_graph.symbol_graph import Symbol
 from typing_extensions import Self
 
 from law_as_code_benchmarks.catala.assessment import CatalaConclusion
-from law_as_code_benchmarks.catala.exceptions import AmbiguousAnniversary
 from law_as_code_benchmarks.catala.money import Money
 from law_as_code_benchmarks.catala.reader import (
     CatalaDirectory,
     CatalaValue,
     ConstructorWithContent,
+    Duration,
     StructureLiteral,
 )
 from law_as_code_benchmarks.catala.scope_test import (
@@ -97,6 +96,11 @@ class EmployeeDiscountCase(ScopeCase):
     def catala_scope(cls) -> str:
         """``QualifiedEmployeeDiscount``."""
         return "QualifiedEmployeeDiscount"
+
+    @classproperty
+    def catala_outputs(cls) -> type[StrEnum]:
+        """:class:`EmployeeDiscountOutput`."""
+        return EmployeeDiscountOutput
 
     def output(self, variable: str) -> CatalaValue:
         match EmployeeDiscountOutput(variable):
@@ -307,17 +311,6 @@ class Seller(Symbol):
     """The gain from the sale or exchange."""
 
     @staticmethod
-    def years_later(day: datetime.date, years: int) -> datetime.date:
-        """
-        :return: The day *years* years after *day*.
-        :raises AmbiguousAnniversary: Where *day* is February 29 and the year it falls
-            in has none, a day Catala refuses to round.
-        """
-        if (day.month, day.day) == (2, 29) and not calendar.isleap(day.year + years):
-            raise AmbiguousAnniversary(day=day, years=years)
-        return day.replace(year=day.year + years)
-
-    @staticmethod
     @symbolic_function
     def days_in_last_five_years(seller: Seller, periods: list[Period]) -> int:
         """
@@ -327,10 +320,12 @@ class Seller(Symbol):
         """
         days = 0
         for period in periods:
-            if seller.sale_date <= Seller.years_later(period.begin, 5):
+            if seller.sale_date <= Duration(years=5).date_after(period.begin):
                 days += (period.end - period.begin).days
-            elif seller.sale_date < Seller.years_later(period.end, 5):
-                days += (Seller.years_later(period.end, 5) - seller.sale_date).days
+            elif seller.sale_date < Duration(years=5).date_after(period.end):
+                days += (
+                    Duration(years=5).date_after(period.end) - seller.sale_date
+                ).days
         return days
 
 
@@ -423,6 +418,11 @@ class SinglePersonCase(SaleOfResidenceCase):
     @property
     def sellers(self) -> list[Seller]:
         return [self.seller]
+
+    @classproperty
+    def catala_outputs(cls) -> type[StrEnum]:
+        """:class:`SellerOutput`."""
+        return SellerOutput
 
     def output(self, variable: str) -> CatalaValue:
         if SellerOutput(variable) == SellerOutput.GAIN_CAP:
@@ -544,6 +544,11 @@ class TwoPersonsCase(SaleOfResidenceCase):
     @property
     def sellers(self) -> list[Seller]:
         return [self.first_seller, self.second_seller]
+
+    @classproperty
+    def catala_outputs(cls) -> type[StrEnum]:
+        """:class:`TwoPersonsOutput`."""
+        return TwoPersonsOutput
 
     def output(self, variable: str) -> CatalaValue:
         match TwoPersonsOutput(variable):
@@ -766,7 +771,7 @@ class RecentExclusionProvision(ScopeProvision[RecentExclusion]):
     @symbolic_function
     def two_years_after(day: datetime.date) -> datetime.date:
         """:return: The day two years after *day*."""
-        return Seller.years_later(day, 2)
+        return Duration(years=2).date_after(day)
 
 
 @dataclass

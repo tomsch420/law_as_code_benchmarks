@@ -255,6 +255,11 @@ class GamingCase(ScopeCase, ABC):
     def provision(cls) -> type[PermittedActivityProvision]:
         """The provision permitting the activity."""
 
+    @classproperty
+    def catala_outputs(cls) -> type[StrEnum]:
+        """:class:`GamingOutput`."""
+        return GamingOutput
+
     def output(self, variable: str) -> CatalaValue:
         match GamingOutput(variable):
             case GamingOutput.AUTHORIZED:

@@ -35,6 +35,12 @@ class Period:
         """:return: Whether *day* falls in the period."""
         return self.first_day <= day and (self.last_day is None or day <= self.last_day)
 
+    def overlaps(self, other: Period) -> bool:
+        """:return: Whether the period and *other* share a day at least."""
+        return (other.last_day is None or self.first_day <= other.last_day) and (
+            self.last_day is None or other.first_day <= self.last_day
+        )
+
 
 @dataclass(frozen=True)
 class DatedValue:

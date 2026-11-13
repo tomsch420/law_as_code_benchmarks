@@ -12,6 +12,7 @@ from typing_extensions import TYPE_CHECKING
 
 if TYPE_CHECKING:
     from law_as_code_benchmarks.catala.domain import Child
+    from law_as_code_benchmarks.catala.reader import Duration
 
 # %% computing
 
@@ -67,14 +68,14 @@ class UnexpectedCatalaStatement(DataclassException):
 @dataclass
 class UnmodelledScope(DataclassException):
     """
-    A test asserting something of a scope no case of its example models.
+    A test asserting something of, or calling, a scope no case of its example models.
     """
 
     scope: str
     """The scope's name."""
 
     def error_message(self) -> str:
-        return f"A test asserts something of scope {self.scope}, which no case models."
+        return f"A test asserts something of, or calls, scope {self.scope}, which no case models."
 
     def suggest_correction(self) -> str:
         return "Add a case modelling the scope to the example's test file."
@@ -105,19 +106,54 @@ class AmbiguousConclusion(DataclassException):
 @dataclass
 class AmbiguousAnniversary(DataclassException):
     """
-    A day some years after February 29 that falls in a year without one.
+    A day some years and months after another that the calendar lacks, such as a year
+    after February 29 or a month after January 31.
     """
 
     day: datetime.date
     """The day counted from."""
 
-    years: int
+    duration: Duration
     """
-    The years counted.
+    The duration counted.
     """
 
     def error_message(self) -> str:
-        return f"{self.years} years after {self.day} has no day, the year having no February 29."
+        return f"{self.duration} after {self.day} has no day, the month it falls in being too short."
 
     def suggest_correction(self) -> str:
-        return "Decide whether it falls on February 28 or March 1, as Catala asks a program to state."
+        return "Decide whether it falls on the month's last day or the next month's first, as Catala asks a program to state."
+
+
+@dataclass
+class DurationInDays(DataclassException):
+    """
+    A duration with days, read where a provision counts whole months, which Catala
+    refuses to compare with months.
+    """
+
+    days: int
+    """The days of the duration."""
+
+    def error_message(self) -> str:
+        return f"A duration of {self.days} days cannot be counted in whole months."
+
+    def suggest_correction(self) -> str:
+        return "State the duration in years and months, as the provision counts it."
+
+
+@dataclass
+class UncategorisedCrop(DataclassException):
+    """
+    A crop compared with another for the rotation that annex 4 of the crop rotation
+    standard puts in no category, where Catala's example stops as impossible.
+    """
+
+    code: str
+    """The crop's code."""
+
+    def error_message(self) -> str:
+        return f"Crop {self.code} is in no category of annex 4, so it cannot be compared with another for the rotation."
+
+    def suggest_correction(self) -> str:
+        return "Declare the crop with a code annex 4 lists."

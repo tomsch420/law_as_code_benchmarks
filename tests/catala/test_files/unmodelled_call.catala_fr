@@ -1,0 +1,13 @@
+> Usage de Fonpeps en tant que F
+
+```catala
+#[test]
+déclaration champ d'application Test1:
+  résultat calcul contenu F.AideInconnue
+
+champ d'application Test1:
+  définition calcul égal à
+    résultat de F.AideInconnue avec {
+      -- salaire_annuel_brut: 30 000 €
+    }
+```

@@ -11,9 +11,10 @@ from law_as_code_benchmarks.catala.scoring import CatalaExample, CatalaScore
 
 def test_every_test_of_every_example_is_reproduced() -> None:
     """
-    The models reproduce every assertion of all 62 test scopes: 16 of the family
-    benefits, 4 of inheritance, 8 of the Polish tax, 9 of the United States tax code and
-    25 of New South Wales' community gaming.
+    The models reproduce every assertion of all 69 test scopes: 16 of the family
+    benefits, 4 of inheritance, 8 of the Polish tax, 9 of the United States tax code, 25
+    of New South Wales' community gaming, 5 of the crop rotation standard, 1 of the
+    fibre connection grant and 1 of the performing arts hiring grant.
     """
     score = CatalaScore.from_examples()
     assert [
@@ -25,4 +26,7 @@ def test_every_test_of_every_example_is_reproduced() -> None:
         CatalaExample.POLISH_TAXES: 8,
         CatalaExample.UNITED_STATES_TAX_CODE: 9,
         CatalaExample.NEW_SOUTH_WALES_COMMUNITY_GAMING: 25,
+        CatalaExample.CROP_ROTATION: 5,
+        CatalaExample.FIBRE_CONNECTION_GRANT: 1,
+        CatalaExample.PERFORMING_ARTS_HIRING_GRANT: 1,
     }

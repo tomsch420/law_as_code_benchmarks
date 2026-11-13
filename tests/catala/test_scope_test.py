@@ -5,6 +5,7 @@ Tests of mapping Catala structures onto domain dataclasses, and of tests about s
 from __future__ import annotations
 
 import datetime
+from fractions import Fraction
 from pathlib import Path
 
 import pytest
@@ -16,8 +17,14 @@ from law_as_code_benchmarks.catala.new_south_wales_community_gaming import (
     DrawLotteryCase,
     OrganisationType,
 )
+from law_as_code_benchmarks.catala.performing_arts_hiring_grant import (
+    ContractKind,
+    HiringCase,
+    HiringGrantOutput,
+)
 from law_as_code_benchmarks.catala.reader import (
     CatalaLanguage,
+    CatalaProgram,
     CatalaTestReader,
     ConstructorWithContent,
     Reference,
@@ -117,3 +124,43 @@ def test_an_assertion_about_a_scope_no_case_models_is_refused() -> None:
             program,
             [ClubBingoCase, SinglePersonCase],
         )
+
+
+def read_french_program(file_name: str) -> CatalaProgram:
+    """:return: The program of :file:`test_files/{file_name}`, read in French."""
+    path = Path(__file__).parent / "test_files" / file_name
+    return CatalaTestReader(language=CatalaLanguage.FRENCH).read_program(
+        path.read_text()
+    )
+
+
+def test_a_scope_called_without_assertions_needs_every_output_concluded() -> None:
+    """
+    A test calling a scope and asserting nothing of it builds the call's case from its
+    arguments; it is not reproduced where an output has no value, as Catala's test fails
+    when no rule defines one.
+    """
+    program = read_french_program("unasserted_call.catala_fr")
+    (scope,) = program.test_scopes
+    test = ScopeTest.from_scope(
+        "unasserted_call.catala_fr", scope, program, [HiringCase]
+    )
+    (case,) = test.unasserted_cases
+    assert (case.contract_kind, case.part_time_share, case.fixed_term_months) == (
+        ContractKind.PERMANENT,
+        Fraction(1, 2),
+        None,
+    )
+    assert case.output(HiringGrantOutput.AMOUNT) is None
+    assert not test.is_reproduced()
+
+
+def test_a_call_of_a_scope_no_case_models_is_refused() -> None:
+    """
+    A test calling a scope the example's cases do not model is refused, even without
+    assertions.
+    """
+    program = read_french_program("unmodelled_call.catala_fr")
+    (scope,) = program.test_scopes
+    with pytest.raises(UnmodelledScope):
+        ScopeTest.from_scope("unmodelled_call.catala_fr", scope, program, [HiringCase])

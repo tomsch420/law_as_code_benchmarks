@@ -28,6 +28,7 @@ from law_as_code_benchmarks.catala.exceptions import (
 from law_as_code_benchmarks.catala.money import Money
 from law_as_code_benchmarks.catala.provision import ConclusionType, Provision
 from law_as_code_benchmarks.catala.reader import (
+    Application,
     Assertion,
     CatalaLanguage,
     CatalaProgram,
@@ -36,6 +37,7 @@ from law_as_code_benchmarks.catala.reader import (
     ConstructorPattern,
     ConstructorWithContent,
     Definition,
+    ListMap,
     Reference,
     ScopeBody,
     ScopeCall,
@@ -280,12 +282,19 @@ class OutputAssertion:
     expected: CatalaValue | ConstructorPattern
     """Its value, or the constructor its value is of."""
 
+    argument_output: str | None = None
+    """The output the output, a function, is applied to; None for an output that is no function."""
+
     def is_reproduced(self) -> bool:
         """
-        :return: Whether the provisions conclude the value for the output, or one of the
-            constructor; an enumeration's member matches a constructor of its name.
+        :return: Whether the provisions conclude the value for the output, applied to
+            its argument output where it is a function, or one of the constructor; an
+            enumeration's member matches a constructor of its name.
         """
         concluded = self.case.output(self.variable)
+        if self.argument_output is not None:
+            argument = self.case.output(self.argument_output)
+            concluded = None if argument is None else concluded(argument)
         if isinstance(self.expected, ConstructorPattern):
             return self.expected.is_matched_by(concluded)
         if isinstance(self.expected, Reference) and isinstance(concluded, StrEnum):
@@ -332,7 +341,8 @@ class ScopeTest(CatalaTest):
         :param program: The file's scopes, which resolve variables of its data scopes.
         :param cases: The kinds of case the example models, one per scope.
         :return: The test the scope states, about the subscopes the example models; a
-            variable of the test defined as a subscope's output stands for that output.
+            variable of the test defined as a subscope's output, or as an output applied
+            to another, stands for it.
         :raises UnmodelledScope: Where the test asserts something of a subscope, or
             calls a scope, that no case models.
         """
@@ -341,7 +351,7 @@ class ScopeTest(CatalaTest):
             subscope: {} for subscope in subscopes
         }
         asserted = []
-        outputs: dict[str, Reference] = {}
+        outputs: dict[str, Reference | Application] = {}
         for statement in scope.statements:
             match statement:
                 case Definition(target=Reference(parts=(subscope, variable))):
@@ -352,8 +362,18 @@ class ScopeTest(CatalaTest):
                     subscopes[result] = call.scope.last_part
                     inputs[result] = program.resolve(call).arguments
                 case Definition(
+                    target=Reference(parts=(result,)), value=ListMap() as mapped
+                ):
+                    for index, call in enumerate(program.resolve(mapped).scope_calls()):
+                        subscopes[f"{result}[{index}]"] = call.scope.last_part
+                        inputs[f"{result}[{index}]"] = call.arguments
+                case Definition(
                     target=Reference(parts=(result,)),
-                    value=Reference(parts=(_, _)) as output,
+                    value=Reference(parts=(_, _))
+                    | Application(
+                        function=Reference(parts=(_, _)),
+                        argument=Reference(parts=(_, _)),
+                    ) as output,
                 ):
                     outputs[result] = output
                 case Assertion():
@@ -368,6 +388,10 @@ class ScopeTest(CatalaTest):
         for expression, expected in asserted:
             if isinstance(expression, Reference) and expression.parts[0] in outputs:
                 expression = outputs[expression.parts[0]]
+            argument_output = None
+            if isinstance(expression, Application):
+                argument_output = expression.argument.last_part
+                expression = expression.function
             if not (isinstance(expression, Reference) and len(expression.parts) == 2):
                 raise UnexpectedCatalaStatement(scope=scope.name, statement=expression)
             subscope, variable = expression.parts
@@ -381,6 +405,7 @@ class ScopeTest(CatalaTest):
                     case=built[subscope],
                     variable=variable,
                     expected=program.resolve(expected),
+                    argument_output=argument_output,
                 )
             )
         unasserted_cases = []

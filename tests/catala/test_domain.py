@@ -35,6 +35,28 @@ def test_half_a_cent_is_rounded_away_from_zero(cents: int) -> None:
     assert Money(cents=cents) * Fraction(1, 2) == Money(cents=cents)
 
 
+@pytest.mark.parametrize(
+    "cents, units", [(36898, 36900), (36849, 36800), (-50, -100), (49, 0)]
+)
+def test_money_is_rounded_to_whole_units_halves_away_from_zero(
+    cents: int, units: int
+) -> None:
+    """
+    Catala's ``arrondi`` rounds money to the nearest unit, halves away from zero.
+    """
+    assert Money(cents=cents).rounded_to_units() == Money(cents=units)
+
+
+def test_money_leaves_an_operand_it_does_not_know_to_the_operand() -> None:
+    """
+    Money gives way to an operand that is neither money nor a number, as a symbolic one
+    is.
+    """
+    assert Money(cents=1).__mul__("x") is NotImplemented
+    assert Money(cents=1).__add__(1) is NotImplemented
+    assert Money(cents=1).__sub__(1) is NotImplemented
+
+
 def test_amounts_sum_from_zero() -> None:
     """
     :func:`sum` adds amounts, starting from the integer 0.

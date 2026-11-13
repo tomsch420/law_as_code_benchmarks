@@ -23,6 +23,7 @@ from typing_extensions import TypeAlias
 from law_as_code_benchmarks.catala.exceptions import (
     AmbiguousAnniversary,
     DurationInDays,
+    UnmappedExpression,
 )
 from law_as_code_benchmarks.catala.money import Money
 
@@ -94,6 +95,15 @@ class CatalaKeywords:
     day: str | None
     """The unit of a duration in days; None where no test file of the language uses it."""
 
+    map_each: str | None
+    """Opens a list mapped element by element, as ``map each x among list to expression``; None where no test file of the language uses it."""
+
+    map_among: str | None
+    """Names the list mapped; None where no test file of the language uses it."""
+
+    map_to: str | None
+    """Names what each element is mapped to; None where no test file of the language uses it."""
+
     true: str
     """True."""
 
@@ -121,6 +131,9 @@ class CatalaLanguage(Enum):
         year="an",
         month="mois",
         day="jour",
+        map_each="transforme chaque",
+        map_among="parmi",
+        map_to="en",
         true="vrai",
         false="faux",
     )
@@ -143,6 +156,9 @@ class CatalaLanguage(Enum):
         year=None,
         month=None,
         day=None,
+        map_each=None,
+        map_among=None,
+        map_to=None,
         true="true",
         false="false",
     )
@@ -165,6 +181,9 @@ class CatalaLanguage(Enum):
         year=None,
         month=None,
         day=None,
+        map_each=None,
+        map_among=None,
+        map_to=None,
         true="prawda",
         false="fałsz",
     )
@@ -227,6 +246,55 @@ class ScopeCall:
 
     arguments: dict[str, CatalaValue]
     """The value of each input, by name."""
+
+
+@dataclass(frozen=True)
+class FieldAccess:
+    """A field of a structure, or an output of a scope called, as ``(expression).field``."""
+
+    value: CatalaValue
+    """The structure, or the scope called."""
+
+    field_name: str
+    """The field."""
+
+
+@dataclass(frozen=True)
+class ListMap:
+    """Each element of a list mapped to an expression of it, as ``map each element among list to expression``."""
+
+    element: str
+    """The name standing for each element in the expression."""
+
+    elements: CatalaValue
+    """The list."""
+
+    expression: CatalaValue
+    """The expression each element is mapped to."""
+
+    def scope_calls(self) -> list[ScopeCall]:
+        """
+        :return: The scope call the expression makes for each element, the element in
+            place of every argument naming it.
+        :raises UnmappedExpression: Where the expression is no scope call, nor a field of one.
+        """
+        call = self.expression
+        if isinstance(call, FieldAccess):
+            call = call.value
+        if not isinstance(call, ScopeCall):
+            raise UnmappedExpression(expression=self.expression)
+        return [
+            ScopeCall(
+                scope=call.scope,
+                arguments={
+                    name: element
+                    if argument == Reference(parts=(self.element,))
+                    else argument
+                    for name, argument in call.arguments.items()
+                },
+            )
+            for element in self.elements
+        ]
 
 
 @dataclass(frozen=True)
@@ -318,6 +386,8 @@ CatalaValue: TypeAlias = (
     | ScopeCall
     | Application
     | Negation
+    | FieldAccess
+    | ListMap
     | list
 )
 """A value or expression as the tests write it."""
@@ -600,6 +670,11 @@ class CatalaTestReader:
             + pyparsing.Suppress("]")
         ).set_parse_action(lambda tokens: [tokens[0].as_list()])
         parenthesized = pyparsing.Suppress("(") + expression + pyparsing.Suppress(")")
+        field_access = (
+            parenthesized + pyparsing.Suppress(".") + name
+        ).set_parse_action(
+            lambda tokens: FieldAccess(value=tokens[0], field_name=tokens[1])
+        )
         primary = (
             money
             | date
@@ -610,9 +685,25 @@ class CatalaTestReader:
             | boolean
             | catala_list
             | structure
+            | field_access
             | parenthesized
         )
         alternatives = []
+        if keywords.map_each is not None:
+            alternatives.append(
+                (
+                    pyparsing.Suppress(cls.keyword(keywords.map_each))
+                    + name
+                    + pyparsing.Suppress(cls.keyword(keywords.map_among))
+                    + expression
+                    + pyparsing.Suppress(cls.keyword(keywords.map_to))
+                    + expression
+                ).set_parse_action(
+                    lambda tokens: ListMap(
+                        element=tokens[0], elements=tokens[1], expression=tokens[2]
+                    )
+                )
+            )
         if keywords.scope_result is not None:
             alternatives.append(
                 (

@@ -30,6 +30,7 @@ from law_as_code_benchmarks.catala.housing.eligibility import (
     EligibilityOutput,
     HousingAllowanceType,
 )
+from law_as_code_benchmarks.catala.housing.rented import RentedAidCase, RentedAidOutput
 from law_as_code_benchmarks.catala.money import Money
 from law_as_code_benchmarks.catala.new_south_wales_community_gaming import (
     ClubBingoCase,
@@ -272,6 +273,43 @@ class ConstantAllowanceCase(ScopeCase):
 
     def output(self, variable: str) -> CatalaValue:
         return HousingAllowanceType.FAMILY
+
+
+def test_a_variable_defined_as_an_output_applied_to_another_stands_for_the_application() -> (
+    None
+):
+    """
+    A test variable defined as a function output applied to another output asserts the
+    function's value at that output.
+    """
+    program = read_french_program("applied_output.catala_fr")
+    (scope,) = program.test_scopes
+    test = ScopeTest.from_scope(
+        "applied_output.catala_fr", scope, program, [RentedAidCase]
+    )
+    (assertion,) = test.assertions
+    assert (assertion.variable, assertion.argument_output) == (
+        RentedAidOutput.AID_TREATMENT,
+        RentedAidOutput.INITIAL_AID,
+    )
+    case: RentedAidCase = assertion.case
+    assert assertion.is_reproduced() == (
+        case.treated_aid(case.output(RentedAidOutput.INITIAL_AID)) == assertion.expected
+    )
+
+
+def test_a_list_mapped_to_calls_gives_one_unasserted_case_per_element() -> None:
+    """
+    Each call a test maps a list to is a case of its own, which must conclude every
+    output.
+    """
+    program = read_french_program("mapped_calls.catala_fr")
+    (scope,) = program.test_scopes
+    test = ScopeTest.from_scope("mapped_calls.catala_fr", scope, program, [HiringCase])
+    assert sorted(case.assessment_date for case in test.unasserted_cases) == [
+        datetime.date(2021, 11, 1),
+        datetime.date(2022, 1, 1),
+    ]
 
 
 def test_an_enumeration_output_matches_a_qualified_constructor_of_its_name() -> None:

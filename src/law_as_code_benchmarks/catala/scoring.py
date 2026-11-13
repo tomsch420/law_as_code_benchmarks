@@ -13,6 +13,7 @@ from law_as_code_benchmarks.catala.case import CatalaTestFile, FamilyBenefitsTes
 from law_as_code_benchmarks.catala.crop_rotation import CropRotationTestFile
 from law_as_code_benchmarks.catala.fibre_connection_grant import FibreGrantTestFile
 from law_as_code_benchmarks.catala.housing.eligibility import EligibilityTestFile
+from law_as_code_benchmarks.catala.housing.rented import RentedTestFile
 from law_as_code_benchmarks.catala.inheritance import InheritanceTestFile
 from law_as_code_benchmarks.catala.new_south_wales_community_gaming import (
     NewSouthWalesCommunityGamingTestFile,
@@ -106,7 +107,7 @@ class CatalaExample(StrEnum):
             case CatalaExample.PERFORMING_ARTS_HIRING_GRANT:
                 test_files = list(HiringGrantTestFile)
             case CatalaExample.HOUSING_AIDS:
-                test_files = list(EligibilityTestFile)
+                test_files = list(EligibilityTestFile) + list(RentedTestFile)
         return [test for test_file in test_files for test in test_file.read_tests()]
 
 

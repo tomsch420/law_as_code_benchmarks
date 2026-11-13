@@ -1,0 +1,26 @@
+> Usage de Fonpeps en tant que F
+
+```catala
+#[test]
+déclaration champ d'application Test1:
+  résultat éligibilités contenu liste de booléen
+
+champ d'application Test1:
+  définition éligibilités égal à
+    transforme chaque date_test
+    parmi [ |2021-11-01|; |2022-01-01|; ] en
+      (
+        résultat de F.AidePourEmbauche avec {
+          -- contrat: CDI
+          -- régime_entreprise: IntermittentSpectacleParNatureActivité
+          -- artiste_lyrique_chœur_permanent: faux
+          -- artiste_voix_résidence_milieu_scolaire: faux
+          -- activité_intermittent_spectacle: vrai
+          -- salaire_annuel_brut: 30 000 €
+          -- date_courante: date_test
+          -- date_début_exécution_contrat: |2020-12-15|
+          -- bénéficié_modification_contrat_travail_changement_fonctions_sans_changer_employeur: faux
+          -- temps_travail: TempsPartiel contenu (50%)
+        }
+      ).éligibilité
+```

@@ -11,10 +11,16 @@ from __future__ import annotations
 from abc import ABC, abstractmethod
 from dataclasses import dataclass
 
-from krrood.entity_query_language.factories import an, entity, variable
+from krrood.entity_query_language.factories import (
+    add,
+    alternative,
+    an,
+    entity,
+    variable,
+)
 from krrood.entity_query_language.query.query import Query
 from krrood.patterns.subclass_safe_generic import SubClassSafeGeneric
-from typing_extensions import Generic, TypeVar
+from typing_extensions import Any, Generic, TypeVar
 
 from law_as_code_benchmarks.catala.assessment import AssessedCase, CatalaConclusion
 from law_as_code_benchmarks.catala.domain import DatedValue, Household
@@ -22,6 +28,58 @@ from law_as_code_benchmarks.catala.domain import DatedValue, Household
 ConclusionType = TypeVar("ConclusionType", bound=CatalaConclusion)
 
 DatedValueType = TypeVar("DatedValueType", bound=DatedValue)
+
+
+# %% rule chains
+
+
+@dataclass(frozen=True)
+class RuleBranch:
+    """
+    A rule of an else-if chain: its conditions and the inference it adds.
+    """
+
+    conditions: tuple[Any, ...]
+    """
+    The conditions, all of which must hold; none for the chain's default.
+    """
+
+    inferred: Any
+    """
+    The inference the rule adds.
+    """
+
+
+@dataclass(frozen=True)
+class RuleChain:
+    """
+    An else-if chain of rules of equal standing, each tried where those before it fail,
+    whose rules are chosen as the chain is built: a rule whose amounts are not in force
+    is left out, krrood refusing a condition that is a plain truth value.
+    """
+
+    conclusion: Any
+    """
+    The deduced variable the rules conclude.
+    """
+
+    branches: list[RuleBranch]
+    """
+    The rules, in order, the default last.
+    """
+
+    def query(self) -> Query:
+        """:return: The query of the chain; a plain inference where only the default is left."""
+        first, *others = self.branches
+        if not first.conditions:
+            return an(entity(first.inferred))
+        query = an(entity(self.conclusion).where(*first.conditions))
+        with query:
+            add(self.conclusion, first.inferred)
+            for branch in others:
+                with alternative(*branch.conditions):
+                    add(self.conclusion, branch.inferred)
+        return query
 
 
 # %% provisions

@@ -425,6 +425,15 @@ class FlatRateGrantProvision(ScopeProvision[FlatRateGrant]):
 class GrantAmountProvision(ScopeProvision[GrantAmount]):
     """Article 3: the flat-rate aid, prorated to the share of full time of a part-time hiring."""
 
+    @property
+    def conclusions(self) -> list[GrantAmount]:
+        """Extends :meth:`Provision.conclusions`: none where no flat-rate aid is due."""
+        # krrood raises on an else-if chain over an empty domain:
+        # https://github.com/cram2/cognitive_robot_abstract_machine/issues/952
+        if not FlatRateGrantProvision(case=self.case).conclusions:
+            return []
+        return super().conclusions
+
     def query(self) -> Query:
         case = variable(HiringCase, domain=[self.case])
         flat_rate = variable(

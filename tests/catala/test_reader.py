@@ -10,6 +10,10 @@ from pathlib import Path
 
 import pytest
 
+from law_as_code_benchmarks.catala.exceptions import (
+    AmbiguousAnniversary,
+    DurationInDays,
+)
 from law_as_code_benchmarks.catala.money import Money
 from law_as_code_benchmarks.catala.reader import (
     Assertion,
@@ -192,3 +196,49 @@ def test_a_constructor_pattern_matches_its_constructor_with_or_without_content(
     """
     pattern = ConstructorPattern(constructor=Reference(parts=("BCAE7", "NonRespecté")))
     assert pattern.is_matched_by(value) == is_matched
+
+
+# %% durations
+
+
+@pytest.mark.parametrize(
+    "duration, day, later",
+    [
+        (Duration(years=1), datetime.date(2024, 3, 31), datetime.date(2025, 3, 31)),
+        (Duration(months=14), datetime.date(2024, 11, 30), datetime.date(2026, 1, 30)),
+        (Duration(days=365), datetime.date(2024, 1, 1), datetime.date(2024, 12, 31)),
+    ],
+)
+def test_a_duration_after_a_day_keeps_the_day_of_the_month(
+    duration: Duration, day: datetime.date, later: datetime.date
+) -> None:
+    """
+    Years and months keep the day of the month; days count one by one.
+    """
+    assert duration.date_after(day) == later
+
+
+@pytest.mark.parametrize(
+    "duration, day",
+    [
+        (Duration(years=1), datetime.date(2024, 2, 29)),
+        (Duration(months=1), datetime.date(2025, 1, 31)),
+    ],
+)
+def test_a_duration_landing_on_a_day_the_month_lacks_is_refused(
+    duration: Duration, day: datetime.date
+) -> None:
+    """
+    A year after February 29, or a month after January 31, has no day Catala rounds to.
+    """
+    with pytest.raises(AmbiguousAnniversary):
+        duration.date_after(day)
+
+
+def test_a_duration_counts_its_years_in_months_but_refuses_days() -> None:
+    """
+    A year counts twelve months; a duration with days cannot be counted in months.
+    """
+    assert Duration(years=1, months=2).whole_months == 14
+    with pytest.raises(DurationInDays):
+        Duration(days=30).whole_months

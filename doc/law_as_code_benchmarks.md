@@ -45,7 +45,10 @@ and a krrood model can be loaded from the same facts with no language step.
 
 Laws written in Catala by its authors and contributors: French family benefits (*allocations
 familiales*), housing benefits (*aides au logement*), income tax, inheritance law, Polish
-taxes, New South Wales community gaming and § 121 and § 132 of the United States tax code. Catala states a
+taxes, New South Wales community gaming, § 121 and § 132 of the United States tax code, and
+three aids paid by the French payment agency (ASP): the crop rotation standard of the
+agricultural conditionality, a grant for connecting to optical fibre and a hiring grant in
+the performing arts. Catala states a
 law as a default with exceptions that override it, which is the construct krrood's rules have
 to express. The family benefits example holds rules and amounts from 2011 to 2023, chosen by
 the date a computation is for; its 15 tests ask about dates from 2019 to 2022. Its authors

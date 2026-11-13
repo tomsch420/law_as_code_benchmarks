@@ -51,11 +51,15 @@ its Apache-2.0 license, all unchanged. The three family benefits files are in
 `allocations_familiales/tests/tests_allocations_familiales.catala_fr`,
 `allocations_familiales/tests/tests_ouverture_droits.catala_fr` and
 `prestations_familiales/tests/tests_ouverture_droits.catala_fr`. The other examples keep
-their own names, under `resources/catala/<example>/tests/`.
+their own names, under `resources/catala/<example>/tests/`. The fibre connection grant
+also keeps `asp/aide_fibre/ocaml/Eligibilite_commune.ml`. That file lists the postal codes
+of the communes in the decree's annex, which Catala declares as an external function.
 
 `src/law_as_code_benchmarks/catala/reader.py` reads the test files in Catala's French,
-English or Polish syntax. Each test scope gives a scope its inputs and asserts its outputs.
-The inputs map onto a domain dataclass, and krrood rules answer the outputs. There is one
+English or Polish syntax. Each test scope gives a scope its inputs, either through a
+subscope or by calling the scope, and asserts its outputs. A test that calls a scope and
+asserts nothing, as FONPEPS's does, passes when every output of the scope has a value. The
+inputs map onto a domain dataclass, and krrood rules answer the outputs. There is one
 provision for each variable of Catala's scopes. A default and its exceptions become a rule
 tree: rules of equal standing form an else-if chain of `alternative`s that ends in
 Catala's default, and an exception to a single rule is a `refinement` of it. Amounts in
@@ -76,7 +80,10 @@ python scripts/score_catala.py
 | `polish_taxes` | Polish tax on civil-law transactions, art. 7 | 8 | 8 |
 | `us_tax_code` | United States Internal Revenue Code §§ 121 and 132 | 9 | 9 |
 | `NSW_community_gaming` | permitted gaming activities of New South Wales | 25 | 25 |
+| `asp/bcae7` | crop rotation standard of the 2025 conditionality (BCAE 7), annual and multi-year criteria | 5 | 5 |
+| `asp/aide_fibre` | grant for private works connecting to optical fibre, décret n° 2025-674 | 1 | 1 |
+| `asp/fonpeps` | FONPEPS hiring grant in the performing arts, décret n° 2019-1011 | 1 | 1 |
 
-On one local run, answering a test scope in krrood took 7.5 ms at the median and 1,802 ms
+On one local run, answering a test scope in krrood took 7.6 ms at the median and 1,677 ms
 at most. The maximum is the first test scope, which pays krrood's warm-up. Catala's own
 interpreter was not run for comparison.

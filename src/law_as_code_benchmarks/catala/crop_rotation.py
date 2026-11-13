@@ -42,7 +42,6 @@ from law_as_code_benchmarks.catala.reader import (
 )
 from law_as_code_benchmarks.catala.scope_test import (
     CaseConclusion,
-    CaseCondition,
     CatalaRecord,
     ScopeCase,
     ScopeProvision,

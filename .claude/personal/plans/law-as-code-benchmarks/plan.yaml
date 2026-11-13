@@ -46,12 +46,14 @@ items:
   session: local session 6f4d9009-2717-491e-a2db-4e0a09589379
   depends_on: []
   status: in progress
-  notes: 'aides_logement of catala-examples 9e251b932288: eligibility (tests_eligibilite_apl)
-    and time coverage (tests_couverture_temporelle), on its prologue and the dated tables
-    of the arrete of 2019-09-27, reusing the family benefits model housing benefits import;
-    score the share of those test scopes reproduced.
+  notes: >
+    aides_logement of catala-examples 9e251b932288: eligibility (tests_eligibilite_apl) and time
+    coverage (tests_couverture_temporelle), on its prologue and the dated tables of the arrete of
+    2019-09-27, reusing the family benefits model housing benefits import; score the share of those
+    test scopes reproduced.
 
-    '
+    tests_couverture_temporelle calls CalculAidePersonnaliséeLogementLocatif, so its three time
+    coverage tests are scored with the rented homes item instead (PR #19).
 - id: krrood-catala-housing-rented
   title: Model Catala's housing benefits for rented homes in krrood and score them
   branch: krrood-catala-housing-rented

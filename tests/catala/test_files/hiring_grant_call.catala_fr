@@ -1,0 +1,25 @@
+> Usage de Fonpeps en tant que F
+
+```catala
+déclaration parcelle_de_test contenu BCAE7.ParcelleTerreArable
+  égal à
+    BCAE7.ParcelleTerreArable {
+      -- surface_hectares: 25,0
+    }
+
+#[test]
+déclaration champ d'application Test1:
+  résultat calcul contenu F.AidePourEmbauche
+
+champ d'application Test1:
+  définition calcul égal à
+    résultat de F.AidePourEmbauche avec {
+      -- contrat: CDD contenu 9 mois
+      -- salaire_annuel_brut: 30 000 €
+      -- temps_travail: TempsPartiel contenu (50%)
+      -- parcelles: [ parcelle_de_test; ]
+    }
+
+  assertion calcul.éligibilité
+  assertion calcul.respect sous forme NonRespecté
+```

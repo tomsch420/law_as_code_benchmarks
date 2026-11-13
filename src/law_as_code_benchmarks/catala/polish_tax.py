@@ -99,6 +99,11 @@ class TransactionCase(ScopeCase, ABC):
             "wysokość_nieustalona": "undetermined_claim",
         }
 
+    @classproperty
+    def catala_outputs(cls) -> type[StrEnum]:
+        """:class:`TransactionOutput`."""
+        return TransactionOutput
+
     def output(self, variable: str) -> CatalaValue:
         match TransactionOutput(variable):
             case TransactionOutput.TAX:

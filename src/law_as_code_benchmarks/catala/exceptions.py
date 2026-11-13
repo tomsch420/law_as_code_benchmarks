@@ -82,6 +82,28 @@ class UnmodelledScope(DataclassException):
 
 
 @dataclass
+class UnknownCatalaConstructor(DataclassException):
+    """
+    A constructor of a Catala enumeration that no subclass of the class the enumeration
+    maps onto stands for.
+    """
+
+    enumeration: type
+    """The class the enumeration maps onto."""
+
+    constructor: str
+    """
+    The constructor's name.
+    """
+
+    def error_message(self) -> str:
+        return f"No subclass of {self.enumeration.__name__} stands for Catala's constructor {self.constructor}."
+
+    def suggest_correction(self) -> str:
+        return "Add a subclass naming the constructor in its catala_constructor."
+
+
+@dataclass
 class AmbiguousConclusion(DataclassException):
     """
     A provision drawing several conclusions about a case where its variable has one

@@ -7,7 +7,7 @@ wage, the resource ceilings and the rates of Mayotte.
 from __future__ import annotations
 
 import datetime
-from dataclasses import dataclass, field
+from dataclasses import dataclass
 from enum import Enum
 from fractions import Fraction
 
@@ -24,7 +24,7 @@ class MonthlyBase(DatedValue):
     makes every family benefit a percentage.
     """
 
-    amount: Money = field(default_factory=lambda: Money.zero)
+    amount: Money
     """The monthly base."""
 
 
@@ -77,10 +77,10 @@ class HourlyMinimumWage(DatedValue):
     in some territories.
     """
 
-    amount: Money = field(default_factory=lambda: Money.zero)
+    amount: Money
     """The gross wage of an hour."""
 
-    territories: frozenset[Territory] = frozenset()
+    territories: frozenset[Territory]
     """The territories it is in force in."""
 
 
@@ -261,13 +261,13 @@ class ResourceCeilings(DatedValue):
     allowances, each raised by the same amount for every child in its charge.
     """
 
-    first_ceiling: Money = field(default_factory=lambda: Money.zero)
+    first_ceiling: Money
     """The ceiling of I of `D521-3 <https://www.legifrance.gouv.fr/codes/article_lc/LEGIARTI000044809227>`__, before the raise for children."""
 
-    second_ceiling: Money = field(default_factory=lambda: Money.zero)
+    second_ceiling: Money
     """The ceiling of II of `D521-3 <https://www.legifrance.gouv.fr/codes/article_lc/LEGIARTI000044809227>`__, before the raise for children."""
 
-    raise_per_child: Money = field(default_factory=lambda: Money.zero)
+    raise_per_child: Money
     """What each ceiling is raised by for every child in the household's charge."""
 
 
@@ -325,13 +325,13 @@ class MayotteRates(DatedValue):
     décret n°2002-423.
     """
 
-    first_child: Fraction = Fraction(0)
+    first_child: Fraction
     """The rate for a household with one child, which had none in its charge before 2012."""
 
-    second_child: Fraction = Fraction(0)
+    second_child: Fraction
     """The rate for the second child."""
 
-    third_child: Fraction = Fraction(0)
+    third_child: Fraction
     """The rate for the third child."""
 
 

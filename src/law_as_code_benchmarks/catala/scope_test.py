@@ -37,6 +37,7 @@ from law_as_code_benchmarks.catala.reader import (
     ConstructorPattern,
     ConstructorWithContent,
     Definition,
+    FieldAccess,
     ListMap,
     Reference,
     ScopeBody,
@@ -45,6 +46,13 @@ from law_as_code_benchmarks.catala.reader import (
 )
 
 # %% tests
+
+
+class CatalaListFunction(StrEnum):
+    """The functions of Catala's standard library a test may assert of an output list."""
+
+    MONEY_SUM = "Argent.somme"
+    """The sum of a list of money."""
 
 
 class CatalaTest(ABC):
@@ -100,9 +108,10 @@ class CatalaRecord:
     @classmethod
     def converted(cls, value: CatalaValue, field_type: Any) -> Any:
         """
-        :return: *value* as *field_type*: a structure as its record, an enumeration's
-            constructor as the member of that name, each element of a list, a whole
-            number as a fraction where one is asked; any other value as it is.
+        :return: *value* as *field_type*: a structure as its record, or a call of an
+            interface scope filling the record's defaults; an enumeration's constructor
+            as the member of that name, each element of a list, a whole number as a
+            fraction where one is asked; any other value as it is.
         """
         origin = get_origin(field_type)
         if origin is list:
@@ -116,6 +125,12 @@ class CatalaRecord:
             ]
         if not inspect.isclass(field_type):
             return value
+        if (
+            issubclass(field_type, CatalaRecord)
+            and isinstance(value, FieldAccess)
+            and isinstance(value.value, ScopeCall)
+        ):
+            return field_type.from_catala(value.value.arguments)
         if issubclass(field_type, CatalaVariant) and isinstance(
             value, (ConstructorWithContent, Reference)
         ):
@@ -285,6 +300,9 @@ class OutputAssertion:
     argument_output: str | None = None
     """The output the output, a function, is applied to; None for an output that is no function."""
 
+    summed: bool = False
+    """Whether the assertion is of the sum of the output, a list of money."""
+
     def is_reproduced(self) -> bool:
         """
         :return: Whether the provisions conclude the value for the output, applied to
@@ -295,6 +313,8 @@ class OutputAssertion:
         if self.argument_output is not None:
             argument = self.case.output(self.argument_output)
             concluded = None if argument is None else concluded(argument)
+        if self.summed and concluded is not None:
+            concluded = sum(concluded, Money.zero)
         if isinstance(self.expected, ConstructorPattern):
             return self.expected.is_matched_by(concluded)
         if isinstance(self.expected, Reference) and isinstance(concluded, StrEnum):
@@ -388,14 +408,22 @@ class ScopeTest(CatalaTest):
             for expression, _ in asserted
             if isinstance(expression, Reference)
         }
-        for variable, _ in program.stated_results.get(scope.name, {}).items():
-            if variable in outputs and variable not in asserted_variables:
+        for variable in program.stated_results.get(scope.name, {}):
+            if variable in asserted_variables:
+                continue
+            if variable in outputs:
                 asserted.append(
                     (
                         Reference(parts=(variable,)),
                         program.stated_result(scope.name, variable),
                     )
                 )
+            elif variable in subscopes and variable not in scope.subscopes:
+                result = program.stated_result(scope.name, variable)
+                asserted += [
+                    (Reference(parts=(variable, output)), value)
+                    for output, value in result.fields.items()
+                ]
         case_types = {case.catala_scope: case for case in cases}
         built = {}
         assertions = []
@@ -403,6 +431,12 @@ class ScopeTest(CatalaTest):
             if isinstance(expression, Reference) and expression.parts[0] in outputs:
                 expression = outputs[expression.parts[0]]
             argument_output = None
+            summed = (
+                isinstance(expression, Application)
+                and ".".join(expression.function.parts) == CatalaListFunction.MONEY_SUM
+            )
+            if summed:
+                expression = expression.argument
             if isinstance(expression, Application):
                 argument_output = expression.argument.last_part
                 expression = expression.function
@@ -420,6 +454,7 @@ class ScopeTest(CatalaTest):
                     variable=variable,
                     expected=program.resolve(expected),
                     argument_output=argument_output,
+                    summed=summed,
                 )
             )
         unasserted_cases = []

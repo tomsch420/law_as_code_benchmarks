@@ -362,7 +362,7 @@ class Application:
     """The function."""
 
     argument: CatalaValue
-    """The argument."""
+    """The argument, or a tuple of the arguments of a function of several."""
 
 
 @dataclass(frozen=True)
@@ -561,7 +561,7 @@ class CatalaTestReader:
         keywords = self.language.value
         declarations = re.findall(
             rf"^(#\[test\]\s*)?{re.escape(keywords.declaration)}\s+"
-            rf"{re.escape(keywords.scope)}\s+(\w+)\s*:\s*\n((?:[ \t]+\S.*\n?)*)",
+            rf"{re.escape(keywords.scope)}\s+(\w+)\s*:\s*\n((?:[ \t]+\S.*\n?|\n(?=[ \t]+\S))*)",
             code,
             flags=re.MULTILINE,
         )
@@ -578,16 +578,14 @@ class CatalaTestReader:
         }
         body = re.sub(
             rf"^(#\[test\]\s*)?{re.escape(keywords.declaration)}\s+"
-            rf"{re.escape(keywords.scope)}\b.*\n(?:[ \t]+\S.*\n?)*",
+            rf"{re.escape(keywords.scope)}\b.*\n(?:[ \t]+\S.*\n?|\n(?=[ \t]+\S))*",
             "",
             code,
             flags=re.MULTILINE,
         )
         parsed = self.program_grammar(self.language).parse_string(body, parse_all=True)
         stated_results = {
-            scope: dict(
-                re.findall(r"^│ (\w+) = (.*?)\s*$", printed, flags=re.MULTILINE)
-            )
+            scope: self.printed_results(printed)
             for scope, printed in re.findall(
                 r"```catala-test-cli\n\$ catala test-scope (\w+)[^\n]*\n(.*?)```",
                 text,
@@ -611,6 +609,22 @@ class CatalaTestReader:
                 constant for constant in parsed if isinstance(constant, Definition)
             ],
         )
+
+    @staticmethod
+    def printed_results(printed: str) -> dict[str, str]:
+        """
+        :param printed: The result block Catala's command line prints for a test scope.
+        :return: The text of each variable's value, by name, a value spanning the lines
+            indented under its own; lines before the first variable left out.
+        """
+        results: dict[str, list[str]] = {}
+        for line in re.findall(r"^│ (.*)$", printed, flags=re.MULTILINE):
+            opened = re.match(r"^(\w+) =(.*)$", line)
+            if opened:
+                results[opened.group(1)] = [opened.group(2)]
+            elif results:
+                list(results.values())[-1].append(line)
+        return {name: " ".join(lines).strip() for name, lines in results.items()}
 
     @staticmethod
     def keyword(word: str) -> pyparsing.ParserElement:
@@ -667,9 +681,9 @@ class CatalaTestReader:
         decimal = pyparsing.Regex(r"-?\d+[.,]\d+").set_parse_action(
             lambda tokens: Fraction(tokens[0].replace(",", "."))
         )
-        integer = pyparsing.Regex(r"-?\d+").set_parse_action(
-            lambda tokens: int(tokens[0])
-        )
+        integer = pyparsing.Regex(
+            r"-?\d{1,3}(?: \d{3})+(?![\d,])|-?\d+"
+        ).set_parse_action(lambda tokens: int(tokens[0].replace(" ", "")))
         boolean = (
             cls.keyword(keywords.true) | cls.keyword(keywords.false)
         ).set_parse_action(lambda tokens: tokens[0] == keywords.true)
@@ -768,9 +782,12 @@ class CatalaTestReader:
                 (
                     reference
                     + pyparsing.Suppress(cls.keyword(keywords.application))
-                    + expression
+                    + pyparsing.DelimitedList(expression, ",")
                 ).set_parse_action(
-                    lambda tokens: Application(function=tokens[0], argument=tokens[1])
+                    lambda tokens: Application(
+                        function=tokens[0],
+                        argument=tokens[1] if len(tokens) == 2 else tuple(tokens[1:]),
+                    )
                 )
             )
         if keywords.negation is not None:

@@ -1,0 +1,41 @@
+> Usage de Allocations_familiales en tant que AF
+
+# A test scope written as the example's are
+
+```catala
+déclaration champ d'application Données:
+  résultat enfant1 contenu AF.EnfantEntrée
+
+champ d'application Données:
+  définition enfant1 égal à
+    AF.EnfantEntrée {
+      -- d_identifiant: 1
+      -- d_date_de_naissance: |2007-01-01|
+      -- d_rémuneration_mensuelle: 1 250,50 €
+      -- d_prise_en_charge: GardeAlternéePartageAllocations
+      -- d_a_déjà_ouvert_droit_aux_allocations_familiales: vrai
+      -- d_bénéficie_titre_personnel_aide_personnelle_logement: faux
+    }
+
+#[test]
+déclaration champ d'application Test1:
+  f champ d'application AF.InterfaceAllocationsFamiliales
+  données champ d'application Données
+
+champ d'application Test1:
+  # A comment among the statements
+  définition f.i_enfants égal à [ données.enfant1; ]
+  définition f.i_ressources_ménage égal à 30 000 €
+  définition f.i_date_courante égal à |2020-05-01|
+  définition f.i_résidence égal à Mayotte
+  règle f.i_avait_enfant_à_charge_avant_1er_janvier_2012 rempli
+  règle f.i_personne_charge_effective_permanente_est_parent rempli
+  assertion f.i_montant_versé = 57,28€
+```
+
+```catala-test-cli
+$ catala test-scope Test1 --disable-warnings
+┌─[RESULT]─ Test1 ─
+│ Computation successful!
+└─
+```

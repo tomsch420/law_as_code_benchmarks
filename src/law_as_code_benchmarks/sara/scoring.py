@@ -7,7 +7,6 @@ are modelled at all, and how long each stage of answering takes.
 from __future__ import annotations
 
 import statistics
-import time
 from dataclasses import dataclass, field
 from enum import StrEnum
 
@@ -19,6 +18,7 @@ from law_as_code_benchmarks.sara.case import SaraCase, SaraSplit
 from law_as_code_benchmarks.sara.case_reader import WorldReader
 from law_as_code_benchmarks.sara.goal import Goal
 from law_as_code_benchmarks.sara.reference import ReferenceRun
+from law_as_code_benchmarks.stopwatch import Stopwatch
 
 # %% one case
 
@@ -70,20 +70,6 @@ class TimedStage(StrEnum):
 
     ANSWERING_IN_PROLOG = "answering in SARA's Prolog program"
     """Answering the test goal with SARA's program, the statutes and the case loaded beforehand."""
-
-
-@dataclass
-class Stopwatch:
-    """Measures the wall-clock time between consecutive laps."""
-
-    last_lap: float = field(default_factory=time.perf_counter)
-    """When the last lap ended, by :func:`time.perf_counter`."""
-
-    def lap(self) -> float:
-        """:return: The seconds since the last lap, which ends now."""
-        now = time.perf_counter()
-        seconds, self.last_lap = now - self.last_lap, now
-        return seconds
 
 
 @dataclass(frozen=True)

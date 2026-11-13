@@ -20,8 +20,10 @@ items:
   title: Score the family benefits model on OpenFisca France's tests
   branch: krrood-openfisca-family-benefits
   track: krrood-benchmarks
+  pull_request_number: 18
+  session: local session 6f4d9009-2717-491e-a2db-4e0a09589379
   depends_on: []
-  status: not started
+  status: in progress
   notes: 'Run the family benefits model on OpenFisca France''s 93 tests/formulas/af*.yaml
     tests (2006-2026), fetched by a script. Score the share within each test''s error margin,
     the values OpenFisca computed itself scored apart.
@@ -33,24 +35,11 @@ items:
   track: krrood-benchmarks
   depends_on:
   - krrood-openfisca-family-benefits
-  - krrood-catala-asp
   - krrood-catala-income-tax
   - krrood-catala-housing-ownership-and-residences
   status: not started
   notes: 'Across SARA, the Catala examples and OpenFisca, what krrood states directly, what
     needed a workaround and what it lacks, with each gap filed as an issue on cram2/cognitive_robot_abstract_machine.
-
-    '
-- id: krrood-catala-asp
-  title: Model Catala's ASP examples in krrood and score them
-  branch: krrood-catala-asp
-  track: krrood-benchmarks
-  pull_request_number: 17
-  session: local session 6f4d9009-2717-491e-a2db-4e0a09589379
-  depends_on: []
-  status: in progress
-  notes: 'The asp examples of catala-examples 9e251b932288: BCAE7, the fibre connection grant
-    (aide fibre) and FONPEPS; score the share of their 7 test scopes reproduced.
 
     '
 - id: krrood-catala-income-tax

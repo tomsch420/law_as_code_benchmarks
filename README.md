@@ -42,22 +42,26 @@ cases. `score_sara.py` also times each stage of answering a case. On one local r
 
 The maximum of the krrood stages is the first case, which pays krrood's one-off warm-up.
 
-## Catala's family benefits
+## Catala examples
 
-`resources/catala/` holds the three test files of the French family benefits from
+`resources/catala/` holds the test files of the examples modelled from
 [catala-examples](https://github.com/CatalaLang/catala-examples) at `9e251b932288`, under
-its Apache-2.0 license. They are unchanged, but renamed after the directories they came from:
+its Apache-2.0 license, all unchanged. The three family benefits files are in
+`resources/catala/tests/`, renamed after the directories they came from:
 `allocations_familiales/tests/tests_allocations_familiales.catala_fr`,
 `allocations_familiales/tests/tests_ouverture_droits.catala_fr` and
-`prestations_familiales/tests/tests_ouverture_droits.catala_fr`.
+`prestations_familiales/tests/tests_ouverture_droits.catala_fr`. The other examples keep
+their own names, under `resources/catala/<example>/tests/`.
 
-`src/law_as_code_benchmarks/catala/` reads each test scope as a household and the assertions
-made about it, then answers them with krrood rules. There is one provision for each variable
-of Catala's scopes. A default and its exceptions become a rule tree: rules of equal standing
-form an else-if chain of `alternative`s that ends in Catala's default, and an exception to a
-single rule is a `refinement` of it. Amounts in force on a date, such as the monthly base, the
-minimum wage, the resource ceilings and Mayotte's rates, are dated values, each carrying its
-legal source. Money is in cents, rounded as Catala rounds it.
+`src/law_as_code_benchmarks/catala/reader.py` reads the test files in Catala's French,
+English or Polish syntax. Each test scope gives a scope its inputs and asserts its outputs.
+The inputs map onto a domain dataclass, and krrood rules answer the outputs. There is one
+provision for each variable of Catala's scopes. A default and its exceptions become a rule
+tree: rules of equal standing form an else-if chain of `alternative`s that ends in
+Catala's default, and an exception to a single rule is a `refinement` of it. Amounts in
+force on a date, such as the family benefits' monthly base, minimum wage, resource
+ceilings and Mayotte's rates, are dated values, each carrying its legal source. Money is
+in cents, rounded as Catala rounds it.
 
 Score the tests:
 
@@ -65,12 +69,14 @@ Score the tests:
 python scripts/score_catala.py
 ```
 
-| Test file | Reproduced | Test scopes |
-|---|---|---|
-| `allocations_familiales` (amounts) | 14 | 14 |
-| `allocations_familiales` (entitlement) | 1 | 1 |
-| `prestations_familiales` (entitlement) | 1 | 1 |
+| Example | Law | Reproduced | Test scopes |
+|---|---|---|---|
+| `allocations_familiales`, `prestations_familiales` | French family benefits | 16 | 16 |
+| `droit_successions` | reserved portion of an estate, Code civil art. 912–917 | 4 | 4 |
+| `polish_taxes` | Polish tax on civil-law transactions, art. 7 | 8 | 8 |
+| `us_tax_code` | United States Internal Revenue Code §§ 121 and 132 | 9 | 9 |
+| `NSW_community_gaming` | permitted gaming activities of New South Wales | 25 | 25 |
 
-On one local run, answering a test scope in krrood took 75 ms at the median and 1,257 ms at
-most. The maximum is the first test scope, which pays krrood's warm-up. Catala's own
+On one local run, answering a test scope in krrood took 7.5 ms at the median and 1,802 ms
+at most. The maximum is the first test scope, which pays krrood's warm-up. Catala's own
 interpreter was not run for comparison.

@@ -9,20 +9,20 @@ from dataclasses import dataclass, field
 from enum import Enum
 from fractions import Fraction
 
+from law_as_code_benchmarks.catala.assessment import CatalaConclusion
 from law_as_code_benchmarks.catala.domain import (
     ChargeShare,
     Child,
     Household,
-    Money,
     SchoolingStage,
 )
-from law_as_code_benchmarks.catala.provision import FamilyBenefitsConclusion
+from law_as_code_benchmarks.catala.money import Money
 
 # %% shapes shared by many conclusions
 
 
 @dataclass(eq=False)
-class HouseholdConclusion(FamilyBenefitsConclusion):
+class HouseholdConclusion(CatalaConclusion):
     """A conclusion about a household."""
 
     household: Household
@@ -46,7 +46,7 @@ class HouseholdCondition(HouseholdConclusion):
 
 
 @dataclass(eq=False)
-class ChildConclusion(FamilyBenefitsConclusion):
+class ChildConclusion(CatalaConclusion):
     """A conclusion about a child in a household's charge."""
 
     child: Child

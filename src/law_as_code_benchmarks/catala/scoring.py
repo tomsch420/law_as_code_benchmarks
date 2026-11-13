@@ -1,15 +1,78 @@
 """
-Scores the model on the tests of Catala's family benefits example: the share of test
-scopes whose every assertion it reproduces, by test file, and how long it takes.
+Scores the models on the tests of Catala's examples: the share of test scopes whose
+every assertion they reproduce, by example, and how long it takes.
 """
 
 from __future__ import annotations
 
 import statistics
 from dataclasses import dataclass, field
+from enum import StrEnum
 
-from law_as_code_benchmarks.catala.case import CatalaTest, CatalaTestFile
+from law_as_code_benchmarks.catala.case import CatalaTestFile, FamilyBenefitsTest
+from law_as_code_benchmarks.catala.inheritance import InheritanceTestFile
+from law_as_code_benchmarks.catala.new_south_wales_community_gaming import (
+    NewSouthWalesCommunityGamingTestFile,
+)
+from law_as_code_benchmarks.catala.polish_tax import PolishTaxTestFile
+from law_as_code_benchmarks.catala.scope_test import CatalaTest
+from law_as_code_benchmarks.catala.united_states_tax_code import (
+    UnitedStatesTaxCodeTestFile,
+)
 from law_as_code_benchmarks.stopwatch import Stopwatch
+
+# %% examples
+
+
+class CatalaExample(StrEnum):
+    """
+    The examples of catala-examples modelled, each named after its directory.
+    """
+
+    FAMILY_BENEFITS = "allocations_familiales"
+    """
+    French family benefits, with ``prestations_familiales``.
+    """
+
+    INHERITANCE = "droit_successions"
+    """
+    The reserved portion of an estate under the French Code civil.
+    """
+
+    POLISH_TAXES = "polish_taxes"
+    """
+    The rates of the Polish tax on civil-law transactions.
+    """
+
+    UNITED_STATES_TAX_CODE = "us_tax_code"
+    """
+    Sections 121 and 132 of the United States Internal Revenue Code.
+    """
+
+    NEW_SOUTH_WALES_COMMUNITY_GAMING = "NSW_community_gaming"
+    """
+    The permitted gaming activities of New South Wales.
+    """
+
+    def read_tests(self) -> list[CatalaTest]:
+        """:return: The tests of every test file of the example, in order."""
+        match self:
+            case CatalaExample.FAMILY_BENEFITS:
+                return [
+                    test
+                    for test_file in CatalaTestFile
+                    for test in FamilyBenefitsTest.from_file(test_file)
+                ]
+            case CatalaExample.INHERITANCE:
+                test_files = list(InheritanceTestFile)
+            case CatalaExample.POLISH_TAXES:
+                test_files = list(PolishTaxTestFile)
+            case CatalaExample.UNITED_STATES_TAX_CODE:
+                test_files = list(UnitedStatesTaxCodeTestFile)
+            case CatalaExample.NEW_SOUTH_WALES_COMMUNITY_GAMING:
+                test_files = list(NewSouthWalesCommunityGamingTestFile)
+        return [test for test_file in test_files for test in test_file.read_tests()]
+
 
 # %% one test
 
@@ -17,12 +80,12 @@ from law_as_code_benchmarks.stopwatch import Stopwatch
 @dataclass(frozen=True)
 class ScopeResult:
     """
-    How the model answered one test scope.
+    How a model answered one test scope.
     """
 
-    test_file: CatalaTestFile
+    example: CatalaExample
     """
-    The file holding the test.
+    The example the test belongs to.
     """
 
     identifier: str
@@ -41,12 +104,12 @@ class ScopeResult:
     """
 
     @classmethod
-    def from_test(cls, test: CatalaTest) -> ScopeResult:
-        """:return: How the model answers *test*, timed."""
+    def from_test(cls, example: CatalaExample, test: CatalaTest) -> ScopeResult:
+        """:return: How the model of *example* answers *test*, timed."""
         stopwatch = Stopwatch()
         is_reproduced = test.is_reproduced()
         return cls(
-            test_file=test.test_file,
+            example=example,
             identifier=test.identifier,
             is_reproduced=is_reproduced,
             seconds=stopwatch.lap(),
@@ -59,38 +122,38 @@ class ScopeResult:
 @dataclass
 class CatalaScore:
     """
-    The results of every test of the example.
+    The results of every test of the examples modelled.
     """
 
     results: list[ScopeResult] = field(default_factory=list)
     """
-    One result per test, file by file.
+    One result per test, example by example.
     """
 
     @classmethod
-    def from_test_files(cls) -> CatalaScore:
-        """:return: The results of the tests of every test file."""
+    def from_examples(cls) -> CatalaScore:
+        """:return: The results of the tests of every example."""
         return cls(
             results=[
-                ScopeResult.from_test(test)
-                for test_file in CatalaTestFile
-                for test in CatalaTest.from_file(test_file)
+                ScopeResult.from_test(example, test)
+                for example in CatalaExample
+                for test in example.read_tests()
             ]
         )
 
+    def results_of(self, example: CatalaExample) -> list[ScopeResult]:
+        """:return: The results of the tests of *example*."""
+        return [result for result in self.results if result.example == example]
+
     def summary(self) -> str:
-        """:return: The reproduced and total tests of each file and in all, and the times taken."""
-        lines = []
-        for test_file in CatalaTestFile:
-            results = [
-                result for result in self.results if result.test_file == test_file
-            ]
-            lines.append(
-                f"{test_file.value}: {self.reproduced_count(results)} of "
-                f"{len(results)} tests reproduced"
-            )
+        """:return: The reproduced and total tests of each example and in all, and the times taken."""
+        lines = [
+            f"{example.value}: {self.reproduced_count(self.results_of(example))} of "
+            f"{len(self.results_of(example))} tests reproduced"
+            for example in CatalaExample
+        ]
         lines.append(
-            f"all files: {self.reproduced_count(self.results)} of "
+            f"all examples: {self.reproduced_count(self.results)} of "
             f"{len(self.results)} tests reproduced"
         )
         milliseconds = [result.seconds * 1000 for result in self.results]

@@ -54,7 +54,6 @@ from law_as_code_benchmarks.catala.domain import (
     Child,
     ChildCare,
     DatedValue,
-    Money,
     Period,
     Territory,
 )
@@ -63,13 +62,14 @@ from law_as_code_benchmarks.catala.entitlement import (
     MonthlyBaseProvision,
     OverseasRegimeProvision,
 )
-from law_as_code_benchmarks.catala.provision import Provision
+from law_as_code_benchmarks.catala.money import Money
+from law_as_code_benchmarks.catala.provision import FamilyBenefitsProvision
 
 # %% the household's bracket
 
 
 @dataclass
-class ResourceCeilingsProvision(Provision[ApplicableResourceCeilings]):
+class ResourceCeilingsProvision(FamilyBenefitsProvision[ApplicableResourceCeilings]):
     """
     `D521-3 <https://www.legifrance.gouv.fr/codes/article_lc/LEGIARTI000044809227>`__: the two ceilings, each raised for every child giving a right to
     family benefits; the ceilings revalued for the assessment date's year where
@@ -130,7 +130,7 @@ class ResourceCeilingsProvision(Provision[ApplicableResourceCeilings]):
 
 
 @dataclass
-class HouseholdBracketProvision(Provision[HouseholdBracket]):
+class HouseholdBracketProvision(FamilyBenefitsProvision[HouseholdBracket]):
     """
     The bracket of `D521-1 <https://www.legifrance.gouv.fr/codes/article_lc/LEGIARTI000030680318>`__ and `D521-2 <https://www.legifrance.gouv.fr/codes/article_lc/LEGIARTI000030680324>`__: the first up to the first ceiling, the
     second up to the second, the third above it.
@@ -175,7 +175,7 @@ class HouseholdBracketProvision(Provision[HouseholdBracket]):
 
 
 @dataclass
-class BaseAllowanceRightProvision(Provision[BaseAllowanceRight]):
+class BaseAllowanceRightProvision(FamilyBenefitsProvision[BaseAllowanceRight]):
     """
     `L521-1 <https://www.legifrance.gouv.fr/codes/article_lc/LEGIARTI000029963006>`__: family allowances are due from the second child. `L755-12 <https://www.legifrance.gouv.fr/codes/article_lc/LEGIARTI000029962999>`__
     excepts the overseas departments, and article 7 of the décret n°2002-423 Mayotte,
@@ -286,7 +286,7 @@ class RankRates:
 
 
 @dataclass
-class FirstChildAmountProvision(Provision[FirstChildAmount], RankRates):
+class FirstChildAmountProvision(FamilyBenefitsProvision[FirstChildAmount], RankRates):
     """
     Nothing by default.
 
@@ -370,7 +370,7 @@ class FirstChildAmountProvision(Provision[FirstChildAmount], RankRates):
 
 
 @dataclass
-class SecondChildAmountProvision(Provision[SecondChildAmount], RankRates):
+class SecondChildAmountProvision(FamilyBenefitsProvision[SecondChildAmount], RankRates):
     """
     `D521-1 <https://www.legifrance.gouv.fr/codes/article_lc/LEGIARTI000030680318>`__: the rate of the household's bracket for a second child. In Mayotte,
     article 7 of the décret n°2002-423 pays a second child its own rate, and its annex
@@ -442,7 +442,7 @@ class SecondChildAmountProvision(Provision[SecondChildAmount], RankRates):
 
 
 @dataclass
-class LaterChildrenAmountProvision(Provision[LaterChildrenAmount]):
+class LaterChildrenAmountProvision(FamilyBenefitsProvision[LaterChildrenAmount]):
     """
     `D521-1 <https://www.legifrance.gouv.fr/codes/article_lc/LEGIARTI000030680318>`__: the rate of the household's bracket for the third child and each
     one after.
@@ -483,7 +483,9 @@ class LaterChildrenAmountProvision(Provision[LaterChildrenAmount]):
 
 
 @dataclass
-class MayotteThirdChildAmountProvision(Provision[MayotteThirdChildAmount], RankRates):
+class MayotteThirdChildAmountProvision(
+    FamilyBenefitsProvision[MayotteThirdChildAmount], RankRates
+):
     """
     3° of article 7 of the décret n°2002-423: the third child's rate in Mayotte, and the
     rate of the assessment year until 2020 by its annex.
@@ -539,7 +541,7 @@ class MayotteThirdChildAmountProvision(Provision[MayotteThirdChildAmount], RankR
 
 @dataclass
 class MayotteLaterChildrenAmountProvision(
-    Provision[MayotteLaterChildrenAmount], RankRates
+    FamilyBenefitsProvision[MayotteLaterChildrenAmount], RankRates
 ):
     """
     4° of article 7 of the décret n°2002-423: the rate for the fourth child in Mayotte
@@ -577,7 +579,7 @@ class MayotteLaterChildrenAmountProvision(
 
 
 @dataclass
-class InitialBaseAmountProvision(Provision[InitialBaseAmount]):
+class InitialBaseAmountProvision(FamilyBenefitsProvision[InitialBaseAmount]):
     """
     `D521-1 <https://www.legifrance.gouv.fr/codes/article_lc/LEGIARTI000030680318>`__: what is paid for the second child and for those after it.
     `D755-5 <https://www.legifrance.gouv.fr/codes/article_lc/LEGIARTI000006738575>`__ pays a single child overseas what is paid for a first child, and
@@ -652,7 +654,7 @@ class InitialBaseAmountProvision(Provision[InitialBaseAmount]):
 
 
 @dataclass
-class ChargeShareProvision(Provision[ChargeShareOfChild]):
+class ChargeShareProvision(FamilyBenefitsProvision[ChargeShareOfChild]):
     """
     `L521-2 <https://www.legifrance.gouv.fr/codes/article_lc/LEGIARTI000039099826>`__: a child counts in full for the household taking care of them, or the
     parent the two named for a shared residence; for half where the parents share the
@@ -695,7 +697,7 @@ class ChargeShareProvision(Provision[ChargeShareOfChild]):
 
 
 @dataclass
-class ChildrenRatioProvision(Provision[ChildrenRatio]):
+class ChildrenRatioProvision(FamilyBenefitsProvision[ChildrenRatio]):
     """
     `R521-3 <https://www.legifrance.gouv.fr/codes/article_lc/LEGIARTI000006750610>`__: the average number of entitled children, each counting for its share,
     over their total number; zero without entitled children.
@@ -736,7 +738,7 @@ class ChildrenRatioProvision(Provision[ChildrenRatio]):
 
 
 @dataclass
-class PaidBaseAllowanceProvision(Provision[PaidBaseAllowance]):
+class PaidBaseAllowanceProvision(FamilyBenefitsProvision[PaidBaseAllowance]):
     """
     `R521-3 <https://www.legifrance.gouv.fr/codes/article_lc/LEGIARTI000006750610>`__: the allowances for all entitled children times the ratio of their
     average number to their total, where the household has a right to them.

@@ -26,10 +26,10 @@ from krrood.ormatic.utils import classproperty
 
 from law_as_code_benchmarks.catala.base_allowance import (
     BaseAllowanceRightProvision,
+    ChargeShareProvision,
     HouseholdBracketProvision,
     PaidBaseAllowanceProvision,
     ResourceCeilingsProvision,
-    ChargeShareProvision,
 )
 from law_as_code_benchmarks.catala.conclusions import (
     AgeSupplementMinimumAge,
@@ -55,7 +55,10 @@ from law_as_code_benchmarks.catala.conclusions import (
     SharedAgeSupplement,
     SupplementedAllowance,
 )
-from law_as_code_benchmarks.catala.domain import Child, Household, Money
+from law_as_code_benchmarks.catala.domain import (
+    Child,
+    Household,
+)
 from law_as_code_benchmarks.catala.entitlement import (
     ConditionsBesidesAgeProvision,
     EntitledChildrenProvision,
@@ -63,13 +66,19 @@ from law_as_code_benchmarks.catala.entitlement import (
     MonthlyBaseProvision,
     OverseasRegimeProvision,
 )
-from law_as_code_benchmarks.catala.provision import ConclusionType, Provision
+from law_as_code_benchmarks.catala.money import Money
+from law_as_code_benchmarks.catala.provision import (
+    ConclusionType,
+    FamilyBenefitsProvision,
+)
 
 # %% age supplements
 
 
 @dataclass
-class AgeSupplementMinimumAgeProvision(Provision[AgeSupplementMinimumAge]):
+class AgeSupplementMinimumAgeProvision(
+    FamilyBenefitsProvision[AgeSupplementMinimumAge]
+):
     """
     `R521-1 <https://www.legifrance.gouv.fr/codes/article_lc/LEGIARTI000018735853>`__: a child gives a right to an age supplement from age 14. A child
     whose eleventh birthday came by April 30, 2008, keeps the age of 16 the article
@@ -123,7 +132,7 @@ class AgeSupplementMinimumAgeProvision(Provision[AgeSupplementMinimumAge]):
 
 
 @dataclass
-class AgeSupplementRightProvision(Provision[AgeSupplementRight]):
+class AgeSupplementRightProvision(FamilyBenefitsProvision[AgeSupplementRight]):
     """
     `L521-3 <https://www.legifrance.gouv.fr/codes/article_lc/LEGIARTI000006743289>`__: every child but the oldest gives a right to an age supplement from
     the minimum age; every child does in a household with at least the number of
@@ -173,7 +182,7 @@ class AgeSupplementRightProvision(Provision[AgeSupplementRight]):
 
 
 @dataclass
-class InitialAgeSupplementProvision(Provision[InitialAgeSupplement]):
+class InitialAgeSupplementProvision(FamilyBenefitsProvision[InitialAgeSupplement]):
     """
     `D521-1 <https://www.legifrance.gouv.fr/codes/article_lc/LEGIARTI000030680318>`__: the rate of the household's bracket for a child giving a right to
     an age supplement, nothing for another. `D755-5 <https://www.legifrance.gouv.fr/codes/article_lc/LEGIARTI000006738575>`__ sets a single child overseas
@@ -266,7 +275,7 @@ class InitialAgeSupplementProvision(Provision[InitialAgeSupplement]):
 
 
 @dataclass
-class SharedAgeSupplementProvision(Provision[SharedAgeSupplement]):
+class SharedAgeSupplementProvision(FamilyBenefitsProvision[SharedAgeSupplement]):
     """
     `R521-4 <https://www.legifrance.gouv.fr/codes/article_lc/LEGIARTI000006750613>`__: the age supplement times the child's share, halved for a shared
     residence.
@@ -291,7 +300,7 @@ class SharedAgeSupplementProvision(Provision[SharedAgeSupplement]):
 
 
 @dataclass
-class PaidAgeSupplementsProvision(Provision[PaidAgeSupplements]):
+class PaidAgeSupplementsProvision(FamilyBenefitsProvision[PaidAgeSupplements]):
     """
     The age supplements of the entitled children, where the household has a right to
     family allowances.
@@ -338,7 +347,7 @@ class PaidAgeSupplementsProvision(Provision[PaidAgeSupplements]):
 
 
 @dataclass
-class FlatAllowanceRightProvision(Provision[FlatAllowanceRight]):
+class FlatAllowanceRightProvision(FamilyBenefitsProvision[FlatAllowanceRight]):
     """
     `L521-1 <https://www.legifrance.gouv.fr/codes/article_lc/LEGIARTI000029963006>`__: with the children of `D521-2 <https://www.legifrance.gouv.fr/codes/article_lc/LEGIARTI000030680324>`__ in the household's charge, a child who
     gave a right to family allowances and meets every condition but its age gives a
@@ -401,7 +410,7 @@ class FlatAllowanceRightProvision(Provision[FlatAllowanceRight]):
 
 
 @dataclass
-class PaidFlatAllowanceProvision(Provision[PaidFlatAllowance]):
+class PaidFlatAllowanceProvision(FamilyBenefitsProvision[PaidFlatAllowance]):
     """
     `D521-2 <https://www.legifrance.gouv.fr/codes/article_lc/LEGIARTI000030680324>`__: the rate of the household's bracket for every child giving a right
     to the flat allowance.
@@ -436,7 +445,9 @@ class PaidFlatAllowanceProvision(Provision[PaidFlatAllowance]):
 
 
 @dataclass
-class DegressiveSupplementRightProvision(Provision[DegressiveSupplementRight]):
+class DegressiveSupplementRightProvision(
+    FamilyBenefitsProvision[DegressiveSupplementRight]
+):
     """
     `L521-1 <https://www.legifrance.gouv.fr/codes/article_lc/LEGIARTI000029963006>`__: a household has a right to the degressive supplements.
     `L755-12 <https://www.legifrance.gouv.fr/codes/article_lc/LEGIARTI000029962999>`__ excepts a household with a single entitled child overseas.
@@ -475,7 +486,7 @@ class DegressiveSupplementRightProvision(Provision[DegressiveSupplementRight]):
 
 
 @dataclass
-class SupplementedAllowanceProvision(Provision[SupplementedAllowance]):
+class SupplementedAllowanceProvision(FamilyBenefitsProvision[SupplementedAllowance]):
     """
     II of `D521-1 <https://www.legifrance.gouv.fr/codes/article_lc/LEGIARTI000030680318>`__: the monthly allowance its degressive supplement makes up for,
     the base allowance and the age supplements paid.
@@ -500,7 +511,7 @@ class SupplementedAllowanceProvision(Provision[SupplementedAllowance]):
 
 
 @dataclass
-class DegressiveSupplementProvision(Provision[ConclusionType]):
+class DegressiveSupplementProvision(FamilyBenefitsProvision[ConclusionType]):
     """
     A degressive supplement: where a household's resources exceed a ceiling by less than
     twelve times a monthly allowance, a twelfth of what the ceiling plus those twelve
@@ -622,7 +633,7 @@ class FlatAllowanceDegressiveSupplementProvision(
 
 
 @dataclass
-class FamilyAllowanceProvision(Provision[FamilyAllowance]):
+class FamilyAllowanceProvision(FamilyBenefitsProvision[FamilyAllowance]):
     """
     The family allowances paid for the month: the base allowance, the age supplements,
     the flat allowance and both degressive supplements, where the household has a right

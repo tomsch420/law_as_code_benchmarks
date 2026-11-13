@@ -1,0 +1,11 @@
+```catala
+#[test]
+deklaracja zakres Test_Sale:
+  sprzedaż zakres UmowaSprzedaży
+
+zakres Test_Sale:
+  definicja sprzedaż.kwota wynosi 1 000,50 PLN
+  definicja sprzedaż.inne_prawa_majątkowe wynosi prawda
+
+  asercja sprzedaż.podatek = 10 PLN
+```

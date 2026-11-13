@@ -8,7 +8,10 @@ import datetime
 
 import pytest
 
-from law_as_code_benchmarks.catala.domain import Money, SchoolingStage, Territory
+from law_as_code_benchmarks.catala.domain import (
+    SchoolingStage,
+    Territory,
+)
 from law_as_code_benchmarks.catala.entitlement import (
     EntitledChildrenProvision,
     FamilyBenefitEntitlementProvision,
@@ -16,6 +19,7 @@ from law_as_code_benchmarks.catala.entitlement import (
     PayCeilingProvision,
     SchoolingStageProvision,
 )
+from law_as_code_benchmarks.catala.money import Money
 
 from .families import child_born, household_of
 

@@ -11,24 +11,24 @@ import pytest
 
 from law_as_code_benchmarks.catala.case import (
     AmountPaidAssertion,
-    CatalaTest,
     CatalaTestFile,
     EntitlementAssertion,
+    FamilyBenefitsTest,
 )
 from law_as_code_benchmarks.catala.domain import (
     ChildCare,
-    Money,
     SchoolingStage,
     Territory,
 )
 from law_as_code_benchmarks.catala.exceptions import UnexpectedCatalaStatement
+from law_as_code_benchmarks.catala.money import Money
 
 # %% reading a test file
 
 
-def read_test_file(file_name: str) -> list[CatalaTest]:
+def read_test_file(file_name: str) -> list[FamilyBenefitsTest]:
     """:return: The tests of :file:`test_files/{file_name}`."""
-    return CatalaTest.from_text(
+    return FamilyBenefitsTest.from_text(
         CatalaTestFile.FAMILY_ALLOWANCES,
         (Path(__file__).parent / "test_files" / file_name).read_text(),
     )
@@ -96,7 +96,8 @@ def test_the_example_holds_sixteen_test_scopes() -> None:
     The amounts file holds 14 test scopes and each entitlement file one.
     """
     assert {
-        test_file: len(CatalaTest.from_file(test_file)) for test_file in CatalaTestFile
+        test_file: len(FamilyBenefitsTest.from_file(test_file))
+        for test_file in CatalaTestFile
     } == {
         CatalaTestFile.FAMILY_ALLOWANCES: 14,
         CatalaTestFile.FAMILY_ALLOWANCES_ENTITLEMENT: 1,

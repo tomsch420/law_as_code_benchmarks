@@ -9,7 +9,10 @@ import datetime
 
 import pytest
 
-from law_as_code_benchmarks.catala.domain import ChildCare, Money
+from law_as_code_benchmarks.catala.domain import (
+    ChildCare,
+)
+from law_as_code_benchmarks.catala.money import Money
 from law_as_code_benchmarks.catala.supplements import (
     AgeSupplementMinimumAgeProvision,
     AgeSupplementRightProvision,

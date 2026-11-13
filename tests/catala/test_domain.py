@@ -9,8 +9,13 @@ from fractions import Fraction
 
 import pytest
 
-from law_as_code_benchmarks.catala.domain import Child, Household, Money, Territory
+from law_as_code_benchmarks.catala.domain import (
+    Child,
+    Household,
+    Territory,
+)
 from law_as_code_benchmarks.catala.exceptions import AmbiguousBirthday
+from law_as_code_benchmarks.catala.money import Money
 
 # %% money
 

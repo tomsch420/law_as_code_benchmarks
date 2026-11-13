@@ -47,13 +47,13 @@ from law_as_code_benchmarks.catala.domain import (
     SchoolingStage,
     Territory,
 )
-from law_as_code_benchmarks.catala.provision import Provision
+from law_as_code_benchmarks.catala.provision import FamilyBenefitsProvision
 
 # %% amounts in force
 
 
 @dataclass
-class MonthlyBaseProvision(Provision[MonthlyBaseAmount]):
+class MonthlyBaseProvision(FamilyBenefitsProvision[MonthlyBaseAmount]):
     """
     `L551-1 <https://www.legifrance.gouv.fr/codes/article_lc/LEGIARTI000031688371>`__: the monthly base of family allowances in force on the
     household's assessment date; none before April 1, 2019, which Catala leaves out.
@@ -70,7 +70,7 @@ class MonthlyBaseProvision(Provision[MonthlyBaseAmount]):
 
 
 @dataclass
-class MinimumWageProvision(Provision[HourlyMinimumWageAmount]):
+class MinimumWageProvision(FamilyBenefitsProvision[HourlyMinimumWageAmount]):
     """
     The gross hourly minimum wage in force where the household lives on its assessment
     date; none before 2019, which Catala leaves out.
@@ -97,7 +97,7 @@ class MinimumWageProvision(Provision[HourlyMinimumWageAmount]):
 
 
 @dataclass
-class OverseasRegimeProvision(Provision[OverseasRegime]):
+class OverseasRegimeProvision(FamilyBenefitsProvision[OverseasRegime]):
     """
     `L751-1 <https://www.legifrance.gouv.fr/codes/article_lc/LEGIARTI000031323778>`__: the special provisions apply in Guadeloupe, French Guiana,
     Martinique, La Réunion, Saint-Barthélemy and Saint-Martin, not in Mayotte.
@@ -131,7 +131,7 @@ class OverseasRegimeProvision(Provision[OverseasRegime]):
 
 
 @dataclass
-class PayCeilingProvision(Provision[PayCeiling]):
+class PayCeilingProvision(FamilyBenefitsProvision[PayCeiling]):
     """
     `R512-2 <https://www.legifrance.gouv.fr/codes/article_lc/LEGIARTI000006750602>`__: 55 % of the gross hourly minimum wage times 169. `R755-0-2 <https://www.legifrance.gouv.fr/codes/article_lc/LEGIARTI000006752633>`__
     sets the same in the overseas departments, the minimum wage in force there being
@@ -171,7 +171,7 @@ class PayCeilingProvision(Provision[PayCeiling]):
 
 
 @dataclass
-class SchoolingStageProvision(Provision[SchoolingStageOfChild]):
+class SchoolingStageProvision(FamilyBenefitsProvision[SchoolingStageOfChild]):
     """
     `L131-1 <https://www.legifrance.gouv.fr/codes/article_lc/LEGIARTI000038901859>`__ of the Code de l'éducation: schooling is compulsory from age 3
     to age 16. A child is before it until the day after their third birthday and during
@@ -237,7 +237,9 @@ class SchoolingStageProvision(Provision[SchoolingStageOfChild]):
 
 
 @dataclass
-class FamilyBenefitEntitlementProvision(Provision[FamilyBenefitEntitlement]):
+class FamilyBenefitEntitlementProvision(
+    FamilyBenefitsProvision[FamilyBenefitEntitlement]
+):
     """
     `L512-3 <https://www.legifrance.gouv.fr/codes/article_lc/LEGIARTI000041979743>`__: a child gives a right to family benefits until compulsory
     schooling ends (1°), and after it, up to the age limit of `R512-2 <https://www.legifrance.gouv.fr/codes/article_lc/LEGIARTI000006750602>`__, while their
@@ -300,7 +302,7 @@ class FamilyBenefitEntitlementProvision(Provision[FamilyBenefitEntitlement]):
 
 
 @dataclass
-class ConditionsBesidesAgeProvision(Provision[ConditionsBesidesAge]):
+class ConditionsBesidesAgeProvision(FamilyBenefitsProvision[ConditionsBesidesAge]):
     """
     `L512-3 <https://www.legifrance.gouv.fr/codes/article_lc/LEGIARTI000041979743>`__: a child, at whatever stage of compulsory schooling, meets the
     conditions of the right to family benefits but its age where their pay does not
@@ -325,7 +327,7 @@ class ConditionsBesidesAgeProvision(Provision[ConditionsBesidesAge]):
 
 
 @dataclass
-class EntitledChildrenProvision(Provision[EntitledChildren]):
+class EntitledChildrenProvision(FamilyBenefitsProvision[EntitledChildren]):
     """
     The children in the household's charge who give a right to family benefits, the
     children `L521-1 <https://www.legifrance.gouv.fr/codes/article_lc/LEGIARTI000029963006>`__ and the provisions after it count.

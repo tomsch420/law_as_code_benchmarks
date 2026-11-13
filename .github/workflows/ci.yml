@@ -52,6 +52,12 @@ jobs:
       - name: Install law_as_code_benchmarks
         run: uv pip install --system -e "law_as_code_benchmarks[dev]"
 
+      # OpenFisca France is under AGPL-3.0, so its tests are fetched rather than kept here.
+      - name: Fetch OpenFisca France's family allowance tests
+        run: |
+          cd law_as_code_benchmarks
+          python scripts/fetch_openfisca_tests.py
+
       - name: Run the tests
         run: |
           cd law_as_code_benchmarks
@@ -61,3 +67,8 @@ jobs:
         run: |
           cd law_as_code_benchmarks
           python scripts/score_sara.py
+
+      - name: Score OpenFisca France's family allowance tests
+        run: |
+          cd law_as_code_benchmarks
+          python scripts/score_openfisca.py

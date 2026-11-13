@@ -1,0 +1,23 @@
+- name: Three children, one in shared residence
+  period: 2019-01
+  relative_error_margin: 0.01
+  input:
+    famille:
+      parents: [mother]
+      enfants: [eldest, middle, youngest]
+    individus:
+      mother:
+        date_naissance: '1980-03-15'
+        revenu_assimile_salaire:
+          2017: 30000 + 1000
+          2018: 5
+      eldest:
+        date_naissance: '2008-06-15'
+      middle:
+        date_naissance: 2011-02-01
+        garde_alternee: true
+      youngest:
+        date_naissance: '2015-09-30'
+  output:
+    af_coeff_garde_alternee: 5 / 6
+    af_majoration: 0

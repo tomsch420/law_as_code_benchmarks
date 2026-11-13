@@ -68,6 +68,7 @@ from law_as_code_benchmarks.catala.entitlement import (
 )
 from law_as_code_benchmarks.catala.money import Money
 from law_as_code_benchmarks.catala.provision import (
+    ChildProvision,
     ConclusionType,
     FamilyBenefitsProvision,
 )
@@ -76,13 +77,12 @@ from law_as_code_benchmarks.catala.provision import (
 
 
 @dataclass
-class AgeSupplementMinimumAgeProvision(
-    FamilyBenefitsProvision[AgeSupplementMinimumAge]
-):
+class AgeSupplementMinimumAgeProvision(ChildProvision[AgeSupplementMinimumAge]):
     """
-    `R521-1 <https://www.legifrance.gouv.fr/codes/article_lc/LEGIARTI000018735853>`__: a child gives a right to an age supplement from age 14. A child
-    whose eleventh birthday came by April 30, 2008, keeps the age of 16 the article
-    set before the décret n° 2008-409.
+    `R521-1 <https://www.legifrance.gouv.fr/codes/article_lc/LEGIARTI000018735853>`__: a child gives a right to an age supplement from age 14; before the
+    décret n° 2008-409, from age 11. A child whose eleventh birthday came by April 30,
+    2008, keeps the age of 16 the article set for the higher supplement before it. From
+    March 1, 2026, the décret n° 2026-138 sets 18 for a child born from March 1, 2012.
     """
 
     @classproperty
@@ -95,32 +95,87 @@ class AgeSupplementMinimumAgeProvision(
     @classproperty
     def minimum_age_before_2008(cls) -> int:
         """
-        The age set before the décret n° 2008-409, 16.
+        The age of the higher supplement before the décret n° 2008-409, 16, which a
+        child eleven by April 30, 2008, keeps as its minimum age.
         """
         return 16
 
     @classproperty
+    def lower_supplement_age_before_2008(cls) -> int:
+        """
+        The age of the lower supplement before the décret n° 2008-409, 11.
+        """
+        return 11
+
+    @classproperty
     def last_eleventh_birthday_before_2008(cls) -> datetime.date:
         """
-        The last day an eleventh birthday keeps the earlier age, April 30, 2008.
+        The last day of the article's version before the décret n° 2008-409, and so the
+        last day an eleventh birthday keeps its age of 16, April 30, 2008.
         """
         return datetime.date(2008, 4, 30)
 
+    @classproperty
+    def minimum_age_from_2026(cls) -> int:
+        """
+        The age the décret n° 2026-138 sets, 18.
+        """
+        return 18
+
+    @classproperty
+    def first_day_of_2026_reform(cls) -> datetime.date:
+        """
+        The day the décret n° 2026-138 takes effect, March 1, 2026.
+        """
+        return datetime.date(2026, 3, 1)
+
+    @classproperty
+    def first_birth_date_of_2026_reform(cls) -> datetime.date:
+        """
+        The first birth date the décret n° 2026-138 applies to, March 1, 2012.
+        """
+        return datetime.date(2012, 3, 1)
+
     def query(self) -> Query:
+        household = variable(Household, domain=[self.household])
         child = variable(Child, domain=self.household.children)
+        day = household.assessment_date
         age = deduced_variable(AgeSupplementMinimumAge)
+        # A condition on the child comes first, true for every child born: otherwise
+        # only the first child is concluded (cram2/cognitive_robot_abstract_machine#964).
         query = an(
             entity(age).where(
-                Child.birthday(child, 11) <= self.last_eleventh_birthday_before_2008
+                child.birth_date <= day,
+                day <= self.last_eleventh_birthday_before_2008,
             )
         )
         with query:
             add(
                 age,
                 inference(AgeSupplementMinimumAge)(
-                    child=child, age=self.minimum_age_before_2008
+                    child=child, age=self.lower_supplement_age_before_2008
                 ),
             )
+            with alternative(
+                Child.birthday(child, self.lower_supplement_age_before_2008)
+                <= self.last_eleventh_birthday_before_2008
+            ):
+                add(
+                    age,
+                    inference(AgeSupplementMinimumAge)(
+                        child=child, age=self.minimum_age_before_2008
+                    ),
+                )
+            with alternative(
+                day >= self.first_day_of_2026_reform,
+                child.birth_date >= self.first_birth_date_of_2026_reform,
+            ):
+                add(
+                    age,
+                    inference(AgeSupplementMinimumAge)(
+                        child=child, age=self.minimum_age_from_2026
+                    ),
+                )
             with alternative():
                 add(
                     age,
@@ -132,7 +187,7 @@ class AgeSupplementMinimumAgeProvision(
 
 
 @dataclass
-class AgeSupplementRightProvision(FamilyBenefitsProvision[AgeSupplementRight]):
+class AgeSupplementRightProvision(ChildProvision[AgeSupplementRight]):
     """
     `L521-3 <https://www.legifrance.gouv.fr/codes/article_lc/LEGIARTI000006743289>`__: every child but the oldest gives a right to an age supplement from
     the minimum age; every child does in a household with at least the number of
@@ -182,12 +237,20 @@ class AgeSupplementRightProvision(FamilyBenefitsProvision[AgeSupplementRight]):
 
 
 @dataclass
-class InitialAgeSupplementProvision(FamilyBenefitsProvision[InitialAgeSupplement]):
+class InitialAgeSupplementProvision(ChildProvision[InitialAgeSupplement]):
     """
     `D521-1 <https://www.legifrance.gouv.fr/codes/article_lc/LEGIARTI000030680318>`__: the rate of the household's bracket for a child giving a right to
-    an age supplement, nothing for another. `D755-5 <https://www.legifrance.gouv.fr/codes/article_lc/LEGIARTI000006738575>`__ sets a single child overseas
-    its own rates, from age 11 and from age 16.
+    an age supplement, nothing for another; before the décret n° 2008-409, a lower rate
+    until age 16. `D755-5 <https://www.legifrance.gouv.fr/codes/article_lc/LEGIARTI000006738575>`__ sets a single child overseas its own rates, from age 11 and from
+    age 16.
     """
+
+    @classproperty
+    def rate_until_16_before_2008(cls) -> Fraction:
+        """
+        The rate until age 16 before the décret n° 2008-409, 9 %.
+        """
+        return Fraction(9, 100)
 
     @classproperty
     def single_child_rate_from_11(cls) -> Fraction:
@@ -256,6 +319,23 @@ class InitialAgeSupplementProvision(FamilyBenefitsProvision[InitialAgeSupplement
                         amount=base.amount * self.single_child_rate_from_16,
                     ),
                 )
+            with alternative(
+                right.holds == True,
+                day
+                <= AgeSupplementMinimumAgeProvision.last_eleventh_birthday_before_2008,
+                Child.birthday(
+                    right.child,
+                    AgeSupplementMinimumAgeProvision.minimum_age_before_2008,
+                )
+                > day,
+            ):
+                add(
+                    supplement,
+                    inference(InitialAgeSupplement)(
+                        child=right.child,
+                        amount=base.amount * self.rate_until_16_before_2008,
+                    ),
+                )
             with alternative(right.holds == True):
                 add(
                     supplement,
@@ -275,7 +355,7 @@ class InitialAgeSupplementProvision(FamilyBenefitsProvision[InitialAgeSupplement
 
 
 @dataclass
-class SharedAgeSupplementProvision(FamilyBenefitsProvision[SharedAgeSupplement]):
+class SharedAgeSupplementProvision(ChildProvision[SharedAgeSupplement]):
     """
     `R521-4 <https://www.legifrance.gouv.fr/codes/article_lc/LEGIARTI000006750613>`__: the age supplement times the child's share, halved for a shared
     residence.
@@ -347,7 +427,7 @@ class PaidAgeSupplementsProvision(FamilyBenefitsProvision[PaidAgeSupplements]):
 
 
 @dataclass
-class FlatAllowanceRightProvision(FamilyBenefitsProvision[FlatAllowanceRight]):
+class FlatAllowanceRightProvision(ChildProvision[FlatAllowanceRight]):
     """
     `L521-1 <https://www.legifrance.gouv.fr/codes/article_lc/LEGIARTI000029963006>`__: with the children of `D521-2 <https://www.legifrance.gouv.fr/codes/article_lc/LEGIARTI000030680324>`__ in the household's charge, a child who
     gave a right to family allowances and meets every condition but its age gives a
@@ -515,7 +595,7 @@ class DegressiveSupplementProvision(FamilyBenefitsProvision[ConclusionType]):
     """
     A degressive supplement: where a household's resources exceed a ceiling by less than
     twelve times a monthly allowance, a twelfth of what the ceiling plus those twelve
-    allowances exceed the resources by.
+    allowances exceed the resources by; none before the modulation by resources began.
     """
 
     @classproperty
@@ -542,9 +622,14 @@ class DegressiveSupplementProvision(FamilyBenefitsProvision[ConclusionType]):
         household = ceilings.household
         yearly = allowance.amount * self.months
         supplement = deduced_variable(conclusion_type)
+        modulated = (
+            household.assessment_date
+            >= HouseholdBracketProvision.first_day_of_modulation
+        )
         query = an(
             entity(supplement).where(
                 *conditions,
+                modulated,
                 household.resources > ceilings.first_ceiling,
                 household.resources <= ceilings.first_ceiling + yearly,
             )
@@ -560,6 +645,7 @@ class DegressiveSupplementProvision(FamilyBenefitsProvision[ConclusionType]):
             )
             with alternative(
                 *conditions,
+                modulated,
                 household.resources > ceilings.second_ceiling,
                 household.resources <= ceilings.second_ceiling + yearly,
             ):

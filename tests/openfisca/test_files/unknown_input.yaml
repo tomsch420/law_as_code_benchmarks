@@ -1,0 +1,14 @@
+- name: A child with a disability
+  period: 2021-05
+  input:
+    famille:
+      parents: [father]
+      enfants: [child]
+    individus:
+      father:
+        age: 30
+      child:
+        age: 2
+        handicap: true
+  output:
+    af: 0

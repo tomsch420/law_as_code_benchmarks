@@ -54,6 +54,7 @@ from law_as_code_benchmarks.catala.domain import (
     Child,
     ChildCare,
     DatedValue,
+    Household,
     Period,
     Territory,
 )
@@ -63,7 +64,10 @@ from law_as_code_benchmarks.catala.entitlement import (
     OverseasRegimeProvision,
 )
 from law_as_code_benchmarks.catala.money import Money
-from law_as_code_benchmarks.catala.provision import FamilyBenefitsProvision
+from law_as_code_benchmarks.catala.provision import (
+    ChildProvision,
+    FamilyBenefitsProvision,
+)
 
 # %% the household's bracket
 
@@ -133,8 +137,17 @@ class ResourceCeilingsProvision(FamilyBenefitsProvision[ApplicableResourceCeilin
 class HouseholdBracketProvision(FamilyBenefitsProvision[HouseholdBracket]):
     """
     The bracket of `D521-1 <https://www.legifrance.gouv.fr/codes/article_lc/LEGIARTI000030680318>`__ and `D521-2 <https://www.legifrance.gouv.fr/codes/article_lc/LEGIARTI000030680324>`__: the first up to the first ceiling, the
-    second up to the second, the third above it.
+    second up to the second, the third above it. Before the modulation by resources
+    began, every household is in the first.
     """
+
+    @classproperty
+    def first_day_of_modulation(cls) -> datetime.date:
+        """
+        The day article 85 of the loi n° 2014-1554 began modulating family allowances by
+        resources, July 1, 2015.
+        """
+        return datetime.date(2015, 7, 1)
 
     def query(self) -> Query:
         ceilings = variable(
@@ -144,7 +157,7 @@ class HouseholdBracketProvision(FamilyBenefitsProvision[HouseholdBracket]):
         bracket = deduced_variable(HouseholdBracket)
         query = an(
             entity(bracket).where(
-                ceilings.household.resources <= ceilings.first_ceiling
+                ceilings.household.assessment_date < self.first_day_of_modulation
             )
         )
         with query:
@@ -154,6 +167,13 @@ class HouseholdBracketProvision(FamilyBenefitsProvision[HouseholdBracket]):
                     household=ceilings.household, bracket=ResourceBracket.FIRST
                 ),
             )
+            with alternative(ceilings.household.resources <= ceilings.first_ceiling):
+                add(
+                    bracket,
+                    inference(HouseholdBracket)(
+                        household=ceilings.household, bracket=ResourceBracket.FIRST
+                    ),
+                )
             with alternative(ceilings.household.resources <= ceilings.second_ceiling):
                 add(
                     bracket,
@@ -654,12 +674,21 @@ class InitialBaseAmountProvision(FamilyBenefitsProvision[InitialBaseAmount]):
 
 
 @dataclass
-class ChargeShareProvision(FamilyBenefitsProvision[ChargeShareOfChild]):
+class ChargeShareProvision(ChildProvision[ChargeShareOfChild]):
     """
     `L521-2 <https://www.legifrance.gouv.fr/codes/article_lc/LEGIARTI000039099826>`__: a child counts in full for the household taking care of them, or the
     parent the two named for a shared residence; for half where the parents share the
-    allowances; and for nothing where child welfare receives the child's part.
+    allowances, which they may since the décret n° 2007-550; and for nothing where child
+    welfare receives the child's part.
     """
+
+    @classproperty
+    def first_day_of_sharing(cls) -> datetime.date:
+        """
+        The day the décret n° 2007-550 let parents share the allowances of a child in
+        shared residence, May 1, 2007.
+        """
+        return datetime.date(2007, 5, 1)
 
     @classproperty
     def full_care(cls) -> frozenset[ChildCare]:
@@ -675,6 +704,7 @@ class ChargeShareProvision(FamilyBenefitsProvision[ChargeShareOfChild]):
         )
 
     def query(self) -> Query:
+        household = variable(Household, domain=[self.household])
         child = variable(Child, domain=self.household.children)
         share = deduced_variable(ChargeShareOfChild)
         query = an(entity(share).where(in_(child.care, self.full_care)))
@@ -683,6 +713,14 @@ class ChargeShareProvision(FamilyBenefitsProvision[ChargeShareOfChild]):
                 share,
                 inference(ChargeShareOfChild)(child=child, share=ChargeShare.FULL),
             )
+            with alternative(
+                child.care == ChildCare.SHARED_RESIDENCE_SHARED_ALLOWANCE,
+                household.assessment_date < self.first_day_of_sharing,
+            ):
+                add(
+                    share,
+                    inference(ChargeShareOfChild)(child=child, share=ChargeShare.FULL),
+                )
             with alternative(child.care == ChildCare.SHARED_RESIDENCE_SHARED_ALLOWANCE):
                 add(
                     share,

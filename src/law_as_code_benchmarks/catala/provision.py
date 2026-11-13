@@ -82,3 +82,22 @@ class FamilyBenefitsProvision(Provision[ConclusionType], ABC):
                 DatedValue.is_in_force(value, self.household.assessment_date)
             )
         ).tolist()
+
+
+@dataclass
+class ChildProvision(FamilyBenefitsProvision[ConclusionType], ABC):
+    """
+    A provision of the family benefits drawing a conclusion about each child in the
+    household's charge.
+    """
+
+    @property
+    def conclusions(self) -> list[ConclusionType]:
+        """
+        Extends :meth:`Provision.conclusions`: none for a household without children.
+        """
+        # krrood raises on an else-if chain over an empty domain:
+        # https://github.com/cram2/cognitive_robot_abstract_machine/issues/952
+        if not self.household.children:
+            return []
+        return super().conclusions

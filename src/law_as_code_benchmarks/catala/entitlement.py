@@ -47,7 +47,10 @@ from law_as_code_benchmarks.catala.domain import (
     SchoolingStage,
     Territory,
 )
-from law_as_code_benchmarks.catala.provision import FamilyBenefitsProvision
+from law_as_code_benchmarks.catala.provision import (
+    ChildProvision,
+    FamilyBenefitsProvision,
+)
 
 # %% amounts in force
 
@@ -56,7 +59,7 @@ from law_as_code_benchmarks.catala.provision import FamilyBenefitsProvision
 class MonthlyBaseProvision(FamilyBenefitsProvision[MonthlyBaseAmount]):
     """
     `L551-1 <https://www.legifrance.gouv.fr/codes/article_lc/LEGIARTI000031688371>`__: the monthly base of family allowances in force on the
-    household's assessment date; none before April 1, 2019, which Catala leaves out.
+    household's assessment date; none before 2006.
     """
 
     def query(self) -> Query:
@@ -73,7 +76,7 @@ class MonthlyBaseProvision(FamilyBenefitsProvision[MonthlyBaseAmount]):
 class MinimumWageProvision(FamilyBenefitsProvision[HourlyMinimumWageAmount]):
     """
     The gross hourly minimum wage in force where the household lives on its assessment
-    date; none before 2019, which Catala leaves out.
+    date; none before July 2005, nor in Mayotte before 2019.
     """
 
     def query(self) -> Query:
@@ -171,7 +174,7 @@ class PayCeilingProvision(FamilyBenefitsProvision[PayCeiling]):
 
 
 @dataclass
-class SchoolingStageProvision(FamilyBenefitsProvision[SchoolingStageOfChild]):
+class SchoolingStageProvision(ChildProvision[SchoolingStageOfChild]):
     """
     `L131-1 <https://www.legifrance.gouv.fr/codes/article_lc/LEGIARTI000038901859>`__ of the Code de l'éducation: schooling is compulsory from age 3
     to age 16. A child is before it until the day after their third birthday and during
@@ -237,9 +240,7 @@ class SchoolingStageProvision(FamilyBenefitsProvision[SchoolingStageOfChild]):
 
 
 @dataclass
-class FamilyBenefitEntitlementProvision(
-    FamilyBenefitsProvision[FamilyBenefitEntitlement]
-):
+class FamilyBenefitEntitlementProvision(ChildProvision[FamilyBenefitEntitlement]):
     """
     `L512-3 <https://www.legifrance.gouv.fr/codes/article_lc/LEGIARTI000041979743>`__: a child gives a right to family benefits until compulsory
     schooling ends (1°), and after it, up to the age limit of `R512-2 <https://www.legifrance.gouv.fr/codes/article_lc/LEGIARTI000006750602>`__, while their
@@ -302,7 +303,7 @@ class FamilyBenefitEntitlementProvision(
 
 
 @dataclass
-class ConditionsBesidesAgeProvision(FamilyBenefitsProvision[ConditionsBesidesAge]):
+class ConditionsBesidesAgeProvision(ChildProvision[ConditionsBesidesAge]):
     """
     `L512-3 <https://www.legifrance.gouv.fr/codes/article_lc/LEGIARTI000041979743>`__: a child, at whatever stage of compulsory schooling, meets the
     conditions of the right to family benefits but its age where their pay does not

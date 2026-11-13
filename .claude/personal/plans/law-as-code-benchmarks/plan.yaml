@@ -16,25 +16,11 @@ tracks:
   name: krrood on law-as-code benchmarks
   wave: benchmarks
 items:
-- id: krrood-openfisca-family-benefits
-  title: Score the family benefits model on OpenFisca France's tests
-  branch: krrood-openfisca-family-benefits
-  track: krrood-benchmarks
-  pull_request_number: 18
-  session: local session 6f4d9009-2717-491e-a2db-4e0a09589379
-  depends_on: []
-  status: in progress
-  notes: 'Run the family benefits model on OpenFisca France''s 93 tests/formulas/af*.yaml
-    tests (2006-2026), fetched by a script. Score the share within each test''s error margin,
-    the values OpenFisca computed itself scored apart.
-
-    '
 - id: krrood-law-as-code-report
   title: Report what krrood handles, works around or lacks on law as code
   branch: krrood-law-as-code-report
   track: krrood-benchmarks
   depends_on:
-  - krrood-openfisca-family-benefits
   - krrood-catala-income-tax
   - krrood-catala-housing-ownership-and-residences
   status: not started
@@ -56,8 +42,10 @@ items:
   title: Model the eligibility for Catala's housing benefits in krrood and score it
   branch: krrood-catala-housing-eligibility
   track: krrood-benchmarks
+  pull_request_number: 19
+  session: local session 6f4d9009-2717-491e-a2db-4e0a09589379
   depends_on: []
-  status: not started
+  status: in progress
   notes: 'aides_logement of catala-examples 9e251b932288: eligibility (tests_eligibilite_apl)
     and time coverage (tests_couverture_temporelle), on its prologue and the dated tables
     of the arrete of 2019-09-27, reusing the family benefits model housing benefits import;

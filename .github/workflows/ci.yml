@@ -58,6 +58,12 @@ jobs:
           cd law_as_code_benchmarks
           python scripts/fetch_openfisca_tests.py
 
+      # Catala's income tax example is under CeCILL 2.1, so its tests are fetched too.
+      - name: Fetch Catala's income tax tests
+        run: |
+          cd law_as_code_benchmarks
+          python scripts/fetch_catala_income_tax_tests.py
+
       - name: Run the tests
         run: |
           cd law_as_code_benchmarks

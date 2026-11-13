@@ -19,6 +19,7 @@ from law_as_code_benchmarks.catala.housing.rented import RentedTestFile
 from law_as_code_benchmarks.catala.housing.residence_hall import (
     ResidenceHallTestFile,
 )
+from law_as_code_benchmarks.catala.income_tax.test_files import IncomeTaxTestFile
 from law_as_code_benchmarks.catala.inheritance import InheritanceTestFile
 from law_as_code_benchmarks.catala.new_south_wales_community_gaming import (
     NewSouthWalesCommunityGamingTestFile,
@@ -88,6 +89,11 @@ class CatalaExample(StrEnum):
     The French personal housing aids.
     """
 
+    INCOME_TAX = "impot_revenu"
+    """
+    The French income tax, its tests fetched rather than kept in the repository.
+    """
+
     def read_tests(self) -> list[CatalaTest]:
         """:return: The tests of every test file of the example, in order."""
         match self:
@@ -111,6 +117,8 @@ class CatalaExample(StrEnum):
                 test_files = list(FibreGrantTestFile)
             case CatalaExample.PERFORMING_ARTS_HIRING_GRANT:
                 test_files = list(HiringGrantTestFile)
+            case CatalaExample.INCOME_TAX:
+                test_files = list(IncomeTaxTestFile)
             case CatalaExample.HOUSING_AIDS:
                 test_files = [
                     *EligibilityTestFile,
@@ -179,12 +187,12 @@ class CatalaScore:
     """
 
     @classmethod
-    def from_examples(cls) -> CatalaScore:
-        """:return: The results of the tests of every example."""
+    def from_examples(cls, examples: list[CatalaExample] | None = None) -> CatalaScore:
+        """:return: The results of the tests of *examples*, every example where none are given."""
         return cls(
             results=[
                 ScopeResult.from_test(example, test)
-                for example in CatalaExample
+                for example in (list(CatalaExample) if examples is None else examples)
                 for test in example.read_tests()
             ]
         )

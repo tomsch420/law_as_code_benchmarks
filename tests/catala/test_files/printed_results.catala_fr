@@ -1,0 +1,25 @@
+```catala
+#[test]
+déclaration champ d'application Test1:
+  résultat sortie contenu Résultat
+
+champ d'application Test1:
+  définition sortie égal à résultat de Calcul avec { -- entrée: 1 € }
+
+champ d'application Test1:
+  assertion Argent.somme de sortie.valeurs = 1 €
+```
+
+```catala-test-cli
+$ catala test-scope Test1 --disable-warnings
+┌─[RESULT]─ Test1 ─
+│ sortie =
+│   Calcul {
+│     -- solde: -350,00 €
+│     -- année: 2 020
+│     -- valeurs: [
+│       1,00 €;
+│     ]
+│   }
+└─
+```

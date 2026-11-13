@@ -81,8 +81,17 @@ in cents, rounded as Catala rounds it.
 Score the tests:
 
 ```bash
+python scripts/fetch_catala_income_tax_tests.py
 python scripts/score_catala.py
 ```
+
+`impot_revenu` is under the CeCILL 2.1 licence, so its tests are not kept here:
+`scripts/fetch_catala_income_tax_tests.py` downloads them at `9e251b932288` to
+`resources/catala_impot_revenu/`, which git ignores. Its tests assert almost nothing in
+their code; the results their `catala-test-cli` blocks print, which Catala's own tests
+check, are asserted output by output. The example's two external functions, the
+imputation on past deficits and the distribution in proportion rounded to the euro, are
+computed as its OCaml implementation computes them.
 
 | Example | Law | Reproduced | Test scopes |
 |---|---|---|---|
@@ -95,6 +104,7 @@ python scripts/score_catala.py
 | `asp/aide_fibre` | grant for private works connecting to optical fibre, décret n° 2025-674 | 1 | 1 |
 | `asp/fonpeps` | FONPEPS hiring grant in the performing arts, décret n° 2019-1011 | 1 | 1 |
 | `aides_logement` | French personal housing aids: eligibility, rented homes, homes bought, residence halls and the calculator | 33 | 33 |
+| `impot_revenu` | French income tax: parts, wages and pensions, non-commercial and industrial and commercial profits, past deficits, prorata | 27 | 27 |
 
 On one local run, answering a test scope in krrood took 7.6 ms at the median and 1,677 ms
 at most. The maximum is the first test scope, which pays krrood's warm-up. Catala's own

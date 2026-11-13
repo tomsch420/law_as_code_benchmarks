@@ -271,3 +271,27 @@ def test_a_list_mapped_to_anything_but_a_scope_call_is_refused() -> None:
     mapped = ListMap(element="x", elements=[1, 2], expression=Reference(parts=("x",)))
     with pytest.raises(UnmappedExpression):
         mapped.scope_calls()
+
+
+def test_a_printed_result_spans_its_lines_with_signed_amounts_and_spaced_years() -> (
+    None
+):
+    """
+    The command line's result spans the lines under its variable; a negative amount and
+    a year written with a space are read.
+    """
+    program = read_program("printed_results.catala_fr")
+    result = program.stated_result("Test1", "sortie")
+    assert result.fields == {
+        "solde": Money(cents=-35000),
+        "année": 2020,
+        "valeurs": [Money.from_euros(1)],
+    }
+
+
+def test_a_scope_written_in_two_bodies_is_one_scope() -> None:
+    """
+    The statements of both bodies of a scope belong to it, in order.
+    """
+    (test,) = read_program("printed_results.catala_fr").test_scopes
+    assert [type(statement) for statement in test.statements] == [Definition, Assertion]

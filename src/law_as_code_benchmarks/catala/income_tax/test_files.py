@@ -13,6 +13,9 @@ from krrood.ormatic.utils import classproperty
 from krrood.patterns.path_enumeration import PathEnumeration
 
 from law_as_code_benchmarks.catala.income_tax.exceptions import MissingIncomeTaxTests
+from law_as_code_benchmarks.catala.income_tax.commercial import (
+    CommercialHouseholdCase,
+)
 from law_as_code_benchmarks.catala.income_tax.non_commercial import (
     NonCommercialHouseholdCase,
 )
@@ -69,6 +72,11 @@ class IncomeTaxTestFile(ScopeTestFile, StrEnum):
     Four households' non-commercial profits.
     """
 
+    COMMERCIAL = "benefices_industriels_commerciaux.catala_fr"
+    """
+    Three households' industrial and commercial profits.
+    """
+
     @classproperty
     def revision(cls) -> str:
         """
@@ -105,6 +113,7 @@ class IncomeTaxTestFile(ScopeTestFile, StrEnum):
             DeclarantWagesCase,
             HouseholdWagesCase,
             NonCommercialHouseholdCase,
+            CommercialHouseholdCase,
         ]
 
     def fetch(self) -> None:

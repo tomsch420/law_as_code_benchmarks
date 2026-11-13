@@ -58,9 +58,11 @@ items:
   title: Model Catala's housing benefits for rented homes in krrood and score them
   branch: krrood-catala-housing-rented
   track: krrood-benchmarks
+  pull_request_number: 20
+  session: local session 6f4d9009-2717-491e-a2db-4e0a09589379
   depends_on:
   - krrood-catala-housing-eligibility
-  status: not started
+  status: in progress
   notes: >
     APL and AL for rented homes (tests_calcul_apl_locatif, tests_calcul_al_locatif) of
     aides_logement; score the share of those test scopes reproduced.

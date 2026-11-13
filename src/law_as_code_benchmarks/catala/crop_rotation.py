@@ -1330,6 +1330,9 @@ class MultiYearCriterionOfParcelProvision(
     The multi-year criterion of a cultivated parcel: two different main crops in the
     four years, or a secondary crop every year from 2023. Mixed vegetables under cover,
     seed maize and a crop grown for a year at least meet it by exception.
+
+    .. note:: Where several exceptions apply, the first concludes, where Catala stops on
+        their conflict.
     """
 
     def query(self) -> Query:

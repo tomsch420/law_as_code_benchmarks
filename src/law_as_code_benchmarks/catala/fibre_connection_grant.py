@@ -301,6 +301,9 @@ class FibreGrantEligibilityProvision(ScopeProvision[FibreGrantEligibility]):
     Article 1: works completed from 1 September 2025 to 31 May 2027. Article 3 I: a
     natural person meeting 1° to 6°, the family quotient at most 29,316 € (article 2 of
     the arrêté); article 3 II: a business meeting 1° to 7°.
+
+    .. note:: 4° asks that the house never received the aid, as the decree says, where
+        Catala's example asks again that it is the main residence.
     """
 
     @classproperty

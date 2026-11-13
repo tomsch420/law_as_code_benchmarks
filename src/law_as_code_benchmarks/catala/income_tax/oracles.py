@@ -219,6 +219,18 @@ class ProportionalDistribution:
             return (-1, 0) if delta * since_last_flip > ups_left else (0, 1)
         return 0, 0
 
+    @classmethod
+    def list_shares(cls, amount: Money, bases: list[list[Money]]) -> list[list[Money]]:
+        """:return: *amount* distributed over every base of *bases* at once, the shares split back into the lists, as ``prorata_arrondi_euro_listes`` does."""
+        shares = cls(
+            amount=amount, bases=[base for row in bases for base in row]
+        ).shares()
+        split, start = [], 0
+        for row in bases:
+            split.append(shares[start : start + len(row)])
+            start += len(row)
+        return split
+
     def check(self) -> None:
         """
         :raises UndistributableAmount: Where the oracle's assertions fail.

@@ -12,7 +12,6 @@ from fractions import Fraction
 
 from krrood.entity_query_language.factories import (
     an,
-    and_,
     deduced_variable,
     entity,
     in_,

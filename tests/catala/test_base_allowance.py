@@ -11,6 +11,7 @@ import pytest
 
 from law_as_code_benchmarks.catala.base_allowance import (
     BaseAllowanceRightProvision,
+    ChargeShareProvision,
     FirstChildAmountProvision,
     HouseholdBracketProvision,
     InitialBaseAmountProvision,
@@ -19,6 +20,7 @@ from law_as_code_benchmarks.catala.base_allowance import (
 )
 from law_as_code_benchmarks.catala.conclusions import ResourceBracket
 from law_as_code_benchmarks.catala.domain import (
+    ChargeShare,
     ChildCare,
     Territory,
 )
@@ -66,6 +68,29 @@ def test_the_bracket_is_set_by_the_ceilings_the_resources_reach(
     Resources up to a ceiling stay in its bracket; a cent more moves them up.
     """
     household = household_of(children_born(2010, 2012), resources=resources)
+    assert [
+        conclusion.bracket
+        for conclusion in HouseholdBracketProvision(household=household).conclusions
+    ] == [bracket]
+
+
+@pytest.mark.parametrize(
+    "assessment_date, bracket",
+    [
+        (datetime.date(2015, 6, 30), ResourceBracket.FIRST),
+        (HouseholdBracketProvision.first_day_of_modulation, ResourceBracket.THIRD),
+    ],
+)
+def test_before_july_2015_every_household_is_in_the_first_bracket(
+    assessment_date: datetime.date, bracket: ResourceBracket
+) -> None:
+    """
+    Resources of 1,000,000 € leave a household in the first bracket until the modulation
+    by resources begins, and put it in the third from then on.
+    """
+    household = household_of(
+        children_born(2008, 2010), assessment_date, resources=Money(cents=100000000)
+    )
     assert [
         conclusion.bracket
         for conclusion in HouseholdBracketProvision(household=household).conclusions
@@ -171,3 +196,27 @@ def test_a_shared_residence_counts_the_child_for_half() -> None:
         conclusion.amount
         for conclusion in PaidBaseAllowanceProvision(household=household).conclusions
     ] == [Money(cents=9946)]
+
+
+@pytest.mark.parametrize(
+    "assessment_date, share",
+    [
+        (datetime.date(2007, 4, 30), ChargeShare.FULL),
+        (ChargeShareProvision.first_day_of_sharing, ChargeShare.HALF),
+    ],
+)
+def test_a_shared_residence_counts_in_full_before_parents_may_share_the_allowances(
+    assessment_date: datetime.date, share: ChargeShare
+) -> None:
+    """
+    A child in shared residence whose parents share the allowances counts in full until
+    May 1, 2007, and for half from then on.
+    """
+    child = child_born(
+        datetime.date(2000, 1, 1), care=ChildCare.SHARED_RESIDENCE_SHARED_ALLOWANCE
+    )
+    household = household_of([child], assessment_date)
+    assert [
+        conclusion.share
+        for conclusion in ChargeShareProvision(household=household).conclusions
+    ] == [share]

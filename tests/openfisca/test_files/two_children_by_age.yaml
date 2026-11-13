@@ -1,0 +1,25 @@
+- name: Two children given by age
+  period: 2013-06
+  absolute_error_margin: 0.01
+  input:
+    famille:
+      parents: [mother, father]
+      enfants: [first, second]
+    foyer_fiscal:
+      declarants: [mother, father]
+      personnes_a_charge: [first, second]
+    menage:
+      personne_de_reference: mother
+      conjoint: father
+      enfants: [first, second]
+    individus:
+      mother:
+        age: 36
+      father:
+        age: 37
+      first:
+        age: 7
+      second:
+        age: 5
+  output:
+    af: 403.79 * 0.32

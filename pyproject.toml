@@ -13,6 +13,7 @@ dependencies = [
     # krrood does not declare it; drop this once it does
     "casadi",
     "pyparsing",
+    "pyyaml",
     "typing_extensions",
 ]
 

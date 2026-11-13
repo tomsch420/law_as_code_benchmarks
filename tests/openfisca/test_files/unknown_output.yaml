@@ -1,0 +1,13 @@
+- name: A birth grant
+  period: 2021-05
+  input:
+    famille:
+      parents: [father]
+      enfants: [child]
+    individus:
+      father:
+        age: 30
+      child:
+        age: 0
+  output:
+    paje_naissance: 0

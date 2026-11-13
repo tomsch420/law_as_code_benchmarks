@@ -2,3 +2,4 @@ CLAUDE.local.md
 .claude/settings.local.json
 __pycache__/
 *.egg-info/
+resources/openfisca/

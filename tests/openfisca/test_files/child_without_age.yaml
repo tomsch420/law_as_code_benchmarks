@@ -1,0 +1,12 @@
+- name: A child of unknown age
+  period: 2021-05
+  input:
+    famille:
+      parents: [father]
+      enfants: [child]
+    individus:
+      father:
+        age: 30
+      child: {}
+  output:
+    af: 0

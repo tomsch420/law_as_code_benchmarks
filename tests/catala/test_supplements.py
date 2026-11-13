@@ -9,6 +9,8 @@ import datetime
 
 import pytest
 
+from law_as_code_benchmarks.catala.amounts import MonthlyBases
+from law_as_code_benchmarks.catala.conclusions import ResourceBracket
 from law_as_code_benchmarks.catala.domain import (
     ChildCare,
 )
@@ -19,6 +21,7 @@ from law_as_code_benchmarks.catala.supplements import (
     AllowanceDegressiveSupplementProvision,
     FamilyAllowanceProvision,
     FlatAllowanceRightProvision,
+    InitialAgeSupplementProvision,
     PaidFlatAllowanceProvision,
     SharedAgeSupplementProvision,
 )
@@ -52,6 +55,69 @@ def test_a_child_eleven_by_april_30_2008_keeps_the_earlier_minimum_age(
             household=household
         ).conclusions
     ] == [age]
+
+
+def test_before_may_2008_a_child_gives_a_right_from_11_at_a_lower_rate_until_16() -> (
+    None
+):
+    """
+    On January 1, 2006, of three children aged 16, 14 and 6, the 16-year-old is paid 16
+    % of the monthly base, the 14-year-old 9 %, and the 6-year-old nothing.
+    """
+    household = household_of(
+        children_born(1990, 1992, 2000), datetime.date(2006, 1, 1), resources=Money.zero
+    )
+    base = MonthlyBases.JANUARY_2006.value.amount
+    assert [
+        conclusion.amount
+        for conclusion in InitialAgeSupplementProvision(household=household).conclusions
+    ] == [
+        base * ResourceBracket.FIRST.value.age_supplement,
+        base * InitialAgeSupplementProvision.rate_until_16_before_2008,
+        Money.zero,
+    ]
+
+
+@pytest.mark.parametrize(
+    "birth_date, age",
+    [
+        (datetime.date(2012, 2, 28), AgeSupplementMinimumAgeProvision.minimum_age),
+        (
+            AgeSupplementMinimumAgeProvision.first_birth_date_of_2026_reform,
+            AgeSupplementMinimumAgeProvision.minimum_age_from_2026,
+        ),
+    ],
+)
+def test_from_march_2026_a_child_born_from_march_2012_gives_a_right_from_18(
+    birth_date: datetime.date, age: int
+) -> None:
+    """
+    On March 1, 2026, a child born on February 28, 2012, keeps the minimum age of 14;
+    one born on March 1 has 18.
+    """
+    household = household_of(
+        [child_born(birth_date)],
+        AgeSupplementMinimumAgeProvision.first_day_of_2026_reform,
+    )
+    assert [
+        conclusion.age
+        for conclusion in AgeSupplementMinimumAgeProvision(
+            household=household
+        ).conclusions
+    ] == [age]
+
+
+def test_every_child_of_a_household_is_given_a_minimum_age_before_may_2008() -> None:
+    """
+    Before the décret n° 2008-409, each of two children has the minimum age of 11.
+    """
+    household = household_of(children_born(1995, 1997), datetime.date(2007, 1, 1))
+    assert [
+        conclusion.age
+        for conclusion in AgeSupplementMinimumAgeProvision(
+            household=household
+        ).conclusions
+    ] == [AgeSupplementMinimumAgeProvision.lower_supplement_age_before_2008] * 2
 
 
 @pytest.mark.parametrize(
@@ -151,3 +217,17 @@ def test_resources_just_above_a_ceiling_are_made_up_for_by_a_degressive_suppleme
         conclusion.amount
         for conclusion in FamilyAllowanceProvision(household=household).conclusions
     ] == [Money(cents=6630 + 2463)]
+
+
+# %% the amount paid
+
+
+def test_a_household_without_children_is_paid_nothing() -> None:
+    """
+    A household with no child in its charge has no right to family allowances.
+    """
+    household = household_of([])
+    assert [
+        conclusion.amount
+        for conclusion in FamilyAllowanceProvision(household=household).conclusions
+    ] == [Money.zero]

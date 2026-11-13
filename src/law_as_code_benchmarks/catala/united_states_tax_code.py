@@ -1,5 +1,5 @@
 """
-Sections 121 and 132 of the US Internal Revenue Code, as Catala's ``us_tax_code``
+Sections 121 and 132 of the United States Internal Revenue Code, as Catala's ``us_tax_code``
 example states them: the exclusion of gain from the sale of a principal residence, and
 the qualified employee discount.
 """
@@ -945,7 +945,7 @@ class ReturnExclusionProvision(ScopeProvision[ReturnExclusion]):
 # %% test files
 
 
-class UsTaxCodeTestFile(ScopeTestFile, StrEnum):
+class UnitedStatesTaxCodeTestFile(ScopeTestFile, StrEnum):
     """The test files of Catala's ``us_tax_code`` example."""
 
     SECTION_121 = "test_section_121.catala_en"
@@ -963,7 +963,7 @@ class UsTaxCodeTestFile(ScopeTestFile, StrEnum):
     def scope_cases(self) -> list[type[ScopeCase]]:
         """The scopes of the section the file tests."""
         match self:
-            case UsTaxCodeTestFile.SECTION_121:
+            case UnitedStatesTaxCodeTestFile.SECTION_121:
                 return [SinglePersonCase, TwoPersonsCase]
-            case UsTaxCodeTestFile.SECTION_132:
+            case UnitedStatesTaxCodeTestFile.SECTION_132:
                 return [EmployeeDiscountCase]

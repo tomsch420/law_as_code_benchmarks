@@ -565,7 +565,7 @@ class SocialHousieProvision(PermittedActivityProvision):
 # %% test files
 
 
-class NswGamingTestFile(ScopeTestFile, StrEnum):
+class NewSouthWalesCommunityGamingTestFile(ScopeTestFile, StrEnum):
     """The test files of Catala's ``NSW_community_gaming`` example, one per activity."""
 
     ART_UNION = "test_nsw_art_union.catala_en"
@@ -596,11 +596,11 @@ class NswGamingTestFile(ScopeTestFile, StrEnum):
         """The activity the file tests."""
         return [
             {
-                NswGamingTestFile.ART_UNION: ArtUnionCase,
-                NswGamingTestFile.CHARITY_HOUSIE: CharityHousieCase,
-                NswGamingTestFile.CLUB_BINGO: ClubBingoCase,
-                NswGamingTestFile.DRAW_LOTTERY: DrawLotteryCase,
-                NswGamingTestFile.NO_DRAW_LOTTERY: NoDrawLotteryCase,
-                NswGamingTestFile.PROGRESSIVE_LOTTERY: ProgressiveLotteryCase,
+                NewSouthWalesCommunityGamingTestFile.ART_UNION: ArtUnionCase,
+                NewSouthWalesCommunityGamingTestFile.CHARITY_HOUSIE: CharityHousieCase,
+                NewSouthWalesCommunityGamingTestFile.CLUB_BINGO: ClubBingoCase,
+                NewSouthWalesCommunityGamingTestFile.DRAW_LOTTERY: DrawLotteryCase,
+                NewSouthWalesCommunityGamingTestFile.NO_DRAW_LOTTERY: NoDrawLotteryCase,
+                NewSouthWalesCommunityGamingTestFile.PROGRESSIVE_LOTTERY: ProgressiveLotteryCase,
             }[self]
         ]

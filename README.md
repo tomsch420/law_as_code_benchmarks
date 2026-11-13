@@ -74,7 +74,7 @@ python scripts/score_catala.py
 | `allocations_familiales`, `prestations_familiales` | French family benefits | 16 | 16 |
 | `droit_successions` | reserved portion of an estate, Code civil art. 912–917 | 4 | 4 |
 | `polish_taxes` | Polish tax on civil-law transactions, art. 7 | 8 | 8 |
-| `us_tax_code` | US Internal Revenue Code §§ 121 and 132 | 9 | 9 |
+| `us_tax_code` | United States Internal Revenue Code §§ 121 and 132 | 9 | 9 |
 | `NSW_community_gaming` | permitted gaming activities of New South Wales | 25 | 25 |
 
 On one local run, answering a test scope in krrood took 7.5 ms at the median and 1,802 ms

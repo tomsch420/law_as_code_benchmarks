@@ -11,7 +11,7 @@ import pytest
 
 from law_as_code_benchmarks.catala.exceptions import UnmodelledScope
 from law_as_code_benchmarks.catala.money import Money
-from law_as_code_benchmarks.catala.nsw_gaming import (
+from law_as_code_benchmarks.catala.new_south_wales_community_gaming import (
     ClubBingoCase,
     DrawLotteryCase,
     OrganisationType,
@@ -24,7 +24,7 @@ from law_as_code_benchmarks.catala.reader import (
     StructureLiteral,
 )
 from law_as_code_benchmarks.catala.scope_test import ScopeTest
-from law_as_code_benchmarks.catala.us_tax_code import (
+from law_as_code_benchmarks.catala.united_states_tax_code import (
     Period,
     PersonalData,
     SinglePersonCase,

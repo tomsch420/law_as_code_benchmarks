@@ -16,7 +16,7 @@ from law_as_code_benchmarks.catala.inheritance import (
     ReservedPortionOutput,
 )
 from law_as_code_benchmarks.catala.money import Money
-from law_as_code_benchmarks.catala.nsw_gaming import (
+from law_as_code_benchmarks.catala.new_south_wales_community_gaming import (
     GamingOutput,
     SocialHousie,
     SocialHousieCase,
@@ -26,7 +26,7 @@ from law_as_code_benchmarks.catala.polish_tax import (
     TaxProvision,
     TransactionOutput,
 )
-from law_as_code_benchmarks.catala.us_tax_code import (
+from law_as_code_benchmarks.catala.united_states_tax_code import (
     DiscountType,
     EmployeeDiscountCase,
     EmployeeDiscountOutput,
@@ -82,7 +82,7 @@ def test_a_mortgage_securing_an_existing_claim_is_taxed_a_tenth_of_a_percent() -
     assert case.output(TransactionOutput.TAX) == Money.from_euros(50)
 
 
-# %% US tax code
+# %% United States tax code
 
 
 def test_a_discount_on_services_is_qualified_up_to_a_fifth_of_the_customer_price() -> (
@@ -123,7 +123,7 @@ def test_another_exclusion_within_two_years_excludes_the_sale() -> None:
     ) == (True, True, Money.zero)
 
 
-# %% NSW community gaming
+# %% New South Wales community gaming
 
 
 @pytest.mark.parametrize(

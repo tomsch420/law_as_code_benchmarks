@@ -11,10 +11,14 @@ from enum import StrEnum
 
 from law_as_code_benchmarks.catala.case import CatalaTestFile, FamilyBenefitsTest
 from law_as_code_benchmarks.catala.inheritance import InheritanceTestFile
-from law_as_code_benchmarks.catala.nsw_gaming import NswGamingTestFile
+from law_as_code_benchmarks.catala.new_south_wales_community_gaming import (
+    NewSouthWalesCommunityGamingTestFile,
+)
 from law_as_code_benchmarks.catala.polish_tax import PolishTaxTestFile
 from law_as_code_benchmarks.catala.scope_test import CatalaTest
-from law_as_code_benchmarks.catala.us_tax_code import UsTaxCodeTestFile
+from law_as_code_benchmarks.catala.united_states_tax_code import (
+    UnitedStatesTaxCodeTestFile,
+)
 from law_as_code_benchmarks.stopwatch import Stopwatch
 
 # %% examples
@@ -40,12 +44,12 @@ class CatalaExample(StrEnum):
     The rates of the Polish tax on civil-law transactions.
     """
 
-    US_TAX_CODE = "us_tax_code"
+    UNITED_STATES_TAX_CODE = "us_tax_code"
     """
-    Sections 121 and 132 of the US Internal Revenue Code.
+    Sections 121 and 132 of the United States Internal Revenue Code.
     """
 
-    NSW_COMMUNITY_GAMING = "NSW_community_gaming"
+    NEW_SOUTH_WALES_COMMUNITY_GAMING = "NSW_community_gaming"
     """
     The permitted gaming activities of New South Wales.
     """
@@ -63,10 +67,10 @@ class CatalaExample(StrEnum):
                 test_files = list(InheritanceTestFile)
             case CatalaExample.POLISH_TAXES:
                 test_files = list(PolishTaxTestFile)
-            case CatalaExample.US_TAX_CODE:
-                test_files = list(UsTaxCodeTestFile)
-            case CatalaExample.NSW_COMMUNITY_GAMING:
-                test_files = list(NswGamingTestFile)
+            case CatalaExample.UNITED_STATES_TAX_CODE:
+                test_files = list(UnitedStatesTaxCodeTestFile)
+            case CatalaExample.NEW_SOUTH_WALES_COMMUNITY_GAMING:
+                test_files = list(NewSouthWalesCommunityGamingTestFile)
         return [test for test_file in test_files for test in test_file.read_tests()]
 
 

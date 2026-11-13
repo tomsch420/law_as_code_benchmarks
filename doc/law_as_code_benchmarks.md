@@ -23,7 +23,7 @@ benchmark is useful when it tests that, and not reading natural language:
 
 | Benchmark | License | Size | Facts given as | Asks | Exceptions | Dated validity | Ground truth |
 |---|---|---|---|---|---|---|---|
-| SARA | MIT-style, dataset | 9 sections of the US Internal Revenue Code; 376 cases (256 train, 120 test): 276 entailment, 100 tax amounts | prose **and** Prolog facts per case | yes/no, and an amount of tax | yes: § 2, § 63, § 151, § 152, § 3306 and § 7703 state exceptions | by tax year; § 63 and § 68 state 2018–2025 rules | hand-written Prolog program; every case is a runnable query |
+| SARA | MIT-style, dataset | 9 sections of the United States Internal Revenue Code; 376 cases (256 train, 120 test): 276 entailment, 100 tax amounts | prose **and** Prolog facts per case | yes/no, and an amount of tax | yes: § 2, § 63, § 151, § 152, § 3306 and § 7703 state exceptions | by tax year; § 63 and § 68 state 2018–2025 rules | hand-written Prolog program; every case is a runnable query |
 | Catala examples | Apache-2.0 | 12 examples, about 44,000 lines of Catala; 129 test scopes | Catala values | amounts, eligibility | central: 273 `exception` in housing benefits, 62 in family benefits | yes: `date_courante` selects rules and amounts year by year | tests written by the authors; family benefits compared with the official simulator by them |
 | OpenFisca France YAML tests | AGPL-3.0 | 843 test files; 4,064 parameter files | YAML entities and inputs | amounts per period | implicit, in formulas | central: every parameter is dated, every test names its period | mixed: official simulators for some, regression values computed by OpenFisca for others |
 | LegalBench rule tasks | per task; the rule tasks are CC BY 4.0 | 162 tasks; rule-application ones of 47 to 300 test cases (diversity jurisdiction 6 × 300, hearsay 94, personal jurisdiction 50, successor liability 47, telemarketing sales rule 47, UCC or common law 94) | prose | yes/no | some (successor liability is an exception to a rule) | no | hand-labelled answers; includes SARA as `sara_entailment` and `sara_numeric` |
@@ -45,7 +45,7 @@ and a krrood model can be loaded from the same facts with no language step.
 
 Laws written in Catala by its authors and contributors: French family benefits (*allocations
 familiales*), housing benefits (*aides au logement*), income tax, inheritance law, Polish
-taxes, New South Wales community gaming and § 121 and § 132 of the US tax code. Catala states a
+taxes, New South Wales community gaming and § 121 and § 132 of the United States tax code. Catala states a
 law as a default with exceptions that override it, which is the construct krrood's rules have
 to express. The family benefits example holds rules and amounts from 2011 to 2023, chosen by
 the date a computation is for; its 15 tests ask about dates from 2019 to 2022. Its authors

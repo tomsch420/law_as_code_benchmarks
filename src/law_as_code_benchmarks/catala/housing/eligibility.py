@@ -1231,6 +1231,8 @@ class CountedDependantProvision(DependantProvision):
                 child.studying_or_unable_to_work == True,
             ):
                 add(counted, self.inferred(case, dependant, False))
+            # the child's entitlement is joined with exists, the default otherwise firing
+            # for every entitlement of another child (cram2/cognitive_robot_abstract_machine#970)
             with alternative(
                 counted_from,
                 is_child,

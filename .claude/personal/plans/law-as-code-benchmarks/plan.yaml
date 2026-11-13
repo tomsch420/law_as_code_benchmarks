@@ -16,25 +16,11 @@ tracks:
   name: krrood on law-as-code benchmarks
   wave: benchmarks
 items:
-- id: krrood-catala-family-benefits
-  title: Model Catala's French family benefits in krrood and score them
-  branch: krrood-catala-family-benefits
-  track: krrood-benchmarks
-  pull_request_number: 15
-  session: https://claude.ai/code/session_01LzY41KXVD15Tr3P8n3nwfr
-  depends_on: []
-  status: in progress
-  notes: 'Model allocations_familiales (with prestations_familiales and base_mensuelle_allocations_familiales)
-    from catala-examples in krrood, defaults and their exceptions as rules, amounts chosen
-    by date; score the share of its 15 tests reproduced.
-
-    '
 - id: krrood-openfisca-family-benefits
   title: Score the family benefits model on OpenFisca France's tests
   branch: krrood-openfisca-family-benefits
   track: krrood-benchmarks
-  depends_on:
-  - krrood-catala-family-benefits
+  depends_on: []
   status: not started
   notes: 'Run the family benefits model on OpenFisca France''s 93 tests/formulas/af*.yaml
     tests (2006-2026), fetched by a script. Score the share within each test''s error margin,
@@ -46,72 +32,47 @@ items:
   branch: krrood-law-as-code-report
   track: krrood-benchmarks
   depends_on:
-  - krrood-catala-family-benefits
   - krrood-openfisca-family-benefits
-  - krrood-catala-small-examples
   - krrood-catala-asp
   - krrood-catala-income-tax
   - krrood-catala-housing-ownership-and-residences
   status: not started
-  notes: 'Across SARA, the Catala examples and OpenFisca, what krrood states directly, what needed a workaround
-    and what it lacks, with each gap filed as an issue on cram2/cognitive_robot_abstract_machine.
+  notes: 'Across SARA, the Catala examples and OpenFisca, what krrood states directly, what
+    needed a workaround and what it lacks, with each gap filed as an issue on cram2/cognitive_robot_abstract_machine.
 
     '
-
-- id: krrood-catala-small-examples
-  title: Model Catala's small examples in krrood and score them
-  branch: krrood-catala-small-examples
-  track: krrood-benchmarks
-  pull_request_number: 16
-  session: https://claude.ai/code/session_01LzY41KXVD15Tr3P8n3nwfr
-  depends_on:
-  - krrood-catala-family-benefits
-  status: in progress
-  notes: 'From catala-examples 9e251b932288: NSW community gaming (catala_en, 25 tests),
-    US tax code sections 121 and 132 (catala_en, 9), Polish civil-law transactions tax (catala_pl,
-    8) and French inheritance law (droit_successions, 4). The test reader learns Catala''s English
-    and Polish syntax; score the share of the 46 test scopes reproduced.
-
-    '
-
 - id: krrood-catala-asp
   title: Model Catala's ASP examples in krrood and score them
   branch: krrood-catala-asp
   track: krrood-benchmarks
-  depends_on:
-  - krrood-catala-family-benefits
+  depends_on: []
   status: not started
   notes: 'The asp examples of catala-examples 9e251b932288: BCAE7, the fibre connection grant
     (aide fibre) and FONPEPS; score the share of their 7 test scopes reproduced.
 
     '
-
 - id: krrood-catala-income-tax
   title: Model Catala's French income tax in krrood and score it
   branch: krrood-catala-income-tax
   track: krrood-benchmarks
-  depends_on:
-  - krrood-catala-family-benefits
+  depends_on: []
   status: not started
   notes: 'impot_revenu of catala-examples 9e251b932288 (8,900 lines): wages, BIC, BNC, the
     number of parts, past deficits and prorata; score the share of its 27 test scopes reproduced.
 
     '
-
 - id: krrood-catala-housing-eligibility
   title: Model the eligibility for Catala's housing benefits in krrood and score it
   branch: krrood-catala-housing-eligibility
   track: krrood-benchmarks
-  depends_on:
-  - krrood-catala-family-benefits
+  depends_on: []
   status: not started
   notes: 'aides_logement of catala-examples 9e251b932288: eligibility (tests_eligibilite_apl)
-    and time coverage (tests_couverture_temporelle), on its prologue and the dated tables of
-    the arrete of 2019-09-27, reusing the family benefits model housing benefits import; score
-    the share of those test scopes reproduced.
+    and time coverage (tests_couverture_temporelle), on its prologue and the dated tables
+    of the arrete of 2019-09-27, reusing the family benefits model housing benefits import;
+    score the share of those test scopes reproduced.
 
     '
-
 - id: krrood-catala-housing-rented
   title: Model Catala's housing benefits for rented homes in krrood and score them
   branch: krrood-catala-housing-rented
@@ -123,7 +84,6 @@ items:
     of aides_logement; score the share of those test scopes reproduced.
 
     '
-
 - id: krrood-catala-housing-ownership-and-residences
   title: Model Catala's housing benefits for home ownership and residences in krrood and score
     them

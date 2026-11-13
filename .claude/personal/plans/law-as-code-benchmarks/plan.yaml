@@ -32,8 +32,10 @@ items:
   title: Model Catala's French income tax in krrood and score it
   branch: krrood-catala-income-tax
   track: krrood-benchmarks
+  pull_request_number: 22
+  session: local session 6f4d9009-2717-491e-a2db-4e0a09589379
   depends_on: []
-  status: not started
+  status: in progress
   notes: 'impot_revenu of catala-examples 9e251b932288 (8,900 lines): wages, BIC, BNC, the
     number of parts, past deficits and prorata; score the share of its 27 test scopes reproduced.
 

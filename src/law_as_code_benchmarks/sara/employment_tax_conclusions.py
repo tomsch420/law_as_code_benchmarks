@@ -8,7 +8,7 @@ from __future__ import annotations
 import datetime
 from abc import ABC
 from dataclasses import dataclass, field
-from decimal import ROUND_HALF_UP, Decimal
+from fractions import Fraction
 
 from krrood.symbol_graph.symbol_graph import Symbol
 
@@ -24,6 +24,7 @@ from law_as_code_benchmarks.sara.domain import (
 )
 from law_as_code_benchmarks.sara.prolog_term import Term
 from law_as_code_benchmarks.sara.provision import SaraConclusion
+from law_as_code_benchmarks.law.rounding import Rounding
 
 # %% employment and wages
 
@@ -544,7 +545,9 @@ class TotalWages(SaraConclusion):
 
     def share_in_whole_dollars(self, rate: float) -> int:
         """:return: *rate* of the total, rounded to whole dollars, halves away from zero as Prolog's ``round``."""
-        return int(Decimal(str(rate * self.amount)).quantize(Decimal(1), ROUND_HALF_UP))
+        return int(
+            Rounding.round_half_away_from_zero(Fraction(str(rate * self.amount)))
+        )
 
 
 @dataclass(eq=False)

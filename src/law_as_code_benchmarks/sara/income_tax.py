@@ -7,8 +7,8 @@ from __future__ import annotations
 
 from abc import ABC, abstractmethod
 from dataclasses import dataclass, field
-from decimal import ROUND_HALF_UP, Decimal
 from enum import Enum, StrEnum
+from fractions import Fraction
 from numbers import Real
 
 from krrood.entity_query_language.factories import (
@@ -60,6 +60,7 @@ from law_as_code_benchmarks.sara.provision import (
 )
 from law_as_code_benchmarks.sara.taxable_income import TaxableIncomeTest
 from law_as_code_benchmarks.sara.taxable_income_conclusions import TaxableIncome
+from law_as_code_benchmarks.law.rounding import Rounding
 
 # %% rate schedules
 
@@ -121,7 +122,7 @@ class RateBracket:
     def tax_on(self, taxable_income: float) -> int:
         """:return: The base plus the rate on *taxable_income* over the lower bound, rounded halves away from zero as Prolog's ``round``."""
         tax = self.base + (taxable_income - (self.lower or 0)) * self.rate
-        return int(Decimal(tax).quantize(Decimal(1), ROUND_HALF_UP))
+        return int(Rounding.round_half_away_from_zero(Fraction(tax)))
 
 
 class TaxBracket(Enum):

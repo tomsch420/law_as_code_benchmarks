@@ -6,7 +6,6 @@ deficits, oldest first, and the distribution of an amount in proportion, rounded
 
 from __future__ import annotations
 
-import math
 from dataclasses import dataclass, field
 from enum import StrEnum
 from fractions import Fraction
@@ -25,6 +24,7 @@ from law_as_code_benchmarks.catala.scope_test import (
     CatalaRecord,
     ScopeCase,
 )
+from law_as_code_benchmarks.law.rounding import Rounding
 
 # %% past deficits
 
@@ -252,7 +252,7 @@ class ProportionalDistribution:
                 if total == Money.zero
                 else Fraction(self.amount.cents, 100) * (base / total)
             )
-            whole = math.floor(abs(exact) + Fraction(1, 2)) * (1 if exact >= 0 else -1)
+            whole = int(Rounding.round_half_away_from_zero(exact))
             direction = (
                 RoundingDirection.NONE
                 if whole == exact

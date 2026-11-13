@@ -7,7 +7,6 @@ and what the family benefits model computes for them.
 from __future__ import annotations
 
 import datetime
-import urllib.request
 from dataclasses import dataclass, field
 from enum import StrEnum
 from fractions import Fraction
@@ -36,11 +35,11 @@ from law_as_code_benchmarks.catala.supplements import (
 )
 from law_as_code_benchmarks.openfisca.arithmetic import ArithmeticReader
 from law_as_code_benchmarks.openfisca.exceptions import (
-    MissingOpenFiscaTests,
     UnexpectedOpenFiscaVariable,
 )
 from law_as_code_benchmarks.openfisca.situation import Situation
 from law_as_code_benchmarks.law.provision import ConclusionType
+from law_as_code_benchmarks.law.fetched_test_file import FetchedTestFile
 from law_as_code_benchmarks.law.scoring import ReproducibleTest
 
 # %% test files
@@ -53,7 +52,7 @@ class OpenFiscaDirectory(PathEnumeration):
     """The directory holding the fetched test files."""
 
 
-class OpenFiscaTestFile(StrEnum):
+class OpenFiscaTestFile(FetchedTestFile, StrEnum):
     """
     OpenFisca France's test files of family allowances, ``tests/formulas/af*.yaml``,
     each named as OpenFisca names it.
@@ -79,13 +78,20 @@ class OpenFiscaTestFile(StrEnum):
         """The commit of OpenFisca France the files are fetched at."""
         return "be579829102c0d9e2e1e9749542f6092faf1fff0"
 
-    @property
-    def url(self) -> str:
-        """Where the file is downloaded from."""
-        return (
-            "https://raw.githubusercontent.com/openfisca/openfisca-france/"
-            f"{self.revision}/tests/formulas/{self.value}"
-        )
+    @classproperty
+    def repository(cls) -> str:
+        """OpenFisca France."""
+        return "openfisca/openfisca-france"
+
+    @classproperty
+    def directory_in_repository(cls) -> str:
+        """The tests of formulas."""
+        return "tests/formulas"
+
+    @classproperty
+    def fetch_script(cls) -> str:
+        """The script fetching OpenFisca France's tests."""
+        return "scripts/fetch_openfisca_tests.py"
 
     @property
     def path(self) -> Path:
@@ -97,19 +103,12 @@ class OpenFiscaTestFile(StrEnum):
         """Whether every value the file expects was computed by OpenFisca itself."""
         return self == OpenFiscaTestFile.APRIL_2020
 
-    def fetch(self) -> None:
-        """Downloads the file to :attr:`path`."""
-        self.path.parent.mkdir(parents=True, exist_ok=True)
-        with urllib.request.urlopen(self.url) as response:
-            self.path.write_bytes(response.read())
-
     def read_tests(self) -> list[OpenFiscaTest]:
         """
         :return: The file's tests, in order.
-        :raises MissingOpenFiscaTests: Where the file has not been fetched.
+        :raises UnfetchedTestFile: Where the file has not been fetched.
         """
-        if not self.path.exists():
-            raise MissingOpenFiscaTests(file_name=self.value)
+        self.ensure_fetched()
         return self.tests_in(self.path.read_text())
 
     def tests_in(self, text: str) -> list[OpenFiscaTest]:

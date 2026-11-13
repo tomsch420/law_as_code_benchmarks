@@ -13,8 +13,8 @@ import datetime
 import inspect
 from abc import ABC, abstractmethod
 from dataclasses import dataclass, field
-from decimal import ROUND_HALF_UP, Decimal
 from enum import StrEnum
+from fractions import Fraction
 
 from krrood.entity_query_language.core.base_expressions import SymbolicExpression
 from krrood.entity_query_language.factories import an, entity, variable
@@ -32,6 +32,7 @@ from law_as_code_benchmarks.sara.prolog_term import (
     PrologVariable,
     Term,
 )
+from law_as_code_benchmarks.law.rounding import Rounding
 
 if TYPE_CHECKING:
     from krrood.entity_query_language.core.variable import Variable
@@ -734,7 +735,7 @@ class Provision(law_provision.Provision[ConclusionType], ABC):
     def share_in_whole_dollars(amount: float, percentage: float) -> int:
         """:return: *percentage* percent of *amount*, rounded to whole dollars, halves away from zero as Prolog's ``round``."""
         return int(
-            Decimal(str(amount * percentage / 100)).quantize(Decimal(1), ROUND_HALF_UP)
+            Rounding.round_half_away_from_zero(Fraction(str(amount * percentage / 100)))
         )
 
     @classmethod

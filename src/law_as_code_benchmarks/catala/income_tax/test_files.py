@@ -5,14 +5,12 @@ fetched from catala-examples at a fixed revision rather than kept in the reposit
 
 from __future__ import annotations
 
-import urllib.request
 from enum import StrEnum
 from pathlib import Path
 
 from krrood.ormatic.utils import classproperty
 from krrood.patterns.path_enumeration import PathEnumeration
 
-from law_as_code_benchmarks.catala.income_tax.exceptions import MissingIncomeTaxTests
 from law_as_code_benchmarks.catala.income_tax.commercial import (
     CommercialHouseholdCase,
 )
@@ -29,6 +27,7 @@ from law_as_code_benchmarks.catala.income_tax.wages import (
     HouseholdWagesCase,
 )
 from law_as_code_benchmarks.catala.scope_test import ScopeCase, ScopeTest, ScopeTestFile
+from law_as_code_benchmarks.law.fetched_test_file import FetchedTestFile
 
 
 class IncomeTaxDirectory(PathEnumeration):
@@ -42,7 +41,7 @@ class IncomeTaxDirectory(PathEnumeration):
     """
 
 
-class IncomeTaxTestFile(ScopeTestFile, StrEnum):
+class IncomeTaxTestFile(ScopeTestFile, FetchedTestFile, StrEnum):
     """
     The test files of ``impot_revenu/tests``, each named as catala-examples names it.
     """
@@ -84,15 +83,26 @@ class IncomeTaxTestFile(ScopeTestFile, StrEnum):
         """
         return "9e251b932288cf5f4a74af072d203144a057494b"
 
-    @property
-    def url(self) -> str:
+    @classproperty
+    def repository(cls) -> str:
         """
-        Where the file is fetched from.
+        catala-examples.
         """
-        return (
-            "https://raw.githubusercontent.com/CatalaLang/catala-examples/"
-            f"{self.revision}/impot_revenu/tests/{self.value}"
-        )
+        return "CatalaLang/catala-examples"
+
+    @classproperty
+    def directory_in_repository(cls) -> str:
+        """
+        The tests of ``impot_revenu``.
+        """
+        return "impot_revenu/tests"
+
+    @classproperty
+    def fetch_script(cls) -> str:
+        """
+        The script fetching the income tax tests.
+        """
+        return "scripts/fetch_catala_income_tax_tests.py"
 
     @property
     def directory(self) -> Path:
@@ -116,20 +126,11 @@ class IncomeTaxTestFile(ScopeTestFile, StrEnum):
             CommercialHouseholdCase,
         ]
 
-    def fetch(self) -> None:
-        """
-        Downloads the file to :attr:`path`.
-        """
-        self.path.parent.mkdir(parents=True, exist_ok=True)
-        with urllib.request.urlopen(self.url) as response:
-            self.path.write_bytes(response.read())
-
     def read_tests(self) -> list[ScopeTest]:
         """
         Extends :meth:`ScopeTestFile.read_tests`.
 
-        :raises MissingIncomeTaxTests: Where the file has not been fetched.
+        :raises UnfetchedTestFile: Where the file has not been fetched.
         """
-        if not self.path.exists():
-            raise MissingIncomeTaxTests(file_name=self.value)
+        self.ensure_fetched()
         return super().read_tests()

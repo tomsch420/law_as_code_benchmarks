@@ -68,6 +68,7 @@ from law_as_code_benchmarks.catala.scope_test import (
     ScopeProvision,
     ScopeTestFile,
 )
+from law_as_code_benchmarks.law.rounding import Rounding
 
 # %% the minimum rent equivalence
 
@@ -820,9 +821,7 @@ class CoverageRounding:
     @symbolic_function
     def rounded(coverage: Fraction, maximum: Fraction) -> Fraction:
         """:return: *coverage* rounded down to the hundredth, as Catala rounds it, *maximum* at most."""
-        shifted = (coverage - Fraction(5, 1000)) * 100
-        whole = (abs(shifted) + Fraction(1, 2)).__floor__()
-        rounded = Fraction(whole if shifted >= 0 else -whole, 100)
+        rounded = Rounding.round_half_away_from_zero(coverage - Fraction(5, 1000), 2)
         return min(rounded, maximum)
 
 

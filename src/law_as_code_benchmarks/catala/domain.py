@@ -58,6 +58,14 @@ class DatedValue:
         """:return: Whether *value* is in force on *day*."""
         return value.period.contains(day)
 
+    @staticmethod
+    def value_in_force(values: type[Enum], day: datetime.date) -> DatedValue | None:
+        """:return: The value of the member of *values* in force on *day*; None where none is."""
+        in_force = [
+            member.value for member in values if member.value.period.contains(day)
+        ]
+        return in_force[0] if in_force else None
+
 
 # %% places
 

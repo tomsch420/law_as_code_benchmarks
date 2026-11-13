@@ -312,6 +312,23 @@ def test_a_list_mapped_to_calls_gives_one_unasserted_case_per_element() -> None:
     ]
 
 
+def test_a_result_the_command_line_prints_is_asserted_where_the_test_asserts_nothing() -> (
+    None
+):
+    """
+    The result a ``catala-test-cli`` block prints for a test variable standing for a
+    subscope's output is asserted, Catala's own tests checking it.
+    """
+    program = read_french_program("stated_result.catala_fr")
+    (scope,) = program.test_scopes
+    test = ScopeTest.from_scope("stated_result.catala_fr", scope, program, [HiringCase])
+    (assertion,) = test.assertions
+    assert (assertion.variable, assertion.expected) == (
+        HiringGrantOutput.ELIGIBILITY,
+        False,
+    )
+
+
 def test_an_enumeration_output_matches_a_qualified_constructor_of_its_name() -> None:
     """
     An output valued as an enumeration's member matches the constructor of that name

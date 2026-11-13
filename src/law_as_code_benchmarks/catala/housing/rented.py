@@ -11,7 +11,7 @@ import datetime
 import math
 from abc import ABC
 from dataclasses import dataclass, field
-from enum import Enum, StrEnum
+from enum import StrEnum
 from fractions import Fraction
 from functools import cached_property
 from pathlib import Path
@@ -306,38 +306,32 @@ class RentedAidCase(ScopeCase):
         """The first day Catala's example computes the aid for, October 1, 2020."""
         return datetime.date(2020, 10, 1)
 
-    def value_in_force(self, values: type[Enum]) -> DatedValue | None:
-        """:return: The member value of *values* in force on the assessment date; None where none is."""
-        value = variable(DatedValue, domain=[member.value for member in values])
-        in_force = an(
-            entity(value).where(DatedValue.is_in_force(value, self.assessment_date))
-        ).tolist()
-        return in_force[0] if in_force else None
-
     @cached_property
     def scale(self) -> RentedHomeScale | None:
         """The amounts of articles 7 to 16 in force."""
-        return self.value_in_force(RentedHomeScales)
+        return DatedValue.value_in_force(RentedHomeScales, self.assessment_date)
 
     @cached_property
     def abatements(self) -> IncomeAbatements | None:
         """The abatements of article 15 in force."""
-        return self.value_in_force(IncomeAbatementScales)
+        return DatedValue.value_in_force(IncomeAbatementScales, self.assessment_date)
 
     @cached_property
     def overseas_scale(self) -> OverseasScale | None:
         """The amounts of article 46 in force."""
-        return self.value_in_force(OverseasScales)
+        return DatedValue.value_in_force(OverseasScales, self.assessment_date)
 
     @cached_property
     def saint_pierre_abatements(self) -> IncomeAbatements | None:
         """The abatements of article 47 for Saint-Pierre-et-Miquelon in force."""
-        return self.value_in_force(SaintPierreAbatementScales)
+        return DatedValue.value_in_force(
+            SaintPierreAbatementScales, self.assessment_date
+        )
 
     @cached_property
     def mayotte_abatements(self) -> IncomeAbatements | None:
         """The abatements of article 47 for Mayotte in force."""
-        return self.value_in_force(MayotteAbatementScales)
+        return DatedValue.value_in_force(MayotteAbatementScales, self.assessment_date)
 
     def treated_aid(self, aid: Money) -> Money | None:
         """:return: *aid* treated as ``traitement_aide_finale`` treats it; None where no rule does."""
@@ -1042,7 +1036,7 @@ class SuppressionCeilingProvision(RentedAidProvision):
 
 
 @dataclass
-class SocialContributionProvision(RentedAidProvision):
+class SocialContributionProvision(ScopeProvision):
     """
     Article 19 of the ordinance of 1996: the contribution to the repayment of the social
     debt is 0.5 % of the aid from 2020; LO6414-1 exempts Saint-Pierre-et-Miquelon.
@@ -1054,7 +1048,7 @@ class SocialContributionProvision(RentedAidProvision):
         return Fraction(5, 1000)
 
     def query(self) -> Query:
-        case = variable(RentedAidCase, domain=[self.case])
+        case = variable(ScopeCase, domain=[self.case])
         contribution = deduced_variable(SocialContribution)
         query = an(
             entity(contribution).where(
@@ -1097,8 +1091,8 @@ class Contribution:
 class AidTreatment(AssessedCase):
     """An aid treated as ``traitement_aide_finale`` treats it for a case."""
 
-    case: RentedAidCase
-    """The case."""
+    case: ScopeCase
+    """The case, whose scope's treatment it is."""
 
     aid: Money
     """The aid treated."""
@@ -1161,13 +1155,20 @@ class TreatmentProvision(Provision, ABC):
     def assessed_case(self) -> AssessedCase:
         return self.treatment
 
-    def previous(self, provision: type[TreatmentProvision]) -> TreatedAid:
-        """:return: A variable over the aid the step *provision* concludes."""
-        return variable(
-            TreatedAid, domain=provision(treatment=self.treatment).conclusions
-        )
+    @classproperty
+    def previous_step(cls) -> type[TreatmentProvision] | None:
+        """The step before this one; None for the first, which treats the aid itself."""
+        return None
 
-    def case_conclusion(self, provision: type[RentedAidProvision]) -> CaseConclusion:
+    def previous_amount(self, treatment: AidTreatment) -> Money:
+        """:return: The aid after the previous step, over a variable of *treatment*."""
+        if self.previous_step is None:
+            return treatment.aid
+        return variable(
+            TreatedAid, domain=self.previous_step(treatment=self.treatment).conclusions
+        ).amount
+
+    def case_conclusion(self, provision: type[ScopeProvision]) -> CaseConclusion:
         """:return: A variable over the one conclusion *provision* draws about the case."""
         return variable(
             CaseConclusion, domain=provision(case=self.treatment.case).conclusions
@@ -1225,22 +1226,25 @@ class FlatReducedAidProvision(TreatmentProvision):
     """D823-16 and article 11: the aid less 5 €, none below zero."""
 
     @classproperty
+    def previous_step(cls) -> type[TreatmentProvision]:
+        """:class:`DegressiveAidProvision`."""
+        return DegressiveAidProvision
+
+    @classproperty
     def flat_reduction(cls) -> Money:
         """Article 11: 5 €."""
         return Money.from_euros(5)
 
     def query(self) -> Query:
         treatment = variable(AidTreatment, domain=[self.treatment])
-        previous = self.previous(DegressiveAidProvision)
+        previous = self.previous_amount(treatment)
         aid = deduced_variable(FlatReducedAid)
-        query = an(
-            entity(aid).where(previous.amount - self.flat_reduction >= Money.zero)
-        )
+        query = an(entity(aid).where(previous - self.flat_reduction >= Money.zero))
         with query:
             add(
                 aid,
                 inference(FlatReducedAid)(
-                    treatment=treatment, amount=previous.amount - self.flat_reduction
+                    treatment=treatment, amount=previous - self.flat_reduction
                 ),
             )
             with alternative():
@@ -1255,14 +1259,17 @@ class FlatReducedAidProvision(TreatmentProvision):
 class ContributionRoundedAidProvision(TreatmentProvision):
     """D823-16: the aid net of its contribution, rounded down to the euro, and the contribution added back."""
 
+    @classproperty
+    def previous_step(cls) -> type[TreatmentProvision]:
+        """:class:`FlatReducedAidProvision`."""
+        return FlatReducedAidProvision
+
     def query(self) -> Query:
         treatment = variable(AidTreatment, domain=[self.treatment])
-        previous = self.previous(FlatReducedAidProvision)
+        previous = self.previous_amount(treatment)
         social = self.case_conclusion(SocialContributionProvision)
-        contribution = Contribution.amount(previous.amount, social)
-        net = MoneyRounding.rounded_to_units(
-            previous.amount - contribution - Money(cents=50)
-        )
+        contribution = Contribution.amount(previous, social)
+        net = MoneyRounding.rounded_to_units(previous - contribution - Money(cents=50))
         aid = deduced_variable(ContributionRoundedAid)
         query = an(entity(aid).where(net + contribution >= Money.zero))
         with query:
@@ -1287,14 +1294,19 @@ class SolidarityReducedAidProvision(TreatmentProvision):
     """L832-3 and D823-16: the aid less 98 % of the solidarity rent reduction, none below zero."""
 
     @classproperty
+    def previous_step(cls) -> type[TreatmentProvision]:
+        """:class:`ContributionRoundedAidProvision`."""
+        return ContributionRoundedAidProvision
+
+    @classproperty
     def share_of_reduction(cls) -> Fraction:
         """D823-16: 98 %."""
         return Fraction(98, 100)
 
     def query(self) -> Query:
         treatment = variable(AidTreatment, domain=[self.treatment])
-        previous = self.previous(ContributionRoundedAidProvision)
-        reduced = previous.amount - (
+        previous = self.previous_amount(treatment)
+        reduced = previous - (
             treatment.case.solidarity_rent_reduction * self.share_of_reduction
         )
         aid = deduced_variable(SolidarityReducedAid)
@@ -1322,6 +1334,11 @@ class SaintPierrePhasedAidProvision(TreatmentProvision):
     """
 
     @classproperty
+    def previous_step(cls) -> type[TreatmentProvision]:
+        """:class:`SolidarityReducedAidProvision`."""
+        return SolidarityReducedAidProvision
+
+    @classproperty
     def first_day(cls) -> datetime.date:
         """January 1, 2022."""
         return datetime.date(2022, 1, 1)
@@ -1339,7 +1356,7 @@ class SaintPierrePhasedAidProvision(TreatmentProvision):
     def query(self) -> Query:
         treatment = variable(AidTreatment, domain=[self.treatment])
         case = treatment.case
-        previous = self.previous(SolidarityReducedAidProvision)
+        previous = self.previous_amount(treatment)
         year = self.treatment.case.assessment_date.year
         aid = deduced_variable(SaintPierrePhasedAid)
         query = an(
@@ -1354,14 +1371,14 @@ class SaintPierrePhasedAidProvision(TreatmentProvision):
                 aid,
                 inference(SaintPierrePhasedAid)(
                     treatment=treatment,
-                    amount=previous.amount * (1 - Fraction(self.full_year - year, 8)),
+                    amount=previous * (1 - Fraction(self.full_year - year, 8)),
                 ),
             )
             with alternative():
                 add(
                     aid,
                     inference(SaintPierrePhasedAid)(
-                        treatment=treatment, amount=previous.amount
+                        treatment=treatment, amount=previous
                     ),
                 )
         return query
@@ -1372,6 +1389,11 @@ class MinimumAidProvision(TreatmentProvision):
     """D823-16 and article 12: no aid below 10 € for the allowances; none for the personalised aid."""
 
     @classproperty
+    def previous_step(cls) -> type[TreatmentProvision]:
+        """:class:`SaintPierrePhasedAidProvision`."""
+        return SaintPierrePhasedAidProvision
+
+    @classproperty
     def least_allowance(cls) -> Money:
         """Article 12: 10 €."""
         return Money.from_euros(10)
@@ -1379,7 +1401,7 @@ class MinimumAidProvision(TreatmentProvision):
     def query(self) -> Query:
         treatment = variable(AidTreatment, domain=[self.treatment])
         case = treatment.case
-        previous = self.previous(SaintPierrePhasedAidProvision)
+        previous = self.previous_amount(treatment)
         aid = deduced_variable(MinimumCheckedAid)
         query = an(
             entity(aid).where(
@@ -1387,7 +1409,7 @@ class MinimumAidProvision(TreatmentProvision):
                     case.aid_type == AidType.FAMILY_ALLOWANCE,
                     case.aid_type == AidType.SOCIAL_ALLOWANCE,
                 ),
-                previous.amount < self.least_allowance,
+                previous < self.least_allowance,
             )
         )
         with query:
@@ -1398,9 +1420,7 @@ class MinimumAidProvision(TreatmentProvision):
             with alternative():
                 add(
                     aid,
-                    inference(MinimumCheckedAid)(
-                        treatment=treatment, amount=previous.amount
-                    ),
+                    inference(MinimumCheckedAid)(treatment=treatment, amount=previous),
                 )
         return query
 

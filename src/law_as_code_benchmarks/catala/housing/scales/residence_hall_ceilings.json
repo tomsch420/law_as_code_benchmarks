@@ -1,0 +1,254 @@
+[
+ {
+  "assessed_from": "2025-10-01",
+  "assessed_before": null,
+  "zones": {
+   "Zone1": {
+    "single": 49881,
+    "couple": 58476,
+    "by_dependants": [
+     62352,
+     66729,
+     71121,
+     76712
+    ],
+    "beyond_listed": 76712,
+    "each_further_dependant": 7957
+   },
+   "Zone2": {
+    "single": 45615,
+    "couple": 53235,
+    "by_dependants": [
+     56763,
+     60761,
+     64744,
+     68989
+    ],
+    "beyond_listed": 68989,
+    "each_further_dependant": 7191
+   },
+   "Zone3": {
+    "single": 43298,
+    "couple": 50357,
+    "by_dependants": [
+     53426,
+     56952,
+     60476,
+     64441
+    ],
+    "beyond_listed": 64441,
+    "each_further_dependant": 6674
+   }
+  }
+ },
+ {
+  "assessed_from": "2023-10-01",
+  "assessed_before": "2024-10-01",
+  "zones": {
+   "Zone1": {
+    "single": 47809,
+    "couple": 56047,
+    "by_dependants": [
+     59762,
+     63957,
+     68167,
+     73525
+    ],
+    "beyond_listed": 73525,
+    "each_further_dependant": 7626
+   },
+   "Zone2": {
+    "single": 43720,
+    "couple": 51024,
+    "by_dependants": [
+     54405,
+     58237,
+     62055,
+     66123
+    ],
+    "beyond_listed": 66123,
+    "each_further_dependant": 6892
+   },
+   "Zone3": {
+    "single": 41499,
+    "couple": 48266,
+    "by_dependants": [
+     51207,
+     54586,
+     57964,
+     61764
+    ],
+    "beyond_listed": 61764,
+    "each_further_dependant": 6396
+   }
+  }
+ },
+ {
+  "assessed_from": "2022-07-01",
+  "assessed_before": "2023-10-01",
+  "zones": {
+   "Zone1": {
+    "single": 46192,
+    "couple": 54152,
+    "by_dependants": [
+     57741,
+     61794,
+     65862,
+     71039
+    ],
+    "beyond_listed": 71039,
+    "each_further_dependant": 7368
+   },
+   "Zone2": {
+    "single": 42242,
+    "couple": 49299,
+    "by_dependants": [
+     52565,
+     56268,
+     59957,
+     63887
+    ],
+    "beyond_listed": 63887,
+    "each_further_dependant": 6659
+   },
+   "Zone3": {
+    "single": 40096,
+    "couple": 46634,
+    "by_dependants": [
+     49475,
+     52740,
+     56004,
+     59675
+    ],
+    "beyond_listed": 59675,
+    "each_further_dependant": 6180
+   }
+  }
+ },
+ {
+  "assessed_from": "2021-10-01",
+  "assessed_before": "2022-07-01",
+  "zones": {
+   "Zone1": {
+    "single": 44630,
+    "couple": 52321,
+    "by_dependants": [
+     55788,
+     59704,
+     63635,
+     68637
+    ],
+    "beyond_listed": 68637,
+    "each_further_dependant": 7119
+   },
+   "Zone2": {
+    "single": 40814,
+    "couple": 47632,
+    "by_dependants": [
+     50787,
+     54365,
+     57929,
+     61727
+    ],
+    "beyond_listed": 61727,
+    "each_further_dependant": 6434
+   },
+   "Zone3": {
+    "single": 38740,
+    "couple": 45057,
+    "by_dependants": [
+     47802,
+     50957,
+     54110,
+     57657
+    ],
+    "beyond_listed": 57657,
+    "each_further_dependant": 5971
+   }
+  }
+ },
+ {
+  "assessed_from": "2020-10-01",
+  "assessed_before": "2021-10-01",
+  "zones": {
+   "Zone1": {
+    "single": 44443,
+    "couple": 52101,
+    "by_dependants": [
+     55555,
+     59454,
+     63369,
+     68350
+    ],
+    "beyond_listed": 68350,
+    "each_further_dependant": 7089
+   },
+   "Zone2": {
+    "single": 40643,
+    "couple": 47433,
+    "by_dependants": [
+     50575,
+     54138,
+     57687,
+     61469
+    ],
+    "beyond_listed": 61469,
+    "each_further_dependant": 6407
+   },
+   "Zone3": {
+    "single": 38578,
+    "couple": 44869,
+    "by_dependants": [
+     47602,
+     50744,
+     53884,
+     57416
+    ],
+    "beyond_listed": 57416,
+    "each_further_dependant": 5946
+   }
+  }
+ },
+ {
+  "assessed_from": "2024-10-01",
+  "assessed_before": "2025-10-01",
+  "zones": {
+   "Zone1": {
+    "single": 49368,
+    "couple": 57874,
+    "by_dependants": [
+     61710,
+     66042,
+     70389,
+     75922
+    ],
+    "beyond_listed": 75922,
+    "each_further_dependant": 7875
+   },
+   "Zone2": {
+    "single": 45145,
+    "couple": 52687,
+    "by_dependants": [
+     56179,
+     60136,
+     64078,
+     68279
+    ],
+    "beyond_listed": 68279,
+    "each_further_dependant": 7117
+   },
+   "Zone3": {
+    "single": 42852,
+    "couple": 49839,
+    "by_dependants": [
+     52876,
+     56355,
+     59854,
+     63778
+    ],
+    "beyond_listed": 63778,
+    "each_further_dependant": 6605
+   }
+  }
+ }
+]

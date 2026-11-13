@@ -57,7 +57,12 @@ limit of 21, or 22 overseas, that article R823-4 of the Code de la construction 
 scales for rented homes, from the arrêté of September 27, 2019, are kept for each version
 from October 2020, as Catala's example archives them. Three of their tests assert nothing
 but that the aid is computed for every quarter from October 2023 to July 2027; they pass
-when every output has a value on each of those days. The fibre connection grant
+when every output has a value on each of those days. The tables by household of homes
+bought and residence halls (articles 17, 18, 27, 33 and 43) are read from data files in
+`src/law_as_code_benchmarks/catala/housing/scales/`, which a script took off Catala's
+example, checking each row against the literals of its definition. The calculator's two
+tests assert nothing in their code; the results their `catala-test-cli` blocks print,
+which Catala's own tests check, are asserted instead. The fibre connection grant
 also keeps `asp/aide_fibre/ocaml/Eligibilite_commune.ml`. That file lists the postal codes
 of the communes in the decree's annex, which Catala declares as an external function.
 
@@ -89,7 +94,7 @@ python scripts/score_catala.py
 | `asp/bcae7` | crop rotation standard of the 2025 conditionality (BCAE 7), annual and multi-year criteria | 5 | 5 |
 | `asp/aide_fibre` | grant for private works connecting to optical fibre, décret n° 2025-674 | 1 | 1 |
 | `asp/fonpeps` | FONPEPS hiring grant in the performing arts, décret n° 2019-1011 | 1 | 1 |
-| `aides_logement` | French personal housing aids: eligibility and rented homes | 19 | 19 |
+| `aides_logement` | French personal housing aids: eligibility, rented homes, homes bought, residence halls and the calculator | 33 | 33 |
 
 On one local run, answering a test scope in krrood took 7.6 ms at the median and 1,677 ms
 at most. The maximum is the first test scope, which pays krrood's warm-up. Catala's own

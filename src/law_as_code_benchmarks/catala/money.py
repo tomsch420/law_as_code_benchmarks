@@ -62,6 +62,11 @@ class Money:
         rounded = math.floor(abs(exact) + Fraction(1, 2))
         return Money(cents=rounded if exact >= 0 else -rounded)
 
+    @classmethod
+    def from_exact_units(cls, units: Fraction) -> Money:
+        """:return: *units* of the currency rounded to the cent, halves away from zero, as Catala's ``argent de`` rounds a decimal."""
+        return cls(cents=1) * (units * 100)
+
     def rounded_to_units(self) -> Money:
         """:return: The amount rounded to whole units of its currency, halves away from zero, as Catala's ``arrondi`` rounds money."""
         units = math.floor(Fraction(abs(self.cents), 100) + Fraction(1, 2))

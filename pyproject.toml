@@ -28,6 +28,7 @@ where = ["src"]
 
 [tool.setuptools.package-data]
 "law_as_code_benchmarks.sara" = ["answer_case.pl"]
+"law_as_code_benchmarks.catala.housing" = ["scales/*.json"]
 
 [tool.pytest.ini_options]
 testpaths = ["tests"]

@@ -1,0 +1,1747 @@
+[
+ {
+  "exception": false,
+  "assessed_from": "2019-10-01",
+  "signed_from": "1992-06-30",
+  "signed_before": "1994-11-27",
+  "signed_until": null,
+  "building": "Neuf",
+  "loan_types": [
+   "D331_32"
+  ],
+  "francs": true,
+  "zones": {
+   "Zone1": {
+    "single": 208500,
+    "couple": 251500,
+    "by_dependants": [
+     294500
+    ],
+    "beyond_listed": 294500,
+    "each_further_dependant": 43000
+   },
+   "Zone2": {
+    "single": 186000,
+    "couple": 223900,
+    "by_dependants": [
+     261800
+    ],
+    "beyond_listed": 261800,
+    "each_further_dependant": 37900
+   },
+   "Zone3": {
+    "single": 173600,
+    "couple": 208200,
+    "by_dependants": [
+     242800
+    ],
+    "beyond_listed": 242800,
+    "each_further_dependant": 35600
+   }
+  }
+ },
+ {
+  "exception": false,
+  "assessed_from": "2019-10-01",
+  "signed_from": "1992-06-30",
+  "signed_before": "1994-11-27",
+  "signed_until": null,
+  "building": "Ancien",
+  "loan_types": [
+   "D331_32"
+  ],
+  "francs": true,
+  "zones": {
+   "Zone1": {
+    "single": 167800,
+    "couple": 202500,
+    "by_dependants": [
+     237200
+    ],
+    "beyond_listed": 237200,
+    "each_further_dependant": 34700
+   },
+   "Zone2": {
+    "single": 149600,
+    "couple": 180100,
+    "by_dependants": [
+     210600
+    ],
+    "beyond_listed": 210600,
+    "each_further_dependant": 30500
+   },
+   "Zone3": {
+    "single": 139700,
+    "couple": 167600,
+    "by_dependants": [
+     195500
+    ],
+    "beyond_listed": 195500,
+    "each_further_dependant": 27900
+   }
+  }
+ },
+ {
+  "exception": false,
+  "assessed_from": "2019-10-01",
+  "signed_from": "1994-11-27",
+  "signed_before": null,
+  "signed_until": null,
+  "building": "Neuf",
+  "loan_types": [
+   "D331_32"
+  ],
+  "francs": true,
+  "zones": {
+   "Zone1": {
+    "single": 184000,
+    "couple": 220000,
+    "by_dependants": [
+     260000
+    ],
+    "beyond_listed": 260000,
+    "each_further_dependant": 38000
+   },
+   "Zone2": {
+    "single": 164200,
+    "couple": 197700,
+    "by_dependants": [
+     231200
+    ],
+    "beyond_listed": 231200,
+    "each_further_dependant": 33500
+   },
+   "Zone3": {
+    "single": 153200,
+    "couple": 183700,
+    "by_dependants": [
+     214200
+    ],
+    "beyond_listed": 214200,
+    "each_further_dependant": 30500
+   }
+  }
+ },
+ {
+  "exception": false,
+  "assessed_from": "2019-10-01",
+  "signed_from": "1994-11-27",
+  "signed_before": null,
+  "signed_until": null,
+  "building": "Ancien",
+  "loan_types": [
+   "D331_32"
+  ],
+  "francs": true,
+  "zones": {
+   "Zone1": {
+    "single": 148100,
+    "couple": 178700,
+    "by_dependants": [
+     209300
+    ],
+    "beyond_listed": 209300,
+    "each_further_dependant": 30600
+   },
+   "Zone2": {
+    "single": 132000,
+    "couple": 158900,
+    "by_dependants": [
+     185800
+    ],
+    "beyond_listed": 185800,
+    "each_further_dependant": 26900
+   },
+   "Zone3": {
+    "single": 123300,
+    "couple": 147900,
+    "by_dependants": [
+     172500
+    ],
+    "beyond_listed": 172500,
+    "each_further_dependant": 24600
+   }
+  }
+ },
+ {
+  "exception": false,
+  "assessed_from": "2023-01-01",
+  "signed_from": "1992-06-30",
+  "signed_before": null,
+  "signed_until": "1994-11-27",
+  "building": "AncienAmélioré",
+  "loan_types": [
+   "D331_63_64"
+  ],
+  "francs": true,
+  "zones": {
+   "all": {
+    "single": 86900,
+    "couple": 97100,
+    "by_dependants": [
+     107300
+    ],
+    "beyond_listed": 107300,
+    "each_further_dependant": 10200
+   }
+  }
+ },
+ {
+  "exception": false,
+  "assessed_from": "2020-10-01",
+  "signed_from": "1992-06-30",
+  "signed_before": "1994-11-27",
+  "signed_until": null,
+  "building": "Neuf",
+  "loan_types": [
+   "D331_63_64"
+  ],
+  "francs": true,
+  "zones": {
+   "Zone1": {
+    "single": 208500,
+    "couple": 251500,
+    "by_dependants": [
+     294500
+    ],
+    "beyond_listed": 294500,
+    "each_further_dependant": 43000
+   },
+   "Zone2": {
+    "single": 186000,
+    "couple": 223900,
+    "by_dependants": [
+     261800
+    ],
+    "beyond_listed": 261800,
+    "each_further_dependant": 37900
+   },
+   "Zone3": {
+    "single": 173600,
+    "couple": 208200,
+    "by_dependants": [
+     242800
+    ],
+    "beyond_listed": 242800,
+    "each_further_dependant": 34600
+   }
+  }
+ },
+ {
+  "exception": false,
+  "assessed_from": "2020-10-01",
+  "signed_from": "1992-06-30",
+  "signed_before": "1994-11-27",
+  "signed_until": null,
+  "building": "Ancien",
+  "loan_types": [
+   "D331_63_64"
+  ],
+  "francs": true,
+  "zones": {
+   "Zone1": {
+    "single": 167800,
+    "couple": 202500,
+    "by_dependants": [
+     237200
+    ],
+    "beyond_listed": 237200,
+    "each_further_dependant": 34700
+   },
+   "Zone2": {
+    "single": 149600,
+    "couple": 180100,
+    "by_dependants": [
+     210600
+    ],
+    "beyond_listed": 210600,
+    "each_further_dependant": 30500
+   },
+   "Zone3": {
+    "single": 139700,
+    "couple": 167600,
+    "by_dependants": [
+     195500
+    ],
+    "beyond_listed": 195500,
+    "each_further_dependant": 27900
+   }
+  }
+ },
+ {
+  "exception": false,
+  "assessed_from": "2020-10-01",
+  "signed_from": "1994-11-27",
+  "signed_before": "2000-06-30",
+  "signed_until": null,
+  "building": "Neuf",
+  "loan_types": [
+   "D331_63_64"
+  ],
+  "francs": true,
+  "zones": {
+   "Zone1": {
+    "single": 198100,
+    "couple": 239000,
+    "by_dependants": [
+     279900
+    ],
+    "beyond_listed": 279900,
+    "each_further_dependant": 40900
+   },
+   "Zone2": {
+    "single": 176800,
+    "couple": 212800,
+    "by_dependants": [
+     248800
+    ],
+    "beyond_listed": 248800,
+    "each_further_dependant": 36000
+   },
+   "Zone3": {
+    "single": 165000,
+    "couple": 197900,
+    "by_dependants": [
+     230800
+    ],
+    "beyond_listed": 230800,
+    "each_further_dependant": 32900
+   }
+  }
+ },
+ {
+  "exception": false,
+  "assessed_from": "2020-10-01",
+  "signed_from": "1994-11-27",
+  "signed_before": "2000-06-30",
+  "signed_until": null,
+  "building": "Ancien",
+  "loan_types": [
+   "D331_63_64"
+  ],
+  "francs": true,
+  "zones": {
+   "Zone1": {
+    "single": 159500,
+    "couple": 192500,
+    "by_dependants": [
+     225500
+    ],
+    "beyond_listed": 225500,
+    "each_further_dependant": 33000
+   },
+   "Zone2": {
+    "single": 142200,
+    "couple": 171200,
+    "by_dependants": [
+     200200
+    ],
+    "beyond_listed": 200200,
+    "each_further_dependant": 29000
+   },
+   "Zone3": {
+    "single": 132800,
+    "couple": 159300,
+    "by_dependants": [
+     185800
+    ],
+    "beyond_listed": 185800,
+    "each_further_dependant": 26500
+   }
+  }
+ },
+ {
+  "exception": false,
+  "assessed_from": "2020-10-01",
+  "signed_from": "2000-06-30",
+  "signed_before": null,
+  "signed_until": "2001-06-30",
+  "building": "Neuf",
+  "loan_types": [
+   "D331_63_64"
+  ],
+  "francs": true,
+  "zones": {
+   "Zone1": {
+    "single": 200100,
+    "couple": 141400,
+    "by_dependants": [
+     182700
+    ],
+    "beyond_listed": 182700,
+    "each_further_dependant": 41300
+   },
+   "Zone2": {
+    "single": 178600,
+    "couple": 215000,
+    "by_dependants": [
+     251400
+    ],
+    "beyond_listed": 251400,
+    "each_further_dependant": 36400
+   },
+   "Zone3": {
+    "single": 166700,
+    "couple": 199900,
+    "by_dependants": [
+     233100
+    ],
+    "beyond_listed": 233100,
+    "each_further_dependant": 33200
+   }
+  }
+ },
+ {
+  "exception": false,
+  "assessed_from": "2020-10-01",
+  "signed_from": "2000-06-30",
+  "signed_before": null,
+  "signed_until": "2001-06-30",
+  "building": "Ancien",
+  "loan_types": [
+   "D331_63_64"
+  ],
+  "francs": true,
+  "zones": {
+   "Zone1": {
+    "single": 161100,
+    "couple": 194400,
+    "by_dependants": [
+     227700
+    ],
+    "beyond_listed": 227700,
+    "each_further_dependant": 33300
+   },
+   "Zone2": {
+    "single": 143600,
+    "couple": 172900,
+    "by_dependants": [
+     202200
+    ],
+    "beyond_listed": 202200,
+    "each_further_dependant": 29300
+   },
+   "Zone3": {
+    "single": 134100,
+    "couple": 160900,
+    "by_dependants": [
+     187700
+    ],
+    "beyond_listed": 187700,
+    "each_further_dependant": 26800
+   }
+  }
+ },
+ {
+  "exception": false,
+  "assessed_from": "2020-10-01",
+  "signed_from": "2001-07-01",
+  "signed_before": "2001-12-31",
+  "signed_until": null,
+  "building": "Neuf",
+  "loan_types": [
+   "D331_63_64"
+  ],
+  "francs": true,
+  "zones": {
+   "Zone1": {
+    "single": 202500,
+    "couple": 244300,
+    "by_dependants": [
+     286100
+    ],
+    "beyond_listed": 286100,
+    "each_further_dependant": 41800
+   },
+   "Zone2": {
+    "single": 180700,
+    "couple": 217500,
+    "by_dependants": [
+     254300
+    ],
+    "beyond_listed": 254300,
+    "each_further_dependant": 36800
+   },
+   "Zone3": {
+    "single": 168700,
+    "couple": 202300,
+    "by_dependants": [
+     235900
+    ],
+    "beyond_listed": 235900,
+    "each_further_dependant": 33600
+   }
+  }
+ },
+ {
+  "exception": false,
+  "assessed_from": "2020-10-01",
+  "signed_from": "2002-01-01",
+  "signed_before": "2002-06-30",
+  "signed_until": null,
+  "building": "Neuf",
+  "loan_types": [
+   "D331_63_64"
+  ],
+  "francs": false,
+  "zones": {
+   "Zone1": {
+    "single": 30871,
+    "couple": 37243,
+    "by_dependants": [
+     43615
+    ],
+    "beyond_listed": 43615,
+    "each_further_dependant": 6372
+   },
+   "Zone2": {
+    "single": 27548,
+    "couple": 33148,
+    "by_dependants": [
+     38768
+    ],
+    "beyond_listed": 38768,
+    "each_further_dependant": 5610
+   },
+   "Zone3": {
+    "single": 25718,
+    "couple": 30840,
+    "by_dependants": [
+     35962
+    ],
+    "beyond_listed": 35962,
+    "each_further_dependant": 5122
+   }
+  }
+ },
+ {
+  "exception": false,
+  "assessed_from": "2020-10-01",
+  "signed_from": "2001-07-01",
+  "signed_before": "2001-12-31",
+  "signed_until": null,
+  "building": "Ancien",
+  "loan_types": [
+   "D331_63_64"
+  ],
+  "francs": true,
+  "zones": {
+   "Zone1": {
+    "single": 163000,
+    "couple": 196700,
+    "by_dependants": [
+     230400
+    ],
+    "beyond_listed": 230400,
+    "each_further_dependant": 33700
+   },
+   "Zone2": {
+    "single": 145300,
+    "couple": 175000,
+    "by_dependants": [
+     204700
+    ],
+    "beyond_listed": 204700,
+    "each_further_dependant": 29700
+   },
+   "Zone3": {
+    "single": 135700,
+    "couple": 162800,
+    "by_dependants": [
+     189900
+    ],
+    "beyond_listed": 189900,
+    "each_further_dependant": 27100
+   }
+  }
+ },
+ {
+  "exception": false,
+  "assessed_from": "2020-10-01",
+  "signed_from": "2002-01-01",
+  "signed_before": "2002-06-30",
+  "signed_until": null,
+  "building": "Ancien",
+  "loan_types": [
+   "D331_63_64"
+  ],
+  "francs": false,
+  "zones": {
+   "Zone1": {
+    "single": 24849,
+    "couple": 29987,
+    "by_dependants": [
+     35125
+    ],
+    "beyond_listed": 35125,
+    "each_further_dependant": 5138
+   },
+   "Zone2": {
+    "single": 22151,
+    "couple": 26679,
+    "by_dependants": [
+     31207
+    ],
+    "beyond_listed": 31207,
+    "each_further_dependant": 4528
+   },
+   "Zone3": {
+    "single": 20687,
+    "couple": 24818,
+    "by_dependants": [
+     28949
+    ],
+    "beyond_listed": 28949,
+    "each_further_dependant": 4131
+   }
+  }
+ },
+ {
+  "exception": false,
+  "assessed_from": "2020-10-01",
+  "signed_from": "2002-06-30",
+  "signed_before": "2003-06-30",
+  "signed_until": null,
+  "building": "Neuf",
+  "loan_types": [
+   "D331_63_64"
+  ],
+  "francs": false,
+  "zones": {
+   "Zone1": {
+    "single": 31241,
+    "couple": 37689,
+    "by_dependants": [
+     44137
+    ],
+    "beyond_listed": 44137,
+    "each_further_dependant": 6448
+   },
+   "Zone2": {
+    "single": 27879,
+    "couple": 33556,
+    "by_dependants": [
+     39233
+    ],
+    "beyond_listed": 39233,
+    "each_further_dependant": 5677
+   },
+   "Zone3": {
+    "single": 26027,
+    "couple": 31210,
+    "by_dependants": [
+     36393
+    ],
+    "beyond_listed": 36393,
+    "each_further_dependant": 5183
+   }
+  }
+ },
+ {
+  "exception": false,
+  "assessed_from": "2020-10-01",
+  "signed_from": "2002-06-30",
+  "signed_before": "2003-06-30",
+  "signed_until": null,
+  "building": "Ancien",
+  "loan_types": [
+   "D331_63_64"
+  ],
+  "francs": false,
+  "zones": {
+   "Zone1": {
+    "single": 25147,
+    "couple": 30347,
+    "by_dependants": [
+     35547
+    ],
+    "beyond_listed": 35547,
+    "each_further_dependant": 5200
+   },
+   "Zone2": {
+    "single": 22417,
+    "couple": 26999,
+    "by_dependants": [
+     31581
+    ],
+    "beyond_listed": 31581,
+    "each_further_dependant": 4582
+   },
+   "Zone3": {
+    "single": 20935,
+    "couple": 25116,
+    "by_dependants": [
+     29297
+    ],
+    "beyond_listed": 29297,
+    "each_further_dependant": 4181
+   }
+  }
+ },
+ {
+  "exception": false,
+  "assessed_from": "2020-10-01",
+  "signed_from": "2003-06-30",
+  "signed_before": "2005-08-31",
+  "signed_until": null,
+  "building": "Neuf",
+  "loan_types": [
+   "D331_63_64"
+  ],
+  "francs": false,
+  "zones": {
+   "Zone1": {
+    "single": 31616,
+    "couple": 38141,
+    "by_dependants": [
+     44666
+    ],
+    "beyond_listed": 44666,
+    "each_further_dependant": 6525
+   },
+   "Zone2": {
+    "single": 28214,
+    "couple": 33959,
+    "by_dependants": [
+     39704
+    ],
+    "beyond_listed": 39704,
+    "each_further_dependant": 5745
+   },
+   "Zone3": {
+    "single": 26339,
+    "couple": 31584,
+    "by_dependants": [
+     36829
+    ],
+    "beyond_listed": 36829,
+    "each_further_dependant": 5245
+   }
+  }
+ },
+ {
+  "exception": false,
+  "assessed_from": "2020-10-01",
+  "signed_from": "2003-06-30",
+  "signed_before": "2005-08-31",
+  "signed_until": null,
+  "building": "Ancien",
+  "loan_types": [
+   "D331_63_64"
+  ],
+  "francs": false,
+  "zones": {
+   "Zone1": {
+    "single": 25449,
+    "couple": 30711,
+    "by_dependants": [
+     35973
+    ],
+    "beyond_listed": 35973,
+    "each_further_dependant": 5262
+   },
+   "Zone2": {
+    "single": 22686,
+    "couple": 27323,
+    "by_dependants": [
+     31960
+    ],
+    "beyond_listed": 31960,
+    "each_further_dependant": 4637
+   },
+   "Zone3": {
+    "single": 21186,
+    "couple": 25417,
+    "by_dependants": [
+     29648
+    ],
+    "beyond_listed": 29648,
+    "each_further_dependant": 4231
+   }
+  }
+ },
+ {
+  "exception": false,
+  "assessed_from": "2020-10-01",
+  "signed_from": "2005-08-31",
+  "signed_before": "2006-12-31",
+  "signed_until": null,
+  "building": "Neuf",
+  "loan_types": [
+   "D331_63_64"
+  ],
+  "francs": false,
+  "zones": {
+   "Zone1": {
+    "single": 32185,
+    "couple": 38827,
+    "by_dependants": [
+     45469
+    ],
+    "beyond_listed": 45469,
+    "each_further_dependant": 6642
+   },
+   "Zone2": {
+    "single": 28722,
+    "couple": 34570,
+    "by_dependants": [
+     40418
+    ],
+    "beyond_listed": 40418,
+    "each_further_dependant": 5848
+   },
+   "Zone3": {
+    "single": 26813,
+    "couple": 32152,
+    "by_dependants": [
+     37491
+    ],
+    "beyond_listed": 37491,
+    "each_further_dependant": 5339
+   }
+  }
+ },
+ {
+  "exception": false,
+  "assessed_from": "2020-10-01",
+  "signed_from": "2005-08-31",
+  "signed_before": "2006-12-31",
+  "signed_until": null,
+  "building": "Ancien",
+  "loan_types": [
+   "D331_63_64"
+  ],
+  "francs": false,
+  "zones": {
+   "Zone1": {
+    "single": 25907,
+    "couple": 31264,
+    "by_dependants": [
+     36621
+    ],
+    "beyond_listed": 36621,
+    "each_further_dependant": 5357
+   },
+   "Zone2": {
+    "single": 23094,
+    "couple": 27814,
+    "by_dependants": [
+     32534
+    ],
+    "beyond_listed": 32534,
+    "each_further_dependant": 4720
+   },
+   "Zone3": {
+    "single": 21567,
+    "couple": 25874,
+    "by_dependants": [
+     30181
+    ],
+    "beyond_listed": 30181,
+    "each_further_dependant": 4307
+   }
+  }
+ },
+ {
+  "exception": false,
+  "assessed_from": "2020-10-01",
+  "signed_from": "2006-12-31",
+  "signed_before": "2007-12-31",
+  "signed_until": null,
+  "building": "Neuf",
+  "loan_types": [
+   "D331_63_64"
+  ],
+  "francs": false,
+  "zones": {
+   "Zone1": {
+    "single": 33086,
+    "couple": 39914,
+    "by_dependants": [
+     46742
+    ],
+    "beyond_listed": 46742,
+    "each_further_dependant": 6828
+   },
+   "Zone2": {
+    "single": 29526,
+    "couple": 35538,
+    "by_dependants": [
+     41550
+    ],
+    "beyond_listed": 41550,
+    "each_further_dependant": 6012
+   },
+   "Zone3": {
+    "single": 27564,
+    "couple": 33052,
+    "by_dependants": [
+     38541
+    ],
+    "beyond_listed": 38541,
+    "each_further_dependant": 5488
+   }
+  }
+ },
+ {
+  "exception": false,
+  "assessed_from": "2020-10-01",
+  "signed_from": "2006-12-31",
+  "signed_before": "2007-12-31",
+  "signed_until": null,
+  "building": "Ancien",
+  "loan_types": [
+   "D331_63_64"
+  ],
+  "francs": false,
+  "zones": {
+   "Zone1": {
+    "single": 26632,
+    "couple": 32139,
+    "by_dependants": [
+     37646
+    ],
+    "beyond_listed": 37646,
+    "each_further_dependant": 5507
+   },
+   "Zone2": {
+    "single": 23741,
+    "couple": 28593,
+    "by_dependants": [
+     33445
+    ],
+    "beyond_listed": 33445,
+    "each_further_dependant": 4852
+   },
+   "Zone3": {
+    "single": 22171,
+    "couple": 36598,
+    "by_dependants": [
+     31026
+    ],
+    "beyond_listed": 31026,
+    "each_further_dependant": 4428
+   }
+  }
+ },
+ {
+  "exception": false,
+  "assessed_from": "2020-10-01",
+  "signed_from": "2007-12-31",
+  "signed_before": "2008-12-31",
+  "signed_until": null,
+  "building": "Neuf",
+  "loan_types": [
+   "D331_63_64"
+  ],
+  "francs": false,
+  "zones": {
+   "Zone1": {
+    "single": 33999,
+    "couple": 41016,
+    "by_dependants": [
+     48032
+    ],
+    "beyond_listed": 48032,
+    "each_further_dependant": 7016
+   },
+   "Zone2": {
+    "single": 30341,
+    "couple": 36519,
+    "by_dependants": [
+     42697
+    ],
+    "beyond_listed": 42697,
+    "each_further_dependant": 6178
+   },
+   "Zone3": {
+    "single": 28325,
+    "couple": 33964,
+    "by_dependants": [
+     39605
+    ],
+    "beyond_listed": 39605,
+    "each_further_dependant": 5639
+   }
+  }
+ },
+ {
+  "exception": false,
+  "assessed_from": "2020-10-01",
+  "signed_from": "2007-12-31",
+  "signed_before": "2008-12-31",
+  "signed_until": null,
+  "building": "Ancien",
+  "loan_types": [
+   "D331_63_64"
+  ],
+  "francs": false,
+  "zones": {
+   "Zone1": {
+    "single": 27367,
+    "couple": 33026,
+    "by_dependants": [
+     38685
+    ],
+    "beyond_listed": 38685,
+    "each_further_dependant": 5659
+   },
+   "Zone2": {
+    "single": 24396,
+    "couple": 29382,
+    "by_dependants": [
+     34368
+    ],
+    "beyond_listed": 34368,
+    "each_further_dependant": 4986
+   },
+   "Zone3": {
+    "single": 22783,
+    "couple": 27332,
+    "by_dependants": [
+     31882
+    ],
+    "beyond_listed": 31882,
+    "each_further_dependant": 4550
+   }
+  }
+ },
+ {
+  "exception": false,
+  "assessed_from": "2020-10-01",
+  "signed_from": "2008-12-31",
+  "signed_before": "2009-12-31",
+  "signed_until": null,
+  "building": "Neuf",
+  "loan_types": [
+   "D331_63_64"
+  ],
+  "francs": false,
+  "zones": {
+   "Zone1": {
+    "single": 35002,
+    "couple": 42226,
+    "by_dependants": [
+     49449
+    ],
+    "beyond_listed": 49449,
+    "each_further_dependant": 7223
+   },
+   "Zone2": {
+    "single": 31236,
+    "couple": 37596,
+    "by_dependants": [
+     43957
+    ],
+    "beyond_listed": 43957,
+    "each_further_dependant": 6360
+   },
+   "Zone3": {
+    "single": 29161,
+    "couple": 34966,
+    "by_dependants": [
+     40773
+    ],
+    "beyond_listed": 40773,
+    "each_further_dependant": 5805
+   }
+  }
+ },
+ {
+  "exception": false,
+  "assessed_from": "2020-10-01",
+  "signed_from": "2008-12-31",
+  "signed_before": "2009-12-31",
+  "signed_until": null,
+  "building": "Ancien",
+  "loan_types": [
+   "D331_63_64"
+  ],
+  "francs": false,
+  "zones": {
+   "Zone1": {
+    "single": 28174,
+    "couple": 34000,
+    "by_dependants": [
+     39826
+    ],
+    "beyond_listed": 39826,
+    "each_further_dependant": 5826
+   },
+   "Zone2": {
+    "single": 25116,
+    "couple": 30249,
+    "by_dependants": [
+     35382
+    ],
+    "beyond_listed": 35382,
+    "each_further_dependant": 5133
+   },
+   "Zone3": {
+    "single": 23455,
+    "couple": 28138,
+    "by_dependants": [
+     32823
+    ],
+    "beyond_listed": 32823,
+    "each_further_dependant": 4684
+   }
+  }
+ },
+ {
+  "exception": false,
+  "assessed_from": "2020-10-01",
+  "signed_from": "2009-12-31",
+  "signed_before": "2010-12-31",
+  "signed_until": null,
+  "building": "Neuf",
+  "loan_types": [
+   "D331_63_64"
+  ],
+  "francs": false,
+  "zones": {
+   "Zone1": {
+    "single": 35114,
+    "couple": 42361,
+    "by_dependants": [
+     49607
+    ],
+    "beyond_listed": 49607,
+    "each_further_dependant": 7246
+   },
+   "Zone2": {
+    "single": 31336,
+    "couple": 37716,
+    "by_dependants": [
+     44098
+    ],
+    "beyond_listed": 44098,
+    "each_further_dependant": 6380
+   },
+   "Zone3": {
+    "single": 29254,
+    "couple": 35078,
+    "by_dependants": [
+     40903
+    ],
+    "beyond_listed": 40903,
+    "each_further_dependant": 5824
+   }
+  }
+ },
+ {
+  "exception": false,
+  "assessed_from": "2020-10-01",
+  "signed_from": "2009-12-31",
+  "signed_before": "2010-12-31",
+  "signed_until": null,
+  "building": "Ancien",
+  "loan_types": [
+   "D331_63_64"
+  ],
+  "francs": false,
+  "zones": {
+   "Zone1": {
+    "single": 28264,
+    "couple": 34109,
+    "by_dependants": [
+     39953
+    ],
+    "beyond_listed": 39953,
+    "each_further_dependant": 5845
+   },
+   "Zone2": {
+    "single": 25196,
+    "couple": 30346,
+    "by_dependants": [
+     35495
+    ],
+    "beyond_listed": 35495,
+    "each_further_dependant": 5149
+   },
+   "Zone3": {
+    "single": 23530,
+    "couple": 28228,
+    "by_dependants": [
+     32928
+    ],
+    "beyond_listed": 32928,
+    "each_further_dependant": 4699
+   }
+  }
+ },
+ {
+  "exception": false,
+  "assessed_from": "2020-10-01",
+  "signed_from": "2010-12-31",
+  "signed_before": "2011-12-31",
+  "signed_until": null,
+  "building": "Neuf",
+  "loan_types": [
+   "D331_63_64"
+  ],
+  "francs": false,
+  "zones": {
+   "Zone1": {
+    "single": 35500,
+    "couple": 42827,
+    "by_dependants": [
+     50153
+    ],
+    "beyond_listed": 50153,
+    "each_further_dependant": 7326
+   },
+   "Zone2": {
+    "single": 31681,
+    "couple": 38131,
+    "by_dependants": [
+     44583
+    ],
+    "beyond_listed": 44583,
+    "each_further_dependant": 6450
+   },
+   "Zone3": {
+    "single": 29576,
+    "couple": 35464,
+    "by_dependants": [
+     41353
+    ],
+    "beyond_listed": 41353,
+    "each_further_dependant": 5888
+   }
+  }
+ },
+ {
+  "exception": false,
+  "assessed_from": "2020-10-01",
+  "signed_from": "2010-12-31",
+  "signed_before": "2011-12-31",
+  "signed_until": null,
+  "building": "Ancien",
+  "loan_types": [
+   "D331_63_64"
+  ],
+  "francs": false,
+  "zones": {
+   "Zone1": {
+    "single": 28575,
+    "couple": 34484,
+    "by_dependants": [
+     40392
+    ],
+    "beyond_listed": 40392,
+    "each_further_dependant": 5909
+   },
+   "Zone2": {
+    "single": 25473,
+    "couple": 30680,
+    "by_dependants": [
+     35885
+    ],
+    "beyond_listed": 35885,
+    "each_further_dependant": 5206
+   },
+   "Zone3": {
+    "single": 23789,
+    "couple": 28539,
+    "by_dependants": [
+     33290
+    ],
+    "beyond_listed": 33290,
+    "each_further_dependant": 4751
+   }
+  }
+ },
+ {
+  "exception": false,
+  "assessed_from": "2020-10-01",
+  "signed_from": "2011-12-31",
+  "signed_before": "2012-12-31",
+  "signed_until": null,
+  "building": "Neuf",
+  "loan_types": [
+   "D331_63_64"
+  ],
+  "francs": false,
+  "zones": {
+   "Zone1": {
+    "single": 35855,
+    "couple": 43255,
+    "by_dependants": [
+     50655
+    ],
+    "beyond_listed": 50655,
+    "each_further_dependant": 7399
+   },
+   "Zone2": {
+    "single": 31998,
+    "couple": 38512,
+    "by_dependants": [
+     45029
+    ],
+    "beyond_listed": 45029,
+    "each_further_dependant": 6515
+   },
+   "Zone3": {
+    "single": 29872,
+    "couple": 35819,
+    "by_dependants": [
+     41767
+    ],
+    "beyond_listed": 41767,
+    "each_further_dependant": 5947
+   }
+  }
+ },
+ {
+  "exception": false,
+  "assessed_from": "2020-10-01",
+  "signed_from": "2011-12-31",
+  "signed_before": "2012-12-31",
+  "signed_until": null,
+  "building": "Ancien",
+  "loan_types": [
+   "D331_63_64"
+  ],
+  "francs": false,
+  "zones": {
+   "Zone1": {
+    "single": 28861,
+    "couple": 34829,
+    "by_dependants": [
+     40796
+    ],
+    "beyond_listed": 40796,
+    "each_further_dependant": 5968
+   },
+   "Zone2": {
+    "single": 25728,
+    "couple": 30987,
+    "by_dependants": [
+     36244
+    ],
+    "beyond_listed": 36244,
+    "each_further_dependant": 5258
+   },
+   "Zone3": {
+    "single": 24027,
+    "couple": 28824,
+    "by_dependants": [
+     33623
+    ],
+    "beyond_listed": 33623,
+    "each_further_dependant": 4799
+   }
+  }
+ },
+ {
+  "exception": false,
+  "assessed_from": "2020-10-01",
+  "signed_from": "2012-12-31",
+  "signed_before": "2014-09-30",
+  "signed_until": null,
+  "building": "Neuf",
+  "loan_types": [
+   "D331_63_64"
+  ],
+  "francs": false,
+  "zones": {
+   "Zone1": {
+    "single": 36626,
+    "couple": 44185,
+    "by_dependants": [
+     51744
+    ],
+    "beyond_listed": 51744,
+    "each_further_dependant": 7558
+   },
+   "Zone2": {
+    "single": 32686,
+    "couple": 39340,
+    "by_dependants": [
+     45997
+    ],
+    "beyond_listed": 45997,
+    "each_further_dependant": 6655
+   },
+   "Zone3": {
+    "single": 30514,
+    "couple": 36589,
+    "by_dependants": [
+     42665
+    ],
+    "beyond_listed": 42665,
+    "each_further_dependant": 6075
+   }
+  }
+ },
+ {
+  "exception": false,
+  "assessed_from": "2020-10-01",
+  "signed_from": "2012-12-31",
+  "signed_before": "2014-09-30",
+  "signed_until": null,
+  "building": "Ancien",
+  "loan_types": [
+   "D331_63_64"
+  ],
+  "francs": false,
+  "zones": {
+   "Zone1": {
+    "single": 29482,
+    "couple": 35578,
+    "by_dependants": [
+     41673
+    ],
+    "beyond_listed": 41673,
+    "each_further_dependant": 6096
+   },
+   "Zone2": {
+    "single": 26281,
+    "couple": 31653,
+    "by_dependants": [
+     37023
+    ],
+    "beyond_listed": 37023,
+    "each_further_dependant": 5371
+   },
+   "Zone3": {
+    "single": 24544,
+    "couple": 29444,
+    "by_dependants": [
+     34346
+    ],
+    "beyond_listed": 34346,
+    "each_further_dependant": 4902
+   }
+  }
+ },
+ {
+  "exception": false,
+  "assessed_from": "2020-10-01",
+  "signed_from": "2014-09-30",
+  "signed_before": "2015-09-30",
+  "signed_until": null,
+  "building": "Neuf",
+  "loan_types": [
+   "D331_63_64"
+  ],
+  "francs": false,
+  "zones": {
+   "Zone1": {
+    "single": 36835,
+    "couple": 44437,
+    "by_dependants": [
+     52039
+    ],
+    "beyond_listed": 52039,
+    "each_further_dependant": 7601
+   },
+   "Zone2": {
+    "single": 32872,
+    "couple": 39564,
+    "by_dependants": [
+     46259
+    ],
+    "beyond_listed": 46259,
+    "each_further_dependant": 6693
+   },
+   "Zone3": {
+    "single": 30688,
+    "couple": 36798,
+    "by_dependants": [
+     42908
+    ],
+    "beyond_listed": 42908,
+    "each_further_dependant": 6110
+   }
+  }
+ },
+ {
+  "exception": false,
+  "assessed_from": "2020-10-01",
+  "signed_from": "2014-09-30",
+  "signed_before": "2015-09-30",
+  "signed_until": null,
+  "building": "Ancien",
+  "loan_types": [
+   "D331_63_64"
+  ],
+  "francs": false,
+  "zones": {
+   "Zone1": {
+    "single": 29650,
+    "couple": 35781,
+    "by_dependants": [
+     41911
+    ],
+    "beyond_listed": 41911,
+    "each_further_dependant": 6131
+   },
+   "Zone2": {
+    "single": 26431,
+    "couple": 31833,
+    "by_dependants": [
+     37234
+    ],
+    "beyond_listed": 37234,
+    "each_further_dependant": 5402
+   },
+   "Zone3": {
+    "single": 24684,
+    "couple": 29612,
+    "by_dependants": [
+     34542
+    ],
+    "beyond_listed": 34542,
+    "each_further_dependant": 4930
+   }
+  }
+ },
+ {
+  "exception": false,
+  "assessed_from": "2020-10-01",
+  "signed_from": "2015-09-30",
+  "signed_before": "2017-09-30",
+  "signed_until": null,
+  "building": "Neuf",
+  "loan_types": [
+   "D331_63_64"
+  ],
+  "francs": false,
+  "zones": {
+   "Zone1": {
+    "single": 36864,
+    "couple": 44473,
+    "by_dependants": [
+     52081
+    ],
+    "beyond_listed": 52081,
+    "each_further_dependant": 7607
+   },
+   "Zone2": {
+    "single": 32898,
+    "couple": 39596,
+    "by_dependants": [
+     46296
+    ],
+    "beyond_listed": 46296,
+    "each_further_dependant": 6698
+   },
+   "Zone3": {
+    "single": 30713,
+    "couple": 36827,
+    "by_dependants": [
+     42942
+    ],
+    "beyond_listed": 42942,
+    "each_further_dependant": 6115
+   }
+  }
+ },
+ {
+  "exception": false,
+  "assessed_from": "2020-10-01",
+  "signed_from": "2015-09-30",
+  "signed_before": "2017-09-30",
+  "signed_until": null,
+  "building": "Ancien",
+  "loan_types": [
+   "D331_63_64"
+  ],
+  "francs": false,
+  "zones": {
+   "Zone1": {
+    "single": 29674,
+    "couple": 35810,
+    "by_dependants": [
+     41945
+    ],
+    "beyond_listed": 41945,
+    "each_further_dependant": 6136
+   },
+   "Zone2": {
+    "single": 26452,
+    "couple": 31858,
+    "by_dependants": [
+     37264
+    ],
+    "beyond_listed": 37264,
+    "each_further_dependant": 5406
+   },
+   "Zone3": {
+    "single": 24704,
+    "couple": 29636,
+    "by_dependants": [
+     34570
+    ],
+    "beyond_listed": 34570,
+    "each_further_dependant": 4934
+   }
+  }
+ },
+ {
+  "exception": false,
+  "assessed_from": "2020-10-01",
+  "signed_from": "2017-09-30",
+  "signed_before": "2019-09-30",
+  "signed_until": null,
+  "building": "Neuf",
+  "loan_types": [
+   "D331_63_64"
+  ],
+  "francs": false,
+  "zones": {
+   "Zone1": {
+    "single": 37140,
+    "couple": 44807,
+    "by_dependants": [
+     52472
+    ],
+    "beyond_listed": 52472,
+    "each_further_dependant": 7664
+   },
+   "Zone2": {
+    "single": 33145,
+    "couple": 39893,
+    "by_dependants": [
+     46643
+    ],
+    "beyond_listed": 46643,
+    "each_further_dependant": 6748
+   },
+   "Zone3": {
+    "single": 30943,
+    "couple": 37103,
+    "by_dependants": [
+     43264
+    ],
+    "beyond_listed": 43264,
+    "each_further_dependant": 6161
+   }
+  }
+ },
+ {
+  "exception": false,
+  "assessed_from": "2020-10-01",
+  "signed_from": "2017-09-30",
+  "signed_before": "2019-09-30",
+  "signed_until": null,
+  "building": "Ancien",
+  "loan_types": [
+   "D331_63_64"
+  ],
+  "francs": false,
+  "zones": {
+   "Zone1": {
+    "single": 29897,
+    "couple": 36079,
+    "by_dependants": [
+     42260
+    ],
+    "beyond_listed": 42260,
+    "each_further_dependant": 6182
+   },
+   "Zone2": {
+    "single": 26650,
+    "couple": 32097,
+    "by_dependants": [
+     37543
+    ],
+    "beyond_listed": 37543,
+    "each_further_dependant": 5447
+   },
+   "Zone3": {
+    "single": 24889,
+    "couple": 29858,
+    "by_dependants": [
+     34829
+    ],
+    "beyond_listed": 34829,
+    "each_further_dependant": 4971
+   }
+  }
+ },
+ {
+  "exception": false,
+  "assessed_from": "2020-10-01",
+  "signed_from": "2019-09-30",
+  "signed_before": null,
+  "signed_until": null,
+  "building": "Neuf",
+  "loan_types": [
+   "D331_63_64"
+  ],
+  "francs": false,
+  "zones": {
+   "Zone1": {
+    "single": 37252,
+    "couple": 44941,
+    "by_dependants": [
+     52629
+    ],
+    "beyond_listed": 52629,
+    "each_further_dependant": 7687
+   },
+   "Zone2": {
+    "single": 33244,
+    "couple": 40013,
+    "by_dependants": [
+     46783
+    ],
+    "beyond_listed": 46783,
+    "each_further_dependant": 6768
+   },
+   "Zone3": {
+    "single": 31036,
+    "couple": 37215,
+    "by_dependants": [
+     43394
+    ],
+    "beyond_listed": 43394,
+    "each_further_dependant": 6179
+   }
+  }
+ },
+ {
+  "exception": false,
+  "assessed_from": "2020-10-01",
+  "signed_from": "2019-09-30",
+  "signed_before": null,
+  "signed_until": null,
+  "building": "Ancien",
+  "loan_types": [
+   "D331_63_64"
+  ],
+  "francs": false,
+  "zones": {
+   "Zone1": {
+    "single": 29986,
+    "couple": 36187,
+    "by_dependants": [
+     42386
+    ],
+    "beyond_listed": 42386,
+    "each_further_dependant": 6201
+   },
+   "Zone2": {
+    "single": 26730,
+    "couple": 32193,
+    "by_dependants": [
+     37656
+    ],
+    "beyond_listed": 37656,
+    "each_further_dependant": 5463
+   },
+   "Zone3": {
+    "single": 24964,
+    "couple": 29948,
+    "by_dependants": [
+     34934
+    ],
+    "beyond_listed": 34934,
+    "each_further_dependant": 4986
+   }
+  }
+ }
+]

@@ -342,7 +342,8 @@ class ScopeTest(CatalaTest):
         :param cases: The kinds of case the example models, one per scope.
         :return: The test the scope states, about the subscopes the example models; a
             variable of the test defined as a subscope's output, or as an output applied
-            to another, stands for it.
+            to another, stands for it, and the result the command line prints for one
+            the test does not assert is asserted.
         :raises UnmodelledScope: Where the test asserts something of a subscope, or
             calls a scope, that no case models.
         """
@@ -382,6 +383,19 @@ class ScopeTest(CatalaTest):
                     raise UnexpectedCatalaStatement(
                         scope=scope.name, statement=statement
                     )
+        asserted_variables = {
+            expression.parts[0]
+            for expression, _ in asserted
+            if isinstance(expression, Reference)
+        }
+        for variable, _ in program.stated_results.get(scope.name, {}).items():
+            if variable in outputs and variable not in asserted_variables:
+                asserted.append(
+                    (
+                        Reference(parts=(variable,)),
+                        program.stated_result(scope.name, variable),
+                    )
+                )
         case_types = {case.catala_scope: case for case in cases}
         built = {}
         assertions = []

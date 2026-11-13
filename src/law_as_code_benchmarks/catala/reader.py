@@ -597,18 +597,28 @@ class CatalaTestReader:
             language=self.language,
             scopes=[
                 ScopeBody(
-                    name=scope.name,
-                    statements=scope.statements,
-                    is_test=scope.name in test_names,
-                    subscopes=subscopes.get(scope.name, {}),
+                    name=name,
+                    statements=statements,
+                    is_test=name in test_names,
+                    subscopes=subscopes.get(name, {}),
                 )
-                for scope in parsed
-                if isinstance(scope, ScopeBody)
+                for name, statements in self.merged_statements(parsed).items()
             ],
             constants=[
                 constant for constant in parsed if isinstance(constant, Definition)
             ],
         )
+
+    @staticmethod
+    def merged_statements(
+        parsed: list[ScopeBody | Definition],
+    ) -> dict[str, list[Statement]]:
+        """:return: The statements of each scope, in order, a scope written in several bodies merged."""
+        statements: dict[str, list[Statement]] = {}
+        for scope in parsed:
+            if isinstance(scope, ScopeBody):
+                statements.setdefault(scope.name, []).extend(scope.statements)
+        return statements
 
     @staticmethod
     def printed_results(printed: str) -> dict[str, str]:
@@ -651,7 +661,7 @@ class CatalaTestReader:
             lambda tokens: Reference(parts=tuple(tokens))
         )
         money = pyparsing.Regex(
-            r"\$\d[\d,]*(\.\d+)?|\d[\d ]*(,\d+)?\s*€|\d[\d ]*([.,]\d+)?\s*PLN"
+            r"\$\d[\d,]*(\.\d+)?|-?\d[\d ]*(,\d+)?\s*€|\d[\d ]*([.,]\d+)?\s*PLN"
         ).set_parse_action(lambda tokens: cls.money_from_text(tokens[0]))
         date = pyparsing.Regex(r"\|\d{4}-\d{2}-\d{2}\|").set_parse_action(
             lambda tokens: datetime.date.fromisoformat(tokens[0].strip("|"))

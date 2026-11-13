@@ -18,6 +18,10 @@ from law_as_code_benchmarks.catala.income_tax.oracles import (
     ProportionalDistributionCase,
 )
 from law_as_code_benchmarks.catala.income_tax.parts import PartsCase
+from law_as_code_benchmarks.catala.income_tax.wages import (
+    DeclarantWagesCase,
+    HouseholdWagesCase,
+)
 from law_as_code_benchmarks.catala.scope_test import ScopeCase, ScopeTest, ScopeTestFile
 
 
@@ -52,6 +56,11 @@ class IncomeTaxTestFile(ScopeTestFile, StrEnum):
     Three distributions in proportion.
     """
 
+    WAGES = "traitements_salaires.catala_fr"
+    """
+    Eleven declarants' or households' wages and pensions.
+    """
+
     @classproperty
     def revision(cls) -> str:
         """
@@ -81,7 +90,13 @@ class IncomeTaxTestFile(ScopeTestFile, StrEnum):
         """
         The scopes the example's tests call.
         """
-        return [PartsCase, DeficitImputationCase, ProportionalDistributionCase]
+        return [
+            PartsCase,
+            DeficitImputationCase,
+            ProportionalDistributionCase,
+            DeclarantWagesCase,
+            HouseholdWagesCase,
+        ]
 
     def fetch(self) -> None:
         """

@@ -4,6 +4,7 @@ krrood tried on published law-as-code benchmarks: laws, cases under them and the
 answer for each case.
 
 `doc/law_as_code_benchmarks.md` surveys the candidates and picks the ones krrood is tried on.
+`doc/krrood_on_law_as_code.md` reports what krrood handles, works around or lacks across them.
 
 ## SARA
 

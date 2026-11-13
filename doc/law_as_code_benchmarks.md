@@ -130,3 +130,5 @@ krrood handles, works around or lacks, with each gap filed on
   <https://coliee.org/COLIEE2026/corpus/task3and4>.
 - DMN TCK: <https://github.com/dmn-tck/tck> `5cd912f28183`.
 - PROLEG: Satoh's overview, <https://prologyear.logicprogramming.org/docs/PROLEG_KenSatoh.pdf>.
+
+The outcome is reported in `doc/krrood_on_law_as_code.md`.

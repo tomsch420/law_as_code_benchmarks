@@ -61,10 +61,12 @@ items:
   depends_on:
   - krrood-catala-housing-eligibility
   status: not started
-  notes: 'APL and AL for rented homes (tests_calcul_apl_locatif, tests_calcul_al_locatif)
-    of aides_logement; score the share of those test scopes reproduced.
+  notes: >
+    APL and AL for rented homes (tests_calcul_apl_locatif, tests_calcul_al_locatif) of
+    aides_logement; score the share of those test scopes reproduced.
 
-    '
+    Also the three time coverage tests of tests_couverture_temporelle, moved here from the
+    eligibility item since they call CalculAidePersonnaliséeLogementLocatif.
 - id: krrood-catala-housing-ownership-and-residences
   title: Model Catala's housing benefits for home ownership and residences in krrood and score
     them

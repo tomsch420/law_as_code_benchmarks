@@ -14,7 +14,8 @@ from fractions import Fraction
 
 from krrood.entity_query_language.predicate import symbolic_function
 
-from law_as_code_benchmarks.catala.domain import DatedValue, Period
+from law_as_code_benchmarks.catala.domain import DatedValue
+from law_as_code_benchmarks.law.period import Period
 from law_as_code_benchmarks.catala.housing.domain import HousingZone
 from law_as_code_benchmarks.catala.money import Money
 
@@ -220,7 +221,9 @@ class RentedHomeScales(Enum):
     """The versions of articles 7 to 16, revalued every October and in July 2022."""
 
     OCTOBER_2020 = RentedHomeScale(
-        period=Period(datetime.date(2020, 10, 1), datetime.date(2021, 9, 30)),
+        period=Period(
+            lower=datetime.date(2020, 10, 1), upper=datetime.date(2021, 9, 30)
+        ),
         source="Arrêté du 27 septembre 2019, articles 7 à 16 (LEGIARTI000042378448)",
         ceilings=RentCeilings(
             single=ZoneAmounts.from_cents(29682, 25869, 24246),
@@ -250,7 +253,9 @@ class RentedHomeScales(Enum):
     """From 1/10/2020."""
 
     OCTOBER_2021 = RentedHomeScale(
-        period=Period(datetime.date(2021, 10, 1), datetime.date(2022, 6, 30)),
+        period=Period(
+            lower=datetime.date(2021, 10, 1), upper=datetime.date(2022, 6, 30)
+        ),
         source="Arrêté du 27 septembre 2019, articles 7 à 16 (LEGIARTI000044137432)",
         ceilings=RentCeilings(
             single=ZoneAmounts.from_cents(29807, 25978, 24348),
@@ -280,7 +285,9 @@ class RentedHomeScales(Enum):
     """From 1/10/2021."""
 
     JULY_2022 = RentedHomeScale(
-        period=Period(datetime.date(2022, 7, 1), datetime.date(2023, 9, 30)),
+        period=Period(
+            lower=datetime.date(2022, 7, 1), upper=datetime.date(2023, 9, 30)
+        ),
         source="Arrêté du 27 septembre 2019, articles 7 à 16 (LEGIARTI000046206217)",
         ceilings=RentCeilings(
             single=ZoneAmounts.from_cents(30850, 26887, 25200),
@@ -310,7 +317,9 @@ class RentedHomeScales(Enum):
     """From 1/7/2022."""
 
     OCTOBER_2023 = RentedHomeScale(
-        period=Period(datetime.date(2023, 10, 1), datetime.date(2024, 9, 30)),
+        period=Period(
+            lower=datetime.date(2023, 10, 1), upper=datetime.date(2024, 9, 30)
+        ),
         source="Arrêté du 27 septembre 2019, articles 7 à 16 (LEGIARTI000048109313)",
         ceilings=RentCeilings(
             single=ZoneAmounts.from_cents(31930, 27828, 26082),
@@ -340,7 +349,9 @@ class RentedHomeScales(Enum):
     """From 1/10/2023."""
 
     OCTOBER_2024 = RentedHomeScale(
-        period=Period(datetime.date(2024, 10, 1), datetime.date(2025, 9, 30)),
+        period=Period(
+            lower=datetime.date(2024, 10, 1), upper=datetime.date(2025, 9, 30)
+        ),
         source="Arrêté du 27 septembre 2019, articles 7 à 16 (LEGIARTI000050286647)",
         ceilings=RentCeilings(
             single=ZoneAmounts.from_cents(32971, 28735, 26932),
@@ -370,7 +381,7 @@ class RentedHomeScales(Enum):
     """From 1/10/2024."""
 
     OCTOBER_2025 = RentedHomeScale(
-        period=Period(datetime.date(2025, 10, 1), None),
+        period=Period(lower=datetime.date(2025, 10, 1), upper=None),
         source="Arrêté du 27 septembre 2019, articles 7 à 16 (LEGIARTI000052233874)",
         ceilings=RentCeilings(
             single=ZoneAmounts.from_cents(33314, 29034, 27212),
@@ -439,7 +450,9 @@ class IncomeAbatementScales(Enum):
     """The versions of article 15, revalued every January and in July 2022."""
 
     JANUARY_2020 = IncomeAbatements(
-        period=Period(datetime.date(2020, 1, 1), datetime.date(2021, 12, 31)),
+        period=Period(
+            lower=datetime.date(2020, 1, 1), upper=datetime.date(2021, 12, 31)
+        ),
         source="Arrêté du 27 septembre 2019, article 15 (LEGIARTI000041489192)",
         single=Money.from_euros(4588),
         couple=Money.from_euros(6572),
@@ -456,7 +469,9 @@ class IncomeAbatementScales(Enum):
     """From 1/1/2020."""
 
     JANUARY_2022 = IncomeAbatements(
-        period=Period(datetime.date(2022, 1, 1), datetime.date(2022, 6, 30)),
+        period=Period(
+            lower=datetime.date(2022, 1, 1), upper=datetime.date(2022, 6, 30)
+        ),
         source="Arrêté du 27 septembre 2019, article 15 (LEGIARTI000045011468)",
         single=Money.from_euros(4683),
         couple=Money.from_euros(6709),
@@ -473,7 +488,9 @@ class IncomeAbatementScales(Enum):
     """From 1/1/2022."""
 
     JULY_2022 = IncomeAbatements(
-        period=Period(datetime.date(2022, 7, 1), datetime.date(2022, 12, 31)),
+        period=Period(
+            lower=datetime.date(2022, 7, 1), upper=datetime.date(2022, 12, 31)
+        ),
         source="Arrêté du 27 septembre 2019, article 15 (LEGIARTI000046126962)",
         single=Money.from_euros(4870),
         couple=Money.from_euros(6977),
@@ -490,7 +507,9 @@ class IncomeAbatementScales(Enum):
     """From 1/7/2022."""
 
     JANUARY_2023 = IncomeAbatements(
-        period=Period(datetime.date(2023, 1, 1), datetime.date(2023, 12, 31)),
+        period=Period(
+            lower=datetime.date(2023, 1, 1), upper=datetime.date(2023, 12, 31)
+        ),
         source="Arrêté du 27 septembre 2019, article 15 (LEGIARTI000046834762)",
         single=Money.from_euros(4949),
         couple=Money.from_euros(7090),
@@ -507,7 +526,9 @@ class IncomeAbatementScales(Enum):
     """From 1/1/2023."""
 
     JANUARY_2024 = IncomeAbatements(
-        period=Period(datetime.date(2024, 1, 1), datetime.date(2024, 12, 31)),
+        period=Period(
+            lower=datetime.date(2024, 1, 1), upper=datetime.date(2024, 12, 31)
+        ),
         source="Arrêté du 27 septembre 2019, article 15 (LEGIARTI000048656246)",
         single=Money.from_euros(5186),
         couple=Money.from_euros(7430),
@@ -524,7 +545,7 @@ class IncomeAbatementScales(Enum):
     """From 1/1/2024."""
 
     JANUARY_2025 = IncomeAbatements(
-        period=Period(datetime.date(2025, 1, 1), None),
+        period=Period(lower=datetime.date(2025, 1, 1), upper=None),
         source="Arrêté du 27 septembre 2019, article 15 (LEGIARTI000050931814)",
         single=Money.from_euros(5235),
         couple=Money.from_euros(7501),
@@ -545,7 +566,9 @@ class SaintPierreAbatementScales(Enum):
     """The versions of article 47 for Saint-Pierre-et-Miquelon, from July 2022."""
 
     JULY_2022 = IncomeAbatements(
-        period=Period(datetime.date(2022, 7, 1), datetime.date(2022, 12, 31)),
+        period=Period(
+            lower=datetime.date(2022, 7, 1), upper=datetime.date(2022, 12, 31)
+        ),
         source="Arrêté du 27 septembre 2019, article 47 (LEGIARTI000046126954)",
         single=Money.from_euros(4870),
         couple=Money.from_euros(6977),
@@ -562,7 +585,9 @@ class SaintPierreAbatementScales(Enum):
     """From 1/7/2022."""
 
     JANUARY_2023 = IncomeAbatements(
-        period=Period(datetime.date(2023, 1, 1), datetime.date(2023, 12, 31)),
+        period=Period(
+            lower=datetime.date(2023, 1, 1), upper=datetime.date(2023, 12, 31)
+        ),
         source="Arrêté du 27 septembre 2019, article 47 (LEGIARTI000046834753)",
         single=Money.from_euros(5272),
         couple=Money.from_euros(7552),
@@ -579,7 +604,9 @@ class SaintPierreAbatementScales(Enum):
     """From 1/1/2023."""
 
     JANUARY_2024 = IncomeAbatements(
-        period=Period(datetime.date(2024, 1, 1), datetime.date(2024, 12, 31)),
+        period=Period(
+            lower=datetime.date(2024, 1, 1), upper=datetime.date(2024, 12, 31)
+        ),
         source="Arrêté du 27 septembre 2019, article 47 (LEGIARTI000048656240)",
         single=Money.from_euros(5335),
         couple=Money.from_euros(7643),
@@ -596,7 +623,7 @@ class SaintPierreAbatementScales(Enum):
     """From 1/1/2024."""
 
     JANUARY_2025 = IncomeAbatements(
-        period=Period(datetime.date(2025, 1, 1), None),
+        period=Period(lower=datetime.date(2025, 1, 1), upper=None),
         source="Arrêté du 27 septembre 2019, article 47 (LEGIARTI000050931796)",
         single=Money.from_euros(5507),
         couple=Money.from_euros(7889),
@@ -617,7 +644,9 @@ class MayotteAbatementScales(Enum):
     """The versions of article 47 for Mayotte in 2020 and 2021, the abatement of six dependants holding beyond."""
 
     JANUARY_2020 = IncomeAbatements(
-        period=Period(datetime.date(2020, 1, 1), datetime.date(2020, 12, 31)),
+        period=Period(
+            lower=datetime.date(2020, 1, 1), upper=datetime.date(2020, 12, 31)
+        ),
         source="Arrêté du 27 septembre 2019, article 47 (LEGIARTI000041489186)",
         single=Money.from_euros(3960),
         couple=Money.from_euros(5673),
@@ -634,7 +663,9 @@ class MayotteAbatementScales(Enum):
     """From 1/1/2020."""
 
     JANUARY_2021 = IncomeAbatements(
-        period=Period(datetime.date(2021, 1, 1), datetime.date(2021, 12, 31)),
+        period=Period(
+            lower=datetime.date(2021, 1, 1), upper=datetime.date(2021, 12, 31)
+        ),
         source="Arrêté du 27 septembre 2019, article 47 (LEGIARTI000043044380)",
         single=Money.from_euros(4274),
         couple=Money.from_euros(6122),
@@ -681,7 +712,9 @@ class OverseasScales(Enum):
     """The versions of article 46."""
 
     OCTOBER_2020 = OverseasScale(
-        period=Period(datetime.date(2020, 10, 1), datetime.date(2021, 9, 30)),
+        period=Period(
+            lower=datetime.date(2020, 10, 1), upper=datetime.date(2021, 9, 30)
+        ),
         source="Arrêté du 27 septembre 2019, article 46 (LEGIARTI000042378415)",
         one_dependant_abatement=Money.from_euros(7584),
         charges=Money(cents=3625),
@@ -693,7 +726,9 @@ class OverseasScales(Enum):
     """From 1/10/2020."""
 
     OCTOBER_2021 = OverseasScale(
-        period=Period(datetime.date(2021, 10, 1), datetime.date(2021, 12, 31)),
+        period=Period(
+            lower=datetime.date(2021, 10, 1), upper=datetime.date(2021, 12, 31)
+        ),
         source="Arrêté du 27 septembre 2019, article 46 (LEGIARTI000044137389)",
         one_dependant_abatement=Money.from_euros(7584),
         charges=Money(cents=3640),
@@ -705,7 +740,9 @@ class OverseasScales(Enum):
     """From 1/10/2021."""
 
     JANUARY_2022 = OverseasScale(
-        period=Period(datetime.date(2022, 1, 1), datetime.date(2022, 6, 30)),
+        period=Period(
+            lower=datetime.date(2022, 1, 1), upper=datetime.date(2022, 6, 30)
+        ),
         source="Arrêté du 27 septembre 2019, article 46 (LEGIARTI000045011463)",
         one_dependant_abatement=Money.from_euros(7742),
         charges=Money(cents=3640),
@@ -717,7 +754,9 @@ class OverseasScales(Enum):
     """From 1/1/2022."""
 
     JULY_2022 = OverseasScale(
-        period=Period(datetime.date(2022, 7, 1), datetime.date(2022, 12, 31)),
+        period=Period(
+            lower=datetime.date(2022, 7, 1), upper=datetime.date(2022, 12, 31)
+        ),
         source="Arrêté du 27 septembre 2019, article 46 (LEGIARTI000046206183)",
         one_dependant_abatement=Money.from_euros(8051),
         charges=Money(cents=3767),
@@ -729,7 +768,9 @@ class OverseasScales(Enum):
     """From 1/7/2022."""
 
     JANUARY_2023 = OverseasScale(
-        period=Period(datetime.date(2023, 1, 1), datetime.date(2023, 9, 30)),
+        period=Period(
+            lower=datetime.date(2023, 1, 1), upper=datetime.date(2023, 9, 30)
+        ),
         source="Arrêté du 27 septembre 2019, article 46 (LEGIARTI000046834756)",
         one_dependant_abatement=Money.from_euros(8181),
         charges=Money(cents=3767),
@@ -741,7 +782,9 @@ class OverseasScales(Enum):
     """From 1/1/2023."""
 
     OCTOBER_2023 = OverseasScale(
-        period=Period(datetime.date(2023, 10, 1), datetime.date(2023, 12, 31)),
+        period=Period(
+            lower=datetime.date(2023, 10, 1), upper=datetime.date(2023, 12, 31)
+        ),
         source="Arrêté du 27 septembre 2019, article 46 (LEGIARTI000048109272)",
         one_dependant_abatement=Money.from_euros(8181),
         charges=Money(cents=3899),
@@ -753,7 +796,9 @@ class OverseasScales(Enum):
     """From 1/10/2023."""
 
     JANUARY_2024 = OverseasScale(
-        period=Period(datetime.date(2024, 1, 1), datetime.date(2024, 9, 30)),
+        period=Period(
+            lower=datetime.date(2024, 1, 1), upper=datetime.date(2024, 9, 30)
+        ),
         source="Arrêté du 27 septembre 2019, article 46 (LEGIARTI000048656243)",
         one_dependant_abatement=Money.from_euros(8574),
         charges=Money(cents=3899),
@@ -765,7 +810,9 @@ class OverseasScales(Enum):
     """From 1/1/2024."""
 
     OCTOBER_2024 = OverseasScale(
-        period=Period(datetime.date(2024, 10, 1), datetime.date(2024, 12, 31)),
+        period=Period(
+            lower=datetime.date(2024, 10, 1), upper=datetime.date(2024, 12, 31)
+        ),
         source="Arrêté du 27 septembre 2019, article 46 (LEGIARTI000050286587)",
         one_dependant_abatement=Money.from_euros(8574),
         charges=Money(cents=4026),
@@ -777,7 +824,9 @@ class OverseasScales(Enum):
     """From 1/10/2024."""
 
     JANUARY_2025 = OverseasScale(
-        period=Period(datetime.date(2025, 1, 1), datetime.date(2025, 9, 30)),
+        period=Period(
+            lower=datetime.date(2025, 1, 1), upper=datetime.date(2025, 9, 30)
+        ),
         source="Arrêté du 27 septembre 2019, article 46 (LEGIARTI000050931798)",
         one_dependant_abatement=Money.from_euros(8656),
         charges=Money(cents=4026),
@@ -789,7 +838,7 @@ class OverseasScales(Enum):
     """From 1/1/2025."""
 
     OCTOBER_2025 = OverseasScale(
-        period=Period(datetime.date(2025, 10, 1), None),
+        period=Period(lower=datetime.date(2025, 10, 1), upper=None),
         source="Arrêté du 27 septembre 2019, article 46 (LEGIARTI000052233795)",
         one_dependant_abatement=Money.from_euros(8656),
         charges=Money(cents=4068),

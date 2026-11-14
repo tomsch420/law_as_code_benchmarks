@@ -38,22 +38,3 @@ class UndistributableAmount(DataclassException):
 
     def suggest_correction(self) -> str:
         return "Give whole euros and bases of which one at least is positive."
-
-
-# %% test files
-
-
-@dataclass
-class MissingIncomeTaxTests(DataclassException):
-    """
-    A test file of the income tax example that has not been fetched.
-    """
-
-    file_name: str
-    """The file's name."""
-
-    def error_message(self) -> str:
-        return f"The test file {self.file_name} of Catala's impot_revenu has not been fetched."
-
-    def suggest_correction(self) -> str:
-        return "Run scripts/fetch_catala_income_tax_tests.py."

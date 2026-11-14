@@ -47,19 +47,3 @@ class PersonWithoutAge(DataclassException):
 
     def suggest_correction(self) -> str:
         return "Give the person an age or a birth date, as every test of the family allowances does for a child."
-
-
-@dataclass
-class MissingOpenFiscaTests(DataclassException):
-    """
-    A test file of OpenFisca France not fetched yet.
-    """
-
-    file_name: str
-    """The file's name."""
-
-    def error_message(self) -> str:
-        return f"OpenFisca France's test file {self.file_name} has not been fetched."
-
-    def suggest_correction(self) -> str:
-        return "Run python scripts/fetch_openfisca_tests.py from the repository's root."

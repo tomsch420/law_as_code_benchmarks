@@ -14,39 +14,13 @@ from enum import Enum, StrEnum, auto
 from krrood.entity_query_language.predicate import symbolic_function
 from krrood.patterns.role import Role
 from krrood.symbol_graph.symbol_graph import Symbol
-from typing_extensions import TYPE_CHECKING, Hashable
+from typing_extensions import TYPE_CHECKING
+
+from law_as_code_benchmarks.law.period import Period
+from law_as_code_benchmarks.law.provision import AssessedCase
 
 if TYPE_CHECKING:
     from law_as_code_benchmarks.sara.provision import SaraConclusion
-
-# %% periods
-
-
-@dataclass(frozen=True)
-class Period:
-    """The days something lasts, from its first to its last, either of which a case may leave open."""
-
-    start: datetime.date | None = None
-    """The first day; None where the case does not say."""
-
-    end: datetime.date | None = None
-    """The last day; None where it goes on."""
-
-    @symbolic_function
-    def intersect(self, other: Period) -> Period:
-        """:return: The period from the later stated start of the two to the earlier stated end."""
-        starts = [start for start in (self.start, other.start) if start is not None]
-        ends = [end for end in (self.end, other.end) if end is not None]
-        return Period(
-            start=max(starts) if starts else None, end=min(ends) if ends else None
-        )
-
-    def includes(self, day: datetime.date) -> bool:
-        """:return: Whether *day* falls within the period, an open start or end bounding nothing."""
-        return (self.start is None or self.start <= day) and (
-            self.end is None or day <= self.end
-        )
-
 
 # %% places
 
@@ -542,7 +516,7 @@ class Birth(Symbol):
 
     def period_under_age_21(self, days_until_21: int = 7_671) -> Period:
         """:return: The days before the person turns 21, as SARA's program counts them: those before *days_until_21* days after the birth."""
-        return Period(end=self.day + datetime.timedelta(days=days_until_21 - 1))
+        return Period(upper=self.day + datetime.timedelta(days=days_until_21 - 1))
 
 
 @dataclass(eq=False)
@@ -732,17 +706,19 @@ class CalendarYear(Symbol):
     def days_within(self, period: Period) -> int:
         """
         :return: The number of days from the first to the last day the year shares with
-            *period*, an open start or end bounded by the year; negative where they share none.
+            *period*, an open first or last day bounded by the year; negative where they share none.
         """
-        shared = Period(start=self.opening_day, end=self.closing_day).intersect(period)
-        return (shared.end - shared.start).days
+        shared = Period(lower=self.opening_day, upper=self.closing_day).intersect(
+            period
+        )
+        return (shared.upper - shared.lower).days
 
     @symbolic_function
     def days_spanned(self, period: Period) -> int:
-        """:return: The number of days from the first to the last day of *period*, an open start or end taken as the year's."""
-        start = self.opening_day if period.start is None else period.start
-        end = self.closing_day if period.end is None else period.end
-        return (end - start).days
+        """:return: The number of days from the first to the last day of *period*, an open first or last day taken as the year's."""
+        first_day = self.opening_day if period.lower is None else period.lower
+        last_day = self.closing_day if period.upper is None else period.upper
+        return (last_day - first_day).days
 
     @symbolic_function
     def days_lived_by_close(self, birth_day: datetime.date) -> int:
@@ -759,7 +735,7 @@ class CalendarYear(Symbol):
 
 
 @dataclass
-class World:
+class World(AssessedCase):
     """Everything a case states that the modelled provisions ask about."""
 
     united_states: Country
@@ -868,18 +844,13 @@ class World:
     asked_years: list[CalendarYear] = field(default_factory=list)
     """The calendar years goals ask about."""
 
-    drawn_conclusions: dict[Hashable, list[SaraConclusion]] = field(
-        default_factory=dict
-    )
-    """The conclusions each provision has drawn about the case, by its key; emptied when the case changes."""
-
     @symbolic_function
     def lifetime(self, person: Party) -> Period:
         """:return: The days up to *person*'s death, open where the case states no day of it."""
         days = [
             death.day for death in self.deaths if death.person is person and death.day
         ]
-        return Period(end=days[0] if days else None)
+        return Period(upper=days[0] if days else None)
 
     def households(self) -> list[Household]:
         """:return: The households parties reside in, each once."""

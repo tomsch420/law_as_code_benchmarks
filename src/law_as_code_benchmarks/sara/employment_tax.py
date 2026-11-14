@@ -674,8 +674,8 @@ class PaymentToSurvivingSpouseTest(Provision[PaymentToSurvivingSpouse]):
                         in_(death.person, marriage.spouses),
                         in_(payment.recipient, marriage.spouses),
                         or_(
-                            marriage.period.end == None,
-                            marriage.period.end == death.day,
+                            marriage.period.upper == None,
+                            marriage.period.upper == death.day,
                         ),
                     ),
                 ),

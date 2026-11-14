@@ -1,5 +1,5 @@
 """
-A provision of a Catala example as a krrood rule, drawing conclusions about a case.
+The rule trees of Catala's provisions, and the provisions of the family benefits.
 
 A provision states one variable of Catala's scopes, a default with exceptions as a rule
 tree: rules of equal standing are alternatives, each tried where those before it fail,
@@ -8,7 +8,7 @@ an exception to one rule is a refinement of it, and Catala's default comes last.
 
 from __future__ import annotations
 
-from abc import ABC, abstractmethod
+from abc import ABC
 from dataclasses import dataclass
 
 from krrood.entity_query_language.factories import (
@@ -19,13 +19,14 @@ from krrood.entity_query_language.factories import (
     variable,
 )
 from krrood.entity_query_language.query.query import Query
-from krrood.patterns.subclass_safe_generic import SubClassSafeGeneric
-from typing_extensions import Any, Generic, TypeVar
+from typing_extensions import Any, TypeVar
 
-from law_as_code_benchmarks.catala.assessment import AssessedCase, CatalaConclusion
 from law_as_code_benchmarks.catala.domain import DatedValue, Household
-
-ConclusionType = TypeVar("ConclusionType", bound=CatalaConclusion)
+from law_as_code_benchmarks.law.provision import (
+    AssessedCase,
+    ConclusionType,
+    Provision,
+)
 
 DatedValueType = TypeVar("DatedValueType", bound=DatedValue)
 
@@ -86,34 +87,6 @@ class RuleChain:
 
 
 @dataclass
-class Provision(Generic[ConclusionType], SubClassSafeGeneric, ABC):
-    """
-    A provision of a Catala example, drawing its conclusions about a case.
-    """
-
-    @property
-    @abstractmethod
-    def assessed_case(self) -> AssessedCase:
-        """
-        The case the provision draws its conclusions about.
-        """
-
-    @abstractmethod
-    def query(self) -> Query:
-        """:return: A query inferring the provision's conclusions about the case."""
-
-    @property
-    def conclusions(self) -> list[ConclusionType]:
-        """
-        The conclusions the provision infers about the case, drawn once.
-        """
-        drawn = self.assessed_case.drawn_conclusions
-        if type(self) not in drawn:
-            drawn[type(self)] = self.query().tolist()
-        return drawn[type(self)]
-
-
-@dataclass
 class FamilyBenefitsProvision(Provision[ConclusionType], ABC):
     """
     A provision of the family benefits, drawing its conclusions about a household.
@@ -152,7 +125,9 @@ class ChildProvision(FamilyBenefitsProvision[ConclusionType], ABC):
     @property
     def conclusions(self) -> list[ConclusionType]:
         """
-        Extends :meth:`Provision.conclusions`: none for a household without children.
+        Extends :meth:`~law_as_code_benchmarks.law.provision.Provision.conclusions`:
+
+        none for a household without children.
         """
         # krrood raises on an else-if chain over an empty domain:
         # https://github.com/cram2/cognitive_robot_abstract_machine/issues/952

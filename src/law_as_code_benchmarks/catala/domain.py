@@ -14,32 +14,12 @@ from fractions import Fraction
 from krrood.entity_query_language.predicate import symbolic_function
 from krrood.symbol_graph.symbol_graph import Symbol
 
-from law_as_code_benchmarks.catala.assessment import AssessedCase
+from law_as_code_benchmarks.law.period import Period
+from law_as_code_benchmarks.law.provision import AssessedCase
 from law_as_code_benchmarks.catala.exceptions import AmbiguousBirthday
 from law_as_code_benchmarks.catala.money import Money
 
-# %% periods
-
-
-@dataclass(frozen=True)
-class Period:
-    """The days from a first to a last, both included."""
-
-    first_day: datetime.date
-    """The first day."""
-
-    last_day: datetime.date | None = None
-    """The last day; None where the period goes on."""
-
-    def contains(self, day: datetime.date) -> bool:
-        """:return: Whether *day* falls in the period."""
-        return self.first_day <= day and (self.last_day is None or day <= self.last_day)
-
-    def overlaps(self, other: Period) -> bool:
-        """:return: Whether the period and *other* share a day at least."""
-        return (other.last_day is None or self.first_day <= other.last_day) and (
-            self.last_day is None or other.first_day <= self.last_day
-        )
+# %% dated values
 
 
 @dataclass(frozen=True)

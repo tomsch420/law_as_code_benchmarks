@@ -8,7 +8,6 @@ of September 27, 2019) and the housing allowance computed on its scale
 from __future__ import annotations
 
 import datetime
-import math
 from abc import ABC
 from dataclasses import dataclass, field
 from enum import StrEnum
@@ -33,7 +32,6 @@ from krrood.entity_query_language.query.query import Query
 from krrood.ormatic.utils import classproperty
 from typing_extensions import Callable
 
-from law_as_code_benchmarks.catala.assessment import AssessedCase, CatalaConclusion
 from law_as_code_benchmarks.catala.domain import DatedValue, Territory
 from law_as_code_benchmarks.catala.housing.domain import HomeChange, HousingZone, Moved
 from law_as_code_benchmarks.catala.housing.rented_scales import (
@@ -50,7 +48,8 @@ from law_as_code_benchmarks.catala.housing.rented_scales import (
     ZoneAmounts,
 )
 from law_as_code_benchmarks.catala.money import Money
-from law_as_code_benchmarks.catala.provision import Provision, RuleBranch, RuleChain
+from law_as_code_benchmarks.catala.provision import RuleBranch, RuleChain
+from law_as_code_benchmarks.law.provision import AssessedCase, Conclusion, Provision
 from law_as_code_benchmarks.catala.reader import CatalaDirectory, CatalaValue
 from law_as_code_benchmarks.catala.scope_test import (
     CaseAmount,
@@ -60,6 +59,7 @@ from law_as_code_benchmarks.catala.scope_test import (
     ScopeProvision,
     ScopeTestFile,
 )
+from law_as_code_benchmarks.law.rounding import Rounding
 
 # %% inputs
 
@@ -85,22 +85,6 @@ class AidType(StrEnum):
 
     SOCIAL_ALLOWANCE = "AllocationLogementSociale"
     """The social housing allowance."""
-
-
-# %% rounding
-
-
-@dataclass(frozen=True)
-class DecimalRounding:
-    """Rounds a decimal as Catala's ``arrondi`` does: to the nearest whole number, halves away from zero."""
-
-    @staticmethod
-    @symbolic_function
-    def rounded_to(value: Fraction, places: int) -> Fraction:
-        """:return: *value* rounded to *places* decimal places."""
-        scale = 10**places
-        whole = math.floor(abs(value) * scale + Fraction(1, 2))
-        return Fraction(whole if value >= 0 else -whole, scale)
 
 
 # %% conclusions
@@ -480,7 +464,7 @@ class RentedAidProvision(ScopeProvision, ABC):
         )
 
     @property
-    def conclusions(self) -> list[CatalaConclusion]:
+    def conclusions(self) -> list[Conclusion]:
         """Extends :meth:`Provision.conclusions`: none before the scales Catala's example states."""
         case: RentedAidCase = self.case
         if case.scale is None or case.abatements is None:
@@ -798,7 +782,7 @@ class RentRatioProvision(RentedAidProvision):
             entity(
                 inference(RentRatio)(
                     case=case,
-                    fraction=DecimalRounding.rounded_to(
+                    fraction=Rounding.round_half_away_from_zero(
                         rent.amount / reference.amount, 4
                     ),
                 )
@@ -862,7 +846,7 @@ class EligibleRentRateProvision(RentedAidProvision):
     def inferred(case: RentedAidCase, rate: Fraction) -> EligibleRentRate:
         """:return: The inference of *rate* rounded to five decimals, over a variable of the case."""
         return inference(EligibleRentRate)(
-            case=case, fraction=DecimalRounding.rounded_to(rate, 5)
+            case=case, fraction=Rounding.round_half_away_from_zero(rate, 5)
         )
 
 
@@ -1104,7 +1088,7 @@ class AidTreatment(AssessedCase):
 
 
 @dataclass(eq=False)
-class TreatedAid(CatalaConclusion):
+class TreatedAid(Conclusion):
     """The aid after a step of its treatment."""
 
     treatment: AidTreatment

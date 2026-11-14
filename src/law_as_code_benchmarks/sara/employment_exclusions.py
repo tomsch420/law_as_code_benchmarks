@@ -25,6 +25,7 @@ from krrood.entity_query_language.query.query import Query
 from krrood.ormatic.utils import classproperty
 
 from law_as_code_benchmarks.sara.case_reader import WorldReader
+from law_as_code_benchmarks.law.period import Period
 from law_as_code_benchmarks.sara.domain import (
     AmericanEmployer,
     Birth,
@@ -41,7 +42,6 @@ from law_as_code_benchmarks.sara.domain import (
     Marriage,
     Migration,
     Party,
-    Period,
     Place,
     Service,
     StateGovernment,
@@ -148,7 +148,7 @@ class DayBoundConclusion(SaraConclusion, ABC):
         if asked is None:
             return not periods
         day = WorldReader.date(asked)
-        return all(period.includes(day) for period in periods)
+        return all(period.contains(day) for period in periods)
 
 
 @dataclass(eq=False)
@@ -182,7 +182,7 @@ class ServiceOfHospitalPatient(ExcludedServiceOnDay):
     """
 
     def bounding_periods(self) -> list[Period]:
-        return [Period(start=self.stay.start, end=self.stay.end)]
+        return [Period(lower=self.stay.start, upper=self.stay.end)]
 
 
 @dataclass(eq=False)
@@ -234,8 +234,8 @@ class MarriedStudent(DayBoundConclusion):
         return self.student.bounding_periods() + [
             self.marriage.marriage.period,
             Period(
-                start=datetime.date(self.marriage.year, 1, 1),
-                end=datetime.date(self.marriage.year, 12, 31),
+                lower=datetime.date(self.marriage.year, 1, 1),
+                upper=datetime.date(self.marriage.year, 12, 31),
             ),
         ]
 
@@ -883,7 +883,7 @@ class ServiceForFamilyMemberTest(Provision[ServiceForFamilyMember]):
                     service.employer != service.employee,
                     in_(service.employer, marriage.spouses),
                     in_(service.employee, marriage.spouses),
-                    marriage.period.start != None,
+                    marriage.period.lower != None,
                 )
             )
         ).tolist()

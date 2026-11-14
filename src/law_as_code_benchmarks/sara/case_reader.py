@@ -13,6 +13,7 @@ from collections import defaultdict
 from dataclasses import dataclass, field
 from enum import StrEnum
 
+from law_as_code_benchmarks.law.period import Period
 from law_as_code_benchmarks.sara.domain import (
     AmericanEmployer,
     CalendarYear,
@@ -45,7 +46,6 @@ from law_as_code_benchmarks.sara.domain import (
     Party,
     Payment,
     PenalInstitution,
-    Period,
     Place,
     Residence,
     SeparationDecree,
@@ -863,8 +863,8 @@ class WorldReader:
                     for spouse in self.facts.values(Relation.AGENT, event)
                 ],
                 period=Period(
-                    start=None if start is None else self.date(start),
-                    end=None if end is None else self.date(end),
+                    lower=None if start is None else self.date(start),
+                    upper=None if end is None else self.date(end),
                 ),
             )
             for start in self.facts.values(Relation.START, event) or [None]
@@ -969,8 +969,8 @@ class WorldReader:
         start = self.facts.value(Relation.START, event)
         end = self.facts.value(Relation.END, event)
         return Period(
-            start=None if start is None else self.date(start),
-            end=None if end is None else self.date(end),
+            lower=None if start is None else self.date(start),
+            upper=None if end is None else self.date(end),
         )
 
     def kinships(self) -> list[Kinship]:
@@ -1104,8 +1104,8 @@ class WorldReader:
                     individual=self.party(individual),
                     taxpayer=self.party(taxpayer),
                     period=Period(
-                        start=None if start is None else self.date(start),
-                        end=None if end is None else self.date(end),
+                        lower=None if start is None else self.date(start),
+                        upper=None if end is None else self.date(end),
                     ),
                 )
                 for individual, taxpayer, start, end in self.stated_arguments(
@@ -1150,8 +1150,8 @@ class WorldReader:
                     if household is None
                     else self.households.get(self.text(household)),
                     period=Period(
-                        start=None if start is None else self.date(start),
-                        end=None if end is None else self.date(end),
+                        lower=None if start is None else self.date(start),
+                        upper=None if end is None else self.date(end),
                     ),
                 )
                 for individual, taxpayer, year, household, start, end in (

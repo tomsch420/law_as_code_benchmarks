@@ -13,19 +13,18 @@ import datetime
 import inspect
 from abc import ABC, abstractmethod
 from dataclasses import dataclass, field
-from decimal import ROUND_HALF_UP, Decimal
 from enum import StrEnum
+from fractions import Fraction
 
 from krrood.entity_query_language.core.base_expressions import SymbolicExpression
 from krrood.entity_query_language.factories import an, entity, variable
 from krrood.entity_query_language.predicate import symbolic_function
-from krrood.entity_query_language.query.query import Query
 from krrood.ormatic.utils import classproperty
-from krrood.patterns.subclass_safe_generic import SubClassSafeGeneric
-from krrood.symbol_graph.symbol_graph import Symbol
 from krrood.utils import recursive_subclasses
-from typing_extensions import TYPE_CHECKING, Generic, Hashable, TypeVar
+from typing_extensions import TYPE_CHECKING, TypeVar
 
+from law_as_code_benchmarks.law import provision as law_provision
+from law_as_code_benchmarks.law.provision import Conclusion
 from law_as_code_benchmarks.sara.domain import Party, World
 from law_as_code_benchmarks.sara.prolog_term import (
     CompoundTerm,
@@ -33,6 +32,7 @@ from law_as_code_benchmarks.sara.prolog_term import (
     PrologVariable,
     Term,
 )
+from law_as_code_benchmarks.law.rounding import Rounding
 
 if TYPE_CHECKING:
     from krrood.entity_query_language.core.variable import Variable
@@ -663,7 +663,7 @@ class GoalQuery:
 
 
 @dataclass(eq=False)
-class SaraConclusion(Symbol, ABC):
+class SaraConclusion(Conclusion, ABC):
     """What a provision concludes, for the arguments of its predicate."""
 
     @abstractmethod
@@ -705,11 +705,15 @@ ConclusionType = TypeVar("ConclusionType", bound=SaraConclusion)
 
 
 @dataclass
-class Provision(Generic[ConclusionType], SubClassSafeGeneric, ABC):
+class Provision(law_provision.Provision[ConclusionType], ABC):
     """A provision of the statutes, drawing its conclusions about a case."""
 
     world: World
     """The circumstances of the case."""
+
+    @property
+    def assessed_case(self) -> World:
+        return self.world
 
     @classproperty
     @abstractmethod
@@ -726,16 +730,12 @@ class Provision(Generic[ConclusionType], SubClassSafeGeneric, ABC):
         """The positions among the predicate's arguments of the parties a goal may name though the case states nothing of them."""
         return ()
 
-    @abstractmethod
-    def query(self) -> Query:
-        """:return: A query inferring the provision's conclusions about the case."""
-
     @staticmethod
     @symbolic_function
     def share_in_whole_dollars(amount: float, percentage: float) -> int:
         """:return: *percentage* percent of *amount*, rounded to whole dollars, halves away from zero as Prolog's ``round``."""
         return int(
-            Decimal(str(amount * percentage / 100)).quantize(Decimal(1), ROUND_HALF_UP)
+            Rounding.round_half_away_from_zero(Fraction(str(amount * percentage / 100)))
         )
 
     @classmethod
@@ -751,24 +751,17 @@ class Provision(Generic[ConclusionType], SubClassSafeGeneric, ABC):
                 world.include_party(name)
         return cls(world=world)
 
-    @property
-    def conclusions(self) -> list[ConclusionType]:
-        """The conclusions the provision infers, followed by those of its kind the case states, drawn once per case."""
-        key = self.drawn_conclusions_key()
-        if key not in self.world.drawn_conclusions:
-            conclusion_type = self.get_type_of_generic_parameter(
-                parameter=ConclusionType
-            )
-            self.world.drawn_conclusions[key] = self.query().tolist() + [
-                conclusion
-                for conclusion in self.world.stated_conclusions
-                if isinstance(conclusion, conclusion_type)
-            ]
-        return self.world.drawn_conclusions[key]
-
-    def drawn_conclusions_key(self) -> Hashable:
-        """:return: What the provision's conclusions about the case are kept under: its class, as they depend on nothing else."""
-        return type(self)
+    def draw_conclusions(self) -> list[ConclusionType]:
+        """
+        Extends :meth:`law_as_code_benchmarks.law.provision.Provision.draw_conclusions`
+        by the conclusions of the provision's kind the case states.
+        """
+        conclusion_type = self.get_type_of_generic_parameter(parameter=ConclusionType)
+        return super().draw_conclusions() + [
+            conclusion
+            for conclusion in self.world.stated_conclusions
+            if isinstance(conclusion, conclusion_type)
+        ]
 
     def constrain(self, goal: CompoundTerm, goal_query: GoalQuery) -> None:
         """Adds to *goal_query* a variable over the provision's conclusions that agree with every argument of *goal*, which names its predicate."""

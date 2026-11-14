@@ -5,12 +5,12 @@ multiplication.
 
 from __future__ import annotations
 
-import math
 from dataclasses import dataclass
 from decimal import Decimal
 from fractions import Fraction
 
 from krrood.ormatic.utils import classproperty
+from law_as_code_benchmarks.law.rounding import Rounding
 
 # %% money
 
@@ -58,9 +58,9 @@ class Money:
         """
         if not isinstance(factor, (int, Fraction)):
             return NotImplemented
-        exact = self.cents * Fraction(factor)
-        rounded = math.floor(abs(exact) + Fraction(1, 2))
-        return Money(cents=rounded if exact >= 0 else -rounded)
+        return Money(
+            cents=int(Rounding.round_half_away_from_zero(self.cents * Fraction(factor)))
+        )
 
     @classmethod
     def from_exact_units(cls, units: Fraction) -> Money:
@@ -69,8 +69,8 @@ class Money:
 
     def rounded_to_units(self) -> Money:
         """:return: The amount rounded to whole units of its currency, halves away from zero, as Catala's ``arrondi`` rounds money."""
-        units = math.floor(Fraction(abs(self.cents), 100) + Fraction(1, 2))
-        return Money(cents=100 * (units if self.cents >= 0 else -units))
+        units = Rounding.round_half_away_from_zero(Fraction(self.cents, 100))
+        return Money(cents=int(100 * units))
 
     def __truediv__(self, other: Money) -> Fraction:
         """:return: The exact ratio of the amount to *other*, as Catala divides money by money."""

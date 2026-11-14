@@ -22,10 +22,23 @@ def test_the_summary_counts_by_origin_and_lists_the_misses() -> None:
     """
     score = OpenFiscaScore(
         results=[
-            OpenFiscaResult("af.yaml:1", ReferenceOrigin.INDEPENDENT, True, 0.002),
-            OpenFiscaResult("af.yaml:2", ReferenceOrigin.INDEPENDENT, False, 0.004),
             OpenFiscaResult(
-                "af_2020_04.yaml:1", ReferenceOrigin.COMPUTED_BY_OPENFISCA, True, 0.003
+                identifier="af.yaml:1",
+                origin=ReferenceOrigin.INDEPENDENT,
+                is_reproduced=True,
+                seconds=0.002,
+            ),
+            OpenFiscaResult(
+                identifier="af.yaml:2",
+                origin=ReferenceOrigin.INDEPENDENT,
+                is_reproduced=False,
+                seconds=0.004,
+            ),
+            OpenFiscaResult(
+                identifier="af_2020_04.yaml:1",
+                origin=ReferenceOrigin.COMPUTED_BY_OPENFISCA,
+                is_reproduced=True,
+                seconds=0.003,
             ),
         ]
     )

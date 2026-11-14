@@ -40,7 +40,6 @@ from law_as_code_benchmarks.catala.domain import (
     Child,
     DatedValue,
     Household,
-    Period,
     SchoolingStage,
     Territory,
 )
@@ -85,6 +84,7 @@ from law_as_code_benchmarks.catala.scope_test import (
     ScopeProvision,
     ScopeTestFile,
 )
+from law_as_code_benchmarks.law.period import Period
 
 # %% calendar
 
@@ -133,42 +133,52 @@ class IndividualCeilings(Enum):
     """The individual ceilings Catala's example states, revalued every January."""
 
     APRIL_2018 = IndividualCeiling(
-        period=Period(datetime.date(2018, 4, 1), datetime.date(2018, 12, 31)),
+        period=Period(
+            lower=datetime.date(2018, 4, 1), upper=datetime.date(2018, 12, 31)
+        ),
         source="Article D815-1 du code de la sécurité sociale",
         amount=Money(cents=999840),
     )
     """From April 1, 2018."""
 
     JANUARY_2019 = IndividualCeiling(
-        period=Period(datetime.date(2019, 1, 1), datetime.date(2019, 12, 31)),
+        period=Period(
+            lower=datetime.date(2019, 1, 1), upper=datetime.date(2019, 12, 31)
+        ),
         source="Article D815-1 du code de la sécurité sociale",
         amount=Money(cents=1041840),
     )
     """From January 1, 2019."""
 
     JANUARY_2020 = IndividualCeiling(
-        period=Period(datetime.date(2020, 1, 1), datetime.date(2020, 12, 31)),
+        period=Period(
+            lower=datetime.date(2020, 1, 1), upper=datetime.date(2020, 12, 31)
+        ),
         source="Article D815-1 du code de la sécurité sociale",
         amount=Money(cents=1083840),
     )
     """From January 1, 2020."""
 
     JANUARY_2021 = IndividualCeiling(
-        period=Period(datetime.date(2021, 1, 1), datetime.date(2021, 12, 31)),
+        period=Period(
+            lower=datetime.date(2021, 1, 1), upper=datetime.date(2021, 12, 31)
+        ),
         source="Circulaire de la CNAV 2021-1 du 11 janvier 2021",
         amount=Money(cents=1088175),
     )
     """From January 1, 2021."""
 
     JANUARY_2022 = IndividualCeiling(
-        period=Period(datetime.date(2022, 1, 1), datetime.date(2022, 12, 31)),
+        period=Period(
+            lower=datetime.date(2022, 1, 1), upper=datetime.date(2022, 12, 31)
+        ),
         source="Circulaire de la CNAV 2022-3 du 11 janvier 2022",
         amount=Money(cents=1100144),
     )
     """From January 1, 2022."""
 
     JANUARY_2023 = IndividualCeiling(
-        period=Period(datetime.date(2023, 1, 1)),
+        period=Period(lower=datetime.date(2023, 1, 1)),
         source="Circulaire de la CNAV 2023-3 du 9 janvier 2023",
         amount=Money(cents=1153302),
     )

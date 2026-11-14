@@ -23,7 +23,7 @@ from law_as_code_benchmarks.catala.crop_rotation import (
     Parcel,
     ParcelSystem,
 )
-from law_as_code_benchmarks.catala.domain import Period
+from law_as_code_benchmarks.law.period import Period
 from law_as_code_benchmarks.catala.exceptions import UncategorisedCrop
 from law_as_code_benchmarks.catala.fibre_connection_grant import (
     AnnexCommunes,
@@ -361,7 +361,9 @@ def test_the_crop_on_a_day_is_grown_on_both_ends_of_its_period() -> None:
     """
     crop = Crop(
         code=CropCode.PTR,
-        period=Period(datetime.date(2023, 1, 1), datetime.date(2025, 12, 31)),
+        period=Period(
+            lower=datetime.date(2023, 1, 1), upper=datetime.date(2025, 12, 31)
+        ),
         qualification=CropQualification.PRINCIPAL,
     )
     parcel = Parcel(area_hectares=Fraction(1), crops=[crop], system=ParcelSystem.OTHER)

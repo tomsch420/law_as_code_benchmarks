@@ -55,7 +55,6 @@ from law_as_code_benchmarks.catala.domain import (
     ChildCare,
     DatedValue,
     Household,
-    Period,
     Territory,
 )
 from law_as_code_benchmarks.catala.entitlement import (
@@ -68,6 +67,7 @@ from law_as_code_benchmarks.catala.provision import (
     ChildProvision,
     FamilyBenefitsProvision,
 )
+from law_as_code_benchmarks.law.period import Period
 
 # %% the household's bracket
 
@@ -86,7 +86,7 @@ class ResourceCeilingsProvision(FamilyBenefitsProvision[ApplicableResourceCeilin
         The ceilings I and II of the article set, and their raise per child.
         """
         return ResourceCeilings(
-            period=Period(datetime.date.min),
+            period=Period(lower=datetime.date.min),
             source="Code de la sécurité sociale, D521-3 (LEGIARTI000044809227)",
             first_ceiling=Money.from_euros(55950),
             second_ceiling=Money.from_euros(78300),

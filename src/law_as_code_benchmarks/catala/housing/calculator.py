@@ -30,14 +30,16 @@ from law_as_code_benchmarks.catala.housing.domain import (
     ChildDependant,
     FamilySituation,
     HomeBuyer,
+    HomeOwner,
     HousingHousehold,
     HousingZone,
+    Landlord,
     LeaseToOwnBuyer,
     NotMoved,
     Occupancy,
+    ResidenceHall,
     ResidenceHallResident,
     SharedResidence,
-    SocialLandlord,
     Subtenant,
     Tenancy,
     Tenant,
@@ -52,6 +54,7 @@ from law_as_code_benchmarks.catala.housing.eligibility import (
     PersonalisedAidEligibilityCase,
     PersonalisedAidEligibilityProvision,
 )
+from law_as_code_benchmarks.catala.housing.exceptions import UncoveredOccupancy
 from law_as_code_benchmarks.catala.housing.ownership import (
     OwnershipAidCase,
     OwnershipAllowanceCase,
@@ -161,62 +164,6 @@ class AidComputationCase(ScopeCase, ABC):
             return NoAid.treated_aid
         return self.sector.output(variable)
 
-    def rented_inputs(self, tenancy: Tenancy) -> dict[str, object]:
-        """:return: The inputs of the computation of a rented home with *tenancy*."""
-        landlord = tenancy.landlord
-        return dict(
-            rent=tenancy.rent,
-            resources=self.rounded_resources,
-            disability_aid_recipient=tenancy.disability_aid_recipient,
-            assessment_date=self.assessment_date,
-            dependant_count=self.dependant_count,
-            family_situation=self.situation_for_scales,
-            zone=self.zone,
-            is_room=tenancy.is_room,
-            paying_guests_elderly_or_disabled=tenancy.paying_guests_elderly_or_disabled,
-            aid_type=self.aid_type,
-            is_house_share=tenancy.is_house_share,
-            solidarity_rent_reduction=landlord.agreement.solidarity_rent_reduction
-            if isinstance(landlord, SocialLandlord)
-            else Money.zero,
-            furnished_d842_2=tenancy.furnished_d842_2,
-            residence=self.residence,
-        )
-
-    def hall_inputs(self, resident: ResidenceHallResident) -> dict[str, object]:
-        """:return: The inputs of the computation of a residence hall for *resident*."""
-        hall = resident.hall
-        return dict(
-            residence=self.residence,
-            young_workers_hostel=hall.young_workers_hostel,
-            hall_type=hall.hall_type,
-            agreement_date=hall.agreement_date,
-            resources=self.rounded_resources,
-            dependant_count=self.dependant_count,
-            family_situation=self.situation_for_scales,
-            zone=self.zone,
-            assessment_date=self.assessment_date,
-            fee=hall.fee,
-        )
-
-    def ownership_inputs(self, buyer: HomeBuyer | LeaseToOwnBuyer) -> dict[str, object]:
-        """:return: The inputs both computations of a home bought share for *buyer*."""
-        owner = buyer.owner
-        return dict(
-            monthly_repayment=owner.monthly_repayment,
-            resources=self.rounded_resources,
-            dependant_count=self.dependant_count,
-            family_situation=self.situation_for_scales,
-            loan_signature_date=owner.loan.signature_date,
-            first_occupation_by_beneficiary=owner.first_occupation_by_beneficiary,
-            entry_date=owner.entry_date,
-            co_ownership=owner.co_ownership,
-            situation_r822_11_13_17=owner.situation_r822_11_13_17,
-            zone=self.zone,
-            assessment_date=self.assessment_date,
-            residence=self.residence,
-        )
-
 
 @dataclass(frozen=True)
 class NoAid:
@@ -239,19 +186,8 @@ class PersonalisedAidComputationCase(AidComputationCase):
 
     @cached_property
     def sector(self) -> ScopeCase | None:
-        """D823-9: a rented home, a residence hall or a home bought."""
-        occupancy = self.occupancy
-        if isinstance(occupancy, (Tenant, Subtenant)):
-            return RentedAidCase(**self.rented_inputs(occupancy.tenancy))
-        if isinstance(occupancy, ResidenceHallResident):
-            return HallAidCase(**self.hall_inputs(occupancy))
-        owner = occupancy.owner
-        return OwnershipAidCase(
-            **self.ownership_inputs(occupancy),
-            acquisition_works=owner.acquisition_works,
-            loan_type=owner.loan.loan_type,
-            building_age=owner.building_age,
-        )
+        """D823-9: the personalised aid of the dwelling's sector."""
+        return DwellingSector.from_computation(self).personalised_aid()
 
 
 @dataclass(eq=False)
@@ -268,39 +204,189 @@ class AllowanceComputationCase(AidComputationCase):
 
     @cached_property
     def sector(self) -> ScopeCase | None:
-        """D823-9 and D863-7: a rented home, a residence hall or a home bought."""
-        occupancy = self.occupancy
-        saint_pierre = self.residence == Territory.SAINT_PIERRE_AND_MIQUELON
-        if isinstance(occupancy, ResidenceHallResident) and saint_pierre:
-            hall = occupancy.hall
-            return RentedAllowanceCase(
-                **self.rented_inputs(
-                    Tenancy(
-                        landlord=None,
-                        rent=hall.fee,
-                        disability_aid_recipient=hall.disability_aid_recipient,
-                        is_room=hall.is_room,
-                        is_house_share=hall.is_house_share,
-                        paying_guests_elderly_or_disabled=False,
-                        furnished_d842_2=hall.furnished_d842_2,
-                        home_change=NotMoved(),
-                    )
-                ),
-                home_change=NotMoved(),
+        """D823-9: the allowance of the dwelling's sector."""
+        return DwellingSector.from_computation(self).allowance()
+
+
+# %% the sectors of the dwelling
+
+
+@dataclass
+class DwellingSector(ABC):
+    """A sector of D823-9: the ways of occupying a dwelling it covers, and how it computes each aid for them."""
+
+    computation: AidComputationCase
+    """The computation of the aid whatever the dwelling."""
+
+    @classproperty
+    def occupancy_types(cls) -> tuple[type[Occupancy], ...]:
+        """The ways of occupying a dwelling the sector covers."""
+        raise NotImplementedError
+
+    @abstractmethod
+    def personalised_aid(self) -> ScopeCase:
+        """:return: The computation of the personalised aid in the sector."""
+
+    @abstractmethod
+    def allowance(self) -> ScopeCase:
+        """:return: The computation of the allowance in the sector."""
+
+    @classmethod
+    def from_computation(cls, computation: AidComputationCase) -> DwellingSector:
+        """
+        :return: The sector covering how the household of *computation* occupies its dwelling.
+        :raises UncoveredOccupancy: Where no sector covers it.
+        """
+        for sector in cls.__subclasses__():
+            if isinstance(computation.occupancy, sector.occupancy_types):
+                return sector(computation)
+        raise UncoveredOccupancy(occupancy=computation.occupancy)
+
+    @property
+    def scale_inputs(self) -> dict[str, object]:
+        """The inputs the computations of every sector share."""
+        computation = self.computation
+        return dict(
+            resources=computation.rounded_resources,
+            dependant_count=computation.dependant_count,
+            family_situation=computation.situation_for_scales,
+            zone=computation.zone,
+            assessment_date=computation.assessment_date,
+            residence=computation.residence,
+        )
+
+
+@dataclass
+class RentedSector(DwellingSector):
+    """Homes rented, by a tenant or a subtenant."""
+
+    @classproperty
+    def occupancy_types(cls) -> tuple[type[Occupancy], ...]:
+        """A tenant and a subtenant."""
+        return Tenant, Subtenant
+
+    @property
+    def tenancy(self) -> Tenancy:
+        """The tenancy of the tenant or subtenant."""
+        return self.computation.occupancy.tenancy
+
+    def tenancy_inputs(self, tenancy: Tenancy) -> dict[str, object]:
+        """:return: The inputs both computations of a home rented under *tenancy* share."""
+        return dict(
+            **self.scale_inputs,
+            rent=tenancy.rent,
+            disability_aid_recipient=tenancy.disability_aid_recipient,
+            is_room=tenancy.is_room,
+            paying_guests_elderly_or_disabled=tenancy.paying_guests_elderly_or_disabled,
+            aid_type=self.computation.aid_type,
+            is_house_share=tenancy.is_house_share,
+            solidarity_rent_reduction=tenancy.landlord.solidarity_rent_reduction,
+            furnished_d842_2=tenancy.furnished_d842_2,
+        )
+
+    def personalised_aid(self) -> ScopeCase:
+        return RentedAidCase(**self.tenancy_inputs(self.tenancy))
+
+    def allowance(self) -> ScopeCase:
+        return self.tenancy_allowance(self.tenancy)
+
+    def tenancy_allowance(self, tenancy: Tenancy) -> RentedAllowanceCase:
+        """:return: The computation of the allowance of a home rented under *tenancy*."""
+        return RentedAllowanceCase(
+            **self.tenancy_inputs(tenancy), home_change=tenancy.home_change
+        )
+
+
+@dataclass
+class ResidenceHallSector(DwellingSector):
+    """Residence halls; D863-7 computes the allowance of one in Saint-Pierre-et-Miquelon as a rented home's."""
+
+    @classproperty
+    def occupancy_types(cls) -> tuple[type[Occupancy], ...]:
+        """A resident of a residence hall."""
+        return (ResidenceHallResident,)
+
+    @property
+    def hall(self) -> ResidenceHall:
+        """The hall the household lives in."""
+        return self.computation.occupancy.hall
+
+    @property
+    def hall_inputs(self) -> dict[str, object]:
+        """The inputs both computations of the hall share."""
+        hall = self.hall
+        return dict(
+            **self.scale_inputs,
+            young_workers_hostel=hall.young_workers_hostel,
+            hall_type=hall.hall_type,
+            agreement_date=hall.agreement_date,
+            fee=hall.fee,
+        )
+
+    def personalised_aid(self) -> ScopeCase:
+        return HallAidCase(**self.hall_inputs)
+
+    def allowance(self) -> ScopeCase:
+        hall = self.hall
+        if self.computation.residence == Territory.SAINT_PIERRE_AND_MIQUELON:
+            return RentedSector(self.computation).tenancy_allowance(
+                Tenancy(
+                    landlord=Landlord(),
+                    rent=hall.fee,
+                    disability_aid_recipient=hall.disability_aid_recipient,
+                    is_room=hall.is_room,
+                    is_house_share=hall.is_house_share,
+                    paying_guests_elderly_or_disabled=False,
+                    furnished_d842_2=hall.furnished_d842_2,
+                    home_change=NotMoved(),
+                )
             )
-        if isinstance(occupancy, (Tenant, Subtenant)):
-            return RentedAllowanceCase(
-                **self.rented_inputs(occupancy.tenancy),
-                home_change=occupancy.tenancy.home_change,
-            )
-        if isinstance(occupancy, ResidenceHallResident):
-            return HallAllowanceCase(
-                **self.hall_inputs(occupancy),
-                rent_category=occupancy.hall.rent_equivalence_category,
-            )
-        owner = occupancy.owner
+        return HallAllowanceCase(
+            **self.hall_inputs, rent_category=hall.rent_equivalence_category
+        )
+
+
+@dataclass
+class OwnershipSector(DwellingSector):
+    """Homes bought, outright or under a lease-to-own contract."""
+
+    @classproperty
+    def occupancy_types(cls) -> tuple[type[Occupancy], ...]:
+        """A home buyer and a lease-to-own buyer."""
+        return HomeBuyer, LeaseToOwnBuyer
+
+    @property
+    def owner(self) -> HomeOwner:
+        """The purchase."""
+        return self.computation.occupancy.owner
+
+    @property
+    def purchase_inputs(self) -> dict[str, object]:
+        """The inputs both computations of the purchase share."""
+        owner = self.owner
+        return dict(
+            **self.scale_inputs,
+            monthly_repayment=owner.monthly_repayment,
+            loan_signature_date=owner.loan.signature_date,
+            first_occupation_by_beneficiary=owner.first_occupation_by_beneficiary,
+            entry_date=owner.entry_date,
+            co_ownership=owner.co_ownership,
+            situation_r822_11_13_17=owner.situation_r822_11_13_17,
+        )
+
+    def personalised_aid(self) -> ScopeCase:
+        owner = self.owner
+        return OwnershipAidCase(
+            **self.purchase_inputs,
+            acquisition_works=owner.acquisition_works,
+            loan_type=owner.loan.loan_type,
+            building_age=owner.building_age,
+        )
+
+    def allowance(self) -> ScopeCase:
+        owner = self.owner
         return OwnershipAllowanceCase(
-            **self.ownership_inputs(occupancy),
+            **self.purchase_inputs,
             ownership_works=owner.ownership_works,
             monthly_loan_charges=owner.monthly_loan_charges,
             state_aided_social_scalable_housing=owner.state_aided_social_scalable_housing,

@@ -12,6 +12,7 @@ import pytest
 from law_as_code_benchmarks.catala.domain import Territory
 from law_as_code_benchmarks.catala.housing.calculator import (
     AllowanceComputationCase,
+    DwellingSector,
     PersonalisedAidComputationCase,
 )
 from law_as_code_benchmarks.catala.housing.domain import (
@@ -25,12 +26,14 @@ from law_as_code_benchmarks.catala.housing.domain import (
     LoanType,
     NewBuilding,
     NoFinancingAgreement,
+    Occupancy,
     OwnershipWorks,
     ResidenceHall,
     ResidenceHallRentCategory,
     ResidenceHallResident,
     ResidenceHallType,
 )
+from law_as_code_benchmarks.catala.housing.exceptions import UncoveredOccupancy
 from law_as_code_benchmarks.catala.housing.household_tables import (
     AllowancePaymentCeiling,
     HouseholdTable,
@@ -438,3 +441,52 @@ def test_a_home_bought_gets_the_allowance_of_homes_bought() -> None:
     )
     assert isinstance(case.sector, OwnershipAllowanceCase)
     assert case.sector.monthly_loan_charges == Money.from_euros(450)
+
+
+# %% the sectors of the dwelling
+
+
+class UncoveredWayOfOccupying(Occupancy):
+    """
+    A way of occupying a dwelling that no sector covers.
+    """
+
+
+def test_every_way_of_occupying_a_dwelling_is_covered_by_one_sector() -> None:
+    """
+    D823-9: each constructor of Catala's ``ModeOccupation`` falls in exactly one sector.
+    """
+    constructors = [
+        occupancy
+        for occupancy in Occupancy.subclasses()
+        if occupancy.catala_constructor is not None
+    ]
+    covering_sectors = {
+        occupancy: len(
+            [
+                sector
+                for sector in DwellingSector.__subclasses__()
+                if issubclass(occupancy, sector.occupancy_types)
+            ]
+        )
+        for occupancy in constructors
+    }
+    assert covering_sectors == dict.fromkeys(constructors, 1)
+
+
+def test_a_way_of_occupying_no_sector_covers_is_refused() -> None:
+    """
+    D823-9: no aid is computed for an occupancy outside every sector.
+    """
+    case = AllowanceComputationCase(
+        occupancy=UncoveredWayOfOccupying(),
+        resources=Money.from_euros(12000),
+        family_situation=Cohabiting(),
+        dependant_count=0,
+        zone=HousingZone.ZONE_2,
+        assessment_date=datetime.date(2023, 4, 1),
+        aid_type=AidType.SOCIAL_ALLOWANCE,
+        residence=Territory.METROPOLITAN_FRANCE,
+    )
+    with pytest.raises(UncoveredOccupancy):
+        case.sector

@@ -13,6 +13,7 @@ import pytest
 from law_as_code_benchmarks.catala.exceptions import (
     AmbiguousAnniversary,
     DurationInDays,
+    UnmappedExpression,
 )
 from law_as_code_benchmarks.catala.money import Money
 from law_as_code_benchmarks.catala.reader import (
@@ -25,6 +26,8 @@ from law_as_code_benchmarks.catala.reader import (
     ConstructorWithContent,
     Definition,
     Duration,
+    FieldAccess,
+    ListMap,
     Negation,
     Reference,
     ScopeCall,
@@ -242,3 +245,29 @@ def test_a_duration_counts_its_years_in_months_but_refuses_days() -> None:
     assert Duration(years=1, months=2).whole_months == 14
     with pytest.raises(DurationInDays):
         Duration(days=30).whole_months
+
+
+def test_a_list_mapped_to_a_scope_call_reads_one_call_per_element() -> None:
+    """
+    ``transforme chaque x parmi [...] en (résultat de S avec {...}).champ`` reads as a
+    map whose calls give each element in place of the argument naming it.
+    """
+    (test,) = read_program("mapped_calls.catala_fr").test_scopes
+    (definition,) = test.statements
+    mapped = definition.value
+    assert isinstance(mapped, ListMap)
+    assert isinstance(mapped.expression, FieldAccess)
+    assert mapped.expression.field_name == "éligibilité"
+    assert [call.arguments["date_courante"] for call in mapped.scope_calls()] == [
+        datetime.date(2021, 11, 1),
+        datetime.date(2022, 1, 1),
+    ]
+
+
+def test_a_list_mapped_to_anything_but_a_scope_call_is_refused() -> None:
+    """
+    A map whose expression calls no scope has no calls to give.
+    """
+    mapped = ListMap(element="x", elements=[1, 2], expression=Reference(parts=("x",)))
+    with pytest.raises(UnmappedExpression):
+        mapped.scope_calls()

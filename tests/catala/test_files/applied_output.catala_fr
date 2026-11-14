@@ -1,0 +1,30 @@
+> Usage de Aides_logement en tant que AL
+
+```catala
+#[test]
+déclaration champ d'application Test1:
+  calcul champ d'application AL.CalculAidePersonnaliséeLogementLocatif
+  résultat montant contenu argent
+
+champ d'application Test1:
+  définition montant égal à
+    calcul.traitement_aide_finale de calcul.aide_finale_formule_initiale
+  définition calcul.loyer_principal égal à 500 €
+  définition calcul.date_courante égal à |2022-03-01|
+  définition calcul.logement_est_chambre égal à faux
+  définition
+    calcul.âgées_ou_handicap_adultes_hébergées_onéreux_particuliers
+  égal à
+    faux
+  définition calcul.zone égal à Zone2
+  définition calcul.situation_familiale_calcul_apl égal à PersonneSeule
+  définition calcul.nombre_personnes_à_charge égal à 0
+  définition calcul.type_aide égal à AidePersonnaliséeLogement
+  définition calcul.colocation égal à faux
+  définition calcul.réduction_loyer_solidarité égal à 0 €
+  définition calcul.ressources_ménage_arrondies égal à 9000 €
+  définition calcul.bénéficiaire_aide_adulte_ou_enfant_handicapés égal à faux
+  définition calcul.logement_meublé_d842_2 égal à faux
+  définition calcul.résidence égal à Métropole
+  assertion montant = 100 €
+```

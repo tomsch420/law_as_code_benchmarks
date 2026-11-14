@@ -82,6 +82,23 @@ class UnmodelledScope(DataclassException):
 
 
 @dataclass
+class UnmappedExpression(DataclassException):
+    """
+    An expression a test maps the elements of a list to that is no scope call, nor an
+    output of one.
+    """
+
+    expression: object
+    """The expression."""
+
+    def error_message(self) -> str:
+        return f"A test maps a list to {self.expression}, which calls no scope."
+
+    def suggest_correction(self) -> str:
+        return "Teach the reader of the tests the expression."
+
+
+@dataclass
 class UnknownCatalaConstructor(DataclassException):
     """
     A constructor of a Catala enumeration that no subclass of the class the enumeration

@@ -40,18 +40,32 @@ class Money:
         return cls(cents=int(Decimal(euros) * 100))
 
     def __add__(self, other: Money) -> Money:
-        """:return: The sum of both amounts."""
+        """:return: The sum of both amounts; :data:`NotImplemented` for anything but money, which a symbolic amount answers."""
+        if not isinstance(other, Money):
+            return NotImplemented
         return Money(cents=self.cents + other.cents)
 
     def __sub__(self, other: Money) -> Money:
-        """:return: The amount less *other*."""
+        """:return: The amount less *other*; :data:`NotImplemented` for anything but money."""
+        if not isinstance(other, Money):
+            return NotImplemented
         return Money(cents=self.cents - other.cents)
 
     def __mul__(self, factor: Fraction | int) -> Money:
-        """:return: The amount times *factor*, rounded to the cent, halves away from zero, as Catala rounds."""
+        """
+        :return: The amount times *factor*, rounded to the cent, halves away from zero,
+            as Catala rounds; :data:`NotImplemented` for a factor that is no number.
+        """
+        if not isinstance(factor, (int, Fraction)):
+            return NotImplemented
         exact = self.cents * Fraction(factor)
         rounded = math.floor(abs(exact) + Fraction(1, 2))
         return Money(cents=rounded if exact >= 0 else -rounded)
+
+    def rounded_to_units(self) -> Money:
+        """:return: The amount rounded to whole units of its currency, halves away from zero, as Catala's ``arrondi`` rounds money."""
+        units = math.floor(Fraction(abs(self.cents), 100) + Fraction(1, 2))
+        return Money(cents=100 * (units if self.cents >= 0 else -units))
 
     def __truediv__(self, other: Money) -> Fraction:
         """:return: The exact ratio of the amount to *other*, as Catala divides money by money."""

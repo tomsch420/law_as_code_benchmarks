@@ -1808,12 +1808,12 @@ class NonresidentAlienIndividualTest(Provision[NonresidentAlienIndividual]):
                 )
             ).where(
                 or_(
-                    status.period.first_day == None,
-                    status.period.first_day <= year.closing_day,
+                    status.period.lower == None,
+                    status.period.lower <= year.closing_day,
                 ),
                 or_(
-                    status.period.last_day == None,
-                    status.period.last_day >= year.opening_day,
+                    status.period.upper == None,
+                    status.period.upper >= year.opening_day,
                 ),
             )
         )
@@ -1850,12 +1850,12 @@ class TrustOrPartnershipTest(Provision[TrustOrPartnership]):
                 inference(TrustOrPartnership)(taxpayer=status.party, year=year.number)
             ).where(
                 or_(
-                    status.period.first_day == None,
-                    status.period.first_day <= year.closing_day,
+                    status.period.lower == None,
+                    status.period.lower <= year.closing_day,
                 ),
                 or_(
-                    status.period.last_day == None,
-                    status.period.last_day >= year.opening_day,
+                    status.period.upper == None,
+                    status.period.upper >= year.opening_day,
                 ),
             )
         )

@@ -401,7 +401,7 @@ class StepparentRelation(MarriageToParentRelation[StepparentRelationship]):
         return [
             marriage
             for marriage in self.world.marriages
-            if marriage.period.first_day is not None
+            if marriage.period.lower is not None
         ]
 
 
@@ -628,12 +628,12 @@ class MarriedAtDeterminationTest(Provision[MarriedAtDetermination]):
                 death.day >= year.opening_day,
                 death.day <= year.closing_day,
                 or_(
-                    marriage.period.first_day == None,
-                    marriage.period.first_day <= death.day,
+                    marriage.period.lower == None,
+                    marriage.period.lower <= death.day,
                 ),
                 or_(
-                    marriage.period.last_day == None,
-                    death.day <= marriage.period.last_day,
+                    marriage.period.upper == None,
+                    death.day <= marriage.period.upper,
                 ),
             )
         ).tolist()
@@ -656,8 +656,8 @@ class MarriedAtDeterminationTest(Provision[MarriedAtDetermination]):
                 in_(spouse, marriage.spouses),
                 person != spouse,
                 or_(
-                    marriage.period.first_day == None,
-                    marriage.period.first_day <= year.closing_day,
+                    marriage.period.lower == None,
+                    marriage.period.lower <= year.closing_day,
                 ),
                 not_(
                     exists(
@@ -672,7 +672,7 @@ class MarriedAtDeterminationTest(Provision[MarriedAtDetermination]):
                 ),
                 or_(
                     and_(
-                        marriage.period.last_day == None,
+                        marriage.period.upper == None,
                         not_(
                             exists(
                                 earlier_death,
@@ -688,8 +688,8 @@ class MarriedAtDeterminationTest(Provision[MarriedAtDetermination]):
                         ),
                     ),
                     and_(
-                        marriage.period.last_day != None,
-                        marriage.period.last_day >= year.opening_day_of_following_year,
+                        marriage.period.upper != None,
+                        marriage.period.upper >= year.opening_day_of_following_year,
                     ),
                 ),
             )
@@ -845,8 +845,8 @@ class JointFilingTest(Provision[JointFiling]):
                 year.number == married.year,
                 in_(married.person, joint_return.filers),
                 in_(married.spouse, joint_return.filers),
-                joint_return.period.first_day == year.opening_day,
-                joint_return.period.last_day == year.closing_day,
+                joint_return.period.lower == year.opening_day,
+                joint_return.period.upper == year.closing_day,
             )
         )
 
@@ -959,7 +959,7 @@ class HomeOfChildTest(Provision[HomeOfChild]):
             domain=[
                 residence
                 for residence in self.world.residences
-                if residence.period.first_day is not None
+                if residence.period.lower is not None
             ],
         )
         year = variable(CalendarYear, domain=self.world.years_in_question())
@@ -983,8 +983,8 @@ class HomeOfChildTest(Provision[HomeOfChild]):
                         joint_return,
                         and_(
                             in_(child.taxpayer, joint_return.filers),
-                            joint_return.period.first_day == year.opening_day,
-                            joint_return.period.last_day == year.closing_day,
+                            joint_return.period.lower == year.opening_day,
+                            joint_return.period.upper == year.closing_day,
                         ),
                     )
                 ),
@@ -1025,7 +1025,7 @@ class AbsentSpouseTest(Provision[AbsentSpouse]):
             domain=[
                 residence
                 for residence in self.world.residences
-                if residence.period.first_day is not None
+                if residence.period.lower is not None
             ],
         )
         return an(
@@ -1044,11 +1044,11 @@ class AbsentSpouseTest(Provision[AbsentSpouse]):
                         and_(
                             in_(married.spouse, residence.residents),
                             residence.household == household,
-                            residence.period.first_day
+                            residence.period.lower
                             <= year.opening_day_of_following_year,
                             or_(
-                                residence.period.last_day == None,
-                                residence.period.last_day
+                                residence.period.upper == None,
+                                residence.period.upper
                                 >= year.opening_day_of_last_six_months,
                             ),
                         ),
@@ -1535,9 +1535,9 @@ class AgeRequirementTest(Provision[AgeRequirement]):
     def birthdays(self) -> list[Birth]:
         """:return: The stated births, and a birth on the first day of each stated relation of a child to a parent."""
         return self.world.births + [
-            Birth(person=kinship.child, day=kinship.period.first_day)
+            Birth(person=kinship.child, day=kinship.period.lower)
             for kinship in self.world.kinships
-            if kinship.period.first_day is not None
+            if kinship.period.lower is not None
         ]
 
 
@@ -1931,7 +1931,7 @@ class HouseholdMemberTest(Provision[HouseholdMemberRelationship]):
         residences = [
             residence
             for residence in self.world.residences
-            if residence.period.first_day is not None
+            if residence.period.lower is not None
         ]
         residence = variable(Residence, domain=residences)
         taxpayer_residence = variable(Residence, domain=residences)
@@ -1943,7 +1943,7 @@ class HouseholdMemberTest(Provision[HouseholdMemberRelationship]):
             domain=[
                 marriage
                 for marriage in self.world.marriages
-                if marriage.period.first_day is not None
+                if marriage.period.lower is not None
             ],
         )
         return an(
@@ -1962,15 +1962,15 @@ class HouseholdMemberTest(Provision[HouseholdMemberRelationship]):
                 in_(individual, residence.residents),
                 in_(taxpayer, taxpayer_residence.residents),
                 residence.household == taxpayer_residence.household,
-                residence.period.first_day <= year.opening_day,
-                taxpayer_residence.period.first_day <= year.opening_day,
+                residence.period.lower <= year.opening_day,
+                taxpayer_residence.period.lower <= year.opening_day,
                 or_(
-                    residence.period.last_day == None,
-                    residence.period.last_day >= year.closing_day,
+                    residence.period.upper == None,
+                    residence.period.upper >= year.closing_day,
                 ),
                 or_(
-                    taxpayer_residence.period.last_day == None,
-                    taxpayer_residence.period.last_day >= year.closing_day,
+                    taxpayer_residence.period.upper == None,
+                    taxpayer_residence.period.upper >= year.closing_day,
                 ),
                 not_(
                     exists(
@@ -1978,10 +1978,10 @@ class HouseholdMemberTest(Provision[HouseholdMemberRelationship]):
                         and_(
                             in_(individual, marriage.spouses),
                             in_(taxpayer, marriage.spouses),
-                            marriage.period.first_day <= year.closing_day,
+                            marriage.period.lower <= year.closing_day,
                             or_(
-                                marriage.period.last_day == None,
-                                marriage.period.last_day >= year.opening_day,
+                                marriage.period.upper == None,
+                                marriage.period.upper >= year.opening_day,
                             ),
                         ),
                     )
@@ -2731,7 +2731,7 @@ class DeceasedSpouseTest(Provision[DeceasedSpouse]):
             domain=[
                 marriage
                 for marriage in self.world.marriages
-                if marriage.period.first_day is not None
+                if marriage.period.lower is not None
             ],
         )
         taxpayer = variable(Party, domain=self.world.parties)
@@ -2752,10 +2752,10 @@ class DeceasedSpouseTest(Provision[DeceasedSpouse]):
                 in_(taxpayer, marriage.spouses),
                 in_(death.person, marriage.spouses),
                 taxpayer != death.person,
-                marriage.period.first_day <= death.day,
+                marriage.period.lower <= death.day,
                 or_(
-                    marriage.period.last_day == None,
-                    death.day <= marriage.period.last_day,
+                    marriage.period.upper == None,
+                    death.day <= marriage.period.upper,
                 ),
                 death.day >= year.opening_day_of_year_before_preceding,
                 death.day <= year.closing_day_of_preceding_year,
@@ -2797,7 +2797,7 @@ class HomeForDependentChildTest(Provision[HomeForDependentChild]):
         residences = [
             residence
             for residence in self.world.residences
-            if residence.period.first_day is not None
+            if residence.period.lower is not None
         ]
         residence = variable(Residence, domain=residences)
         taxpayer_residence = variable(Residence, domain=residences)
@@ -2824,15 +2824,15 @@ class HomeForDependentChildTest(Provision[HomeForDependentChild]):
                 in_(exemption.individual, residence.residents),
                 taxpayer_residence.household == maintenance.household,
                 residence.household == maintenance.household,
-                taxpayer_residence.period.first_day <= year.opening_day,
-                residence.period.first_day <= year.opening_day,
+                taxpayer_residence.period.lower <= year.opening_day,
+                residence.period.lower <= year.opening_day,
                 or_(
-                    taxpayer_residence.period.last_day == None,
-                    taxpayer_residence.period.last_day >= year.closing_day,
+                    taxpayer_residence.period.upper == None,
+                    taxpayer_residence.period.upper >= year.closing_day,
                 ),
                 or_(
-                    residence.period.last_day == None,
-                    residence.period.last_day >= year.closing_day,
+                    residence.period.upper == None,
+                    residence.period.upper >= year.closing_day,
                 ),
                 or_(
                     exists(
@@ -2841,12 +2841,12 @@ class HomeForDependentChildTest(Provision[HomeForDependentChild]):
                             child.relative == exemption.individual,
                             child.person == exemption.taxpayer,
                             or_(
-                                child.period.first_day == None,
-                                child.period.first_day <= year.opening_day,
+                                child.period.lower == None,
+                                child.period.lower <= year.opening_day,
                             ),
                             or_(
-                                child.period.last_day == None,
-                                child.period.last_day >= year.closing_day,
+                                child.period.upper == None,
+                                child.period.upper >= year.closing_day,
                             ),
                         ),
                     ),
@@ -2856,12 +2856,12 @@ class HomeForDependentChildTest(Provision[HomeForDependentChild]):
                             stepparent.relative == exemption.taxpayer,
                             stepparent.person == exemption.individual,
                             or_(
-                                stepparent.period.first_day == None,
-                                stepparent.period.first_day <= year.opening_day,
+                                stepparent.period.lower == None,
+                                stepparent.period.lower <= year.opening_day,
                             ),
                             or_(
-                                stepparent.period.last_day == None,
-                                stepparent.period.last_day >= year.closing_day,
+                                stepparent.period.upper == None,
+                                stepparent.period.upper >= year.closing_day,
                             ),
                         ),
                     ),
@@ -2935,7 +2935,7 @@ class RemarriedTaxpayerTest(Provision[RemarriedTaxpayer]):
         marriages = [
             marriage
             for marriage in self.world.marriages
-            if marriage.period.first_day is not None
+            if marriage.period.lower is not None
         ]
         previous_marriage = variable(Marriage, domain=marriages)
         remarriage = variable(Marriage, domain=marriages)
@@ -2953,8 +2953,8 @@ class RemarriedTaxpayerTest(Provision[RemarriedTaxpayer]):
                 in_(taxpayer, previous_marriage.spouses),
                 in_(taxpayer, remarriage.spouses),
                 remarriage != previous_marriage,
-                previous_marriage.period.first_day <= remarriage.period.first_day,
-                remarriage.period.first_day <= year.closing_day,
+                previous_marriage.period.lower <= remarriage.period.lower,
+                remarriage.period.lower <= year.closing_day,
             )
         )
 
@@ -3003,12 +3003,12 @@ class SpousesWithoutNonresidentAlienTest(Provision[SpousesWithoutNonresidentAlie
                         and_(
                             or_(status.person == taxpayer, status.person == spouse),
                             or_(
-                                status.period.first_day == None,
-                                status.period.first_day <= year.closing_day,
+                                status.period.lower == None,
+                                status.period.lower <= year.closing_day,
                             ),
                             or_(
-                                status.period.last_day == None,
-                                status.period.last_day >= year.opening_day,
+                                status.period.upper == None,
+                                status.period.upper >= year.opening_day,
                             ),
                         ),
                     )
@@ -3161,12 +3161,12 @@ class NonresidentAlienSpouseTest(Provision[NonresidentAlienSpouse]):
                 in_(taxpayer, marriage.spouses),
                 in_(status.person, marriage.spouses),
                 or_(
-                    status.period.first_day == None,
-                    status.period.first_day <= year.closing_day,
+                    status.period.lower == None,
+                    status.period.lower <= year.closing_day,
                 ),
                 or_(
-                    status.period.last_day == None,
-                    status.period.last_day >= year.opening_day,
+                    status.period.upper == None,
+                    status.period.upper >= year.opening_day,
                 ),
             )
         )
@@ -3222,8 +3222,8 @@ class SpouseDeceasedInYearTest(Provision[SpouseDeceasedInYear]):
                 death.day >= year.opening_day,
                 death.day <= year.closing_day,
                 or_(
-                    marriage.period.last_day == None,
-                    death.day <= marriage.period.last_day,
+                    marriage.period.upper == None,
+                    death.day <= marriage.period.upper,
                 ),
                 not_(
                     exists(
@@ -3473,12 +3473,12 @@ class HomeForQualifyingIndividualTest(Provision[HomeForQualifyingIndividual]):
                 taxpayer_residence.household == maintenance.household,
                 residence.household == maintenance.household,
                 or_(
-                    taxpayer_residence.period.first_day == None,
-                    taxpayer_residence.period.first_day <= year.opening_day,
+                    taxpayer_residence.period.lower == None,
+                    taxpayer_residence.period.lower <= year.opening_day,
                 ),
                 or_(
-                    taxpayer_residence.period.last_day == None,
-                    taxpayer_residence.period.last_day >= year.closing_day,
+                    taxpayer_residence.period.upper == None,
+                    taxpayer_residence.period.upper >= year.closing_day,
                 ),
                 CalendarYear.days_spanned(year, residence.period) >= year.half_length,
             )
@@ -3521,7 +3521,7 @@ class HomeForParentTest(Provision[HomeForParent]):
             domain=[
                 residence
                 for residence in self.world.residences
-                if residence.period.first_day is not None
+                if residence.period.lower is not None
             ],
         )
         child = variable(
@@ -3541,10 +3541,10 @@ class HomeForParentTest(Provision[HomeForParent]):
                 maintenance.year == exemption.year,
                 in_(exemption.individual, residence.residents),
                 residence.household == maintenance.household,
-                residence.period.first_day <= year.opening_day,
+                residence.period.lower <= year.opening_day,
                 or_(
-                    residence.period.last_day == None,
-                    residence.period.last_day >= year.closing_day,
+                    residence.period.upper == None,
+                    residence.period.upper >= year.closing_day,
                 ),
                 exists(
                     child,
@@ -3552,12 +3552,12 @@ class HomeForParentTest(Provision[HomeForParent]):
                         child.relative == exemption.taxpayer,
                         child.person == exemption.individual,
                         or_(
-                            child.period.first_day == None,
-                            child.period.first_day <= year.opening_day,
+                            child.period.lower == None,
+                            child.period.lower <= year.opening_day,
                         ),
                         or_(
-                            child.period.last_day == None,
-                            child.period.last_day >= year.closing_day,
+                            child.period.upper == None,
+                            child.period.upper >= year.closing_day,
                         ),
                     ),
                 ),
@@ -3632,7 +3632,7 @@ class HeadOfHouseholdHomeTest(Provision[HeadOfHouseholdHome]):
             domain=[
                 marriage
                 for marriage in self.world.marriages
-                if marriage.period.first_day is not None
+                if marriage.period.lower is not None
             ],
         )
         spouse = variable(Party, domain=self.world.parties)
@@ -3659,7 +3659,7 @@ class HeadOfHouseholdHomeTest(Provision[HeadOfHouseholdHome]):
                     in_(taxpayer, marriage.spouses),
                     in_(spouse, marriage.spouses),
                     spouse != taxpayer,
-                    marriage.period.first_day <= year.closing_day,
+                    marriage.period.lower <= year.closing_day,
                     or_(
                         and_(
                             exists(death, death.person == spouse),
@@ -3686,8 +3686,8 @@ class HeadOfHouseholdHomeTest(Provision[HeadOfHouseholdHome]):
                         and_(
                             not_(exists(no_death, no_death.person == spouse)),
                             or_(
-                                marriage.period.last_day == None,
-                                marriage.period.last_day
+                                marriage.period.upper == None,
+                                marriage.period.upper
                                 >= year.opening_day_of_following_year,
                             ),
                         ),
@@ -3750,7 +3750,7 @@ class NonresidentAlienTaxpayerTest(Provision[NonresidentAlienTaxpayer]):
             domain=[
                 status
                 for status in self.world.nonresident_alien_statuses
-                if status.period.first_day is None
+                if status.period.lower is None
             ],
         )
         year = variable(CalendarYear, domain=self.world.years_in_question())
@@ -3761,8 +3761,8 @@ class NonresidentAlienTaxpayerTest(Provision[NonresidentAlienTaxpayer]):
                 )
             ).where(
                 or_(
-                    status.period.last_day == None,
-                    status.period.last_day >= year.opening_day,
+                    status.period.upper == None,
+                    status.period.upper >= year.opening_day,
                 )
             )
         ).tolist()
@@ -3774,7 +3774,7 @@ class NonresidentAlienTaxpayerTest(Provision[NonresidentAlienTaxpayer]):
             domain=[
                 status
                 for status in self.world.nonresident_alien_statuses
-                if status.period.first_day is not None
+                if status.period.lower is not None
             ],
         )
         year = variable(CalendarYear, domain=self.world.years_in_question())
@@ -3784,10 +3784,10 @@ class NonresidentAlienTaxpayerTest(Provision[NonresidentAlienTaxpayer]):
                     taxpayer=status.person, year=year.number, day=year.closing_day
                 )
             ).where(
-                status.period.first_day <= year.closing_day,
+                status.period.lower <= year.closing_day,
                 or_(
-                    status.period.last_day == None,
-                    status.period.last_day >= year.closing_day,
+                    status.period.upper == None,
+                    status.period.upper >= year.closing_day,
                 ),
             )
         ).tolist()
@@ -3851,12 +3851,12 @@ class HouseholdMemberDependentTest(Provision[HouseholdMemberDependent]):
             ).where(
                 year.number == member.year,
                 or_(
-                    member.period.first_day == None,
-                    member.period.first_day <= year.opening_day,
+                    member.period.lower == None,
+                    member.period.lower <= year.opening_day,
                 ),
                 or_(
-                    member.period.last_day == None,
-                    member.period.last_day >= year.closing_day,
+                    member.period.upper == None,
+                    member.period.upper >= year.closing_day,
                 ),
                 not_(
                     exists(
@@ -3899,12 +3899,12 @@ class HouseholdMemberDependentTest(Provision[HouseholdMemberDependent]):
                             relationship.individual == member.individual,
                             relationship.taxpayer == member.taxpayer,
                             or_(
-                                relationship.period.first_day == None,
-                                relationship.period.first_day <= year.opening_day,
+                                relationship.period.lower == None,
+                                relationship.period.lower <= year.opening_day,
                             ),
                             or_(
-                                relationship.period.last_day == None,
-                                relationship.period.last_day <= year.closing_day,
+                                relationship.period.upper == None,
+                                relationship.period.upper <= year.closing_day,
                             ),
                         ),
                     )

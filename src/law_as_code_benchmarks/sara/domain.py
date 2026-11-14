@@ -516,7 +516,7 @@ class Birth(Symbol):
 
     def period_under_age_21(self, days_until_21: int = 7_671) -> Period:
         """:return: The days before the person turns 21, as SARA's program counts them: those before *days_until_21* days after the birth."""
-        return Period(last_day=self.day + datetime.timedelta(days=days_until_21 - 1))
+        return Period(upper=self.day + datetime.timedelta(days=days_until_21 - 1))
 
 
 @dataclass(eq=False)
@@ -708,16 +708,16 @@ class CalendarYear(Symbol):
         :return: The number of days from the first to the last day the year shares with
             *period*, an open first or last day bounded by the year; negative where they share none.
         """
-        shared = Period(
-            first_day=self.opening_day, last_day=self.closing_day
-        ).intersect(period)
-        return (shared.last_day - shared.first_day).days
+        shared = Period(lower=self.opening_day, upper=self.closing_day).intersect(
+            period
+        )
+        return (shared.upper - shared.lower).days
 
     @symbolic_function
     def days_spanned(self, period: Period) -> int:
         """:return: The number of days from the first to the last day of *period*, an open first or last day taken as the year's."""
-        first_day = self.opening_day if period.first_day is None else period.first_day
-        last_day = self.closing_day if period.last_day is None else period.last_day
+        first_day = self.opening_day if period.lower is None else period.lower
+        last_day = self.closing_day if period.upper is None else period.upper
         return (last_day - first_day).days
 
     @symbolic_function
@@ -850,7 +850,7 @@ class World(AssessedCase):
         days = [
             death.day for death in self.deaths if death.person is person and death.day
         ]
-        return Period(last_day=days[0] if days else None)
+        return Period(upper=days[0] if days else None)
 
     def households(self) -> list[Household]:
         """:return: The households parties reside in, each once."""

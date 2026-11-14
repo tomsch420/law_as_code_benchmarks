@@ -63,8 +63,8 @@ class HouseholdTableFile(PathEnumeration):
         """:return: The days from the row's first day of assessment to the day before its last."""
         before = HouseholdTableFile.parsed_date(row[TableKey.ASSESSED_BEFORE])
         return Period(
-            HouseholdTableFile.parsed_date(row[TableKey.ASSESSED_FROM]),
-            None if before is None else before - datetime.timedelta(days=1),
+            lower=HouseholdTableFile.parsed_date(row[TableKey.ASSESSED_FROM]),
+            upper=None if before is None else before - datetime.timedelta(days=1),
         )
 
 

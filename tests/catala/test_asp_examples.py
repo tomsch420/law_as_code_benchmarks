@@ -361,7 +361,9 @@ def test_the_crop_on_a_day_is_grown_on_both_ends_of_its_period() -> None:
     """
     crop = Crop(
         code=CropCode.PTR,
-        period=Period(datetime.date(2023, 1, 1), datetime.date(2025, 12, 31)),
+        period=Period(
+            lower=datetime.date(2023, 1, 1), upper=datetime.date(2025, 12, 31)
+        ),
         qualification=CropQualification.PRINCIPAL,
     )
     parcel = Parcel(area_hectares=Fraction(1), crops=[crop], system=ParcelSystem.OTHER)

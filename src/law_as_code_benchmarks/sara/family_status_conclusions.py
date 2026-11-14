@@ -53,8 +53,8 @@ class Relationship(SaraConclusion):
         return (
             self.relative.name,
             self.person.name,
-            self.day_text(self.period.first_day),
-            self.day_text(self.period.last_day),
+            self.day_text(self.period.lower),
+            self.day_text(self.period.upper),
         )
 
 
@@ -600,8 +600,8 @@ class RelationshipToTaxpayer(DependencyConclusion):
         return (
             self.individual.name,
             self.taxpayer.name,
-            self.day_text(self.period.first_day),
-            self.day_text(self.period.last_day),
+            self.day_text(self.period.lower),
+            self.day_text(self.period.upper),
         )
 
 
@@ -675,8 +675,8 @@ class RelationshipThroughRelative(RelationshipToTaxpayer):
             self.individual.name,
             self.taxpayer.name,
             self.relative.name,
-            self.day_text(self.period.first_day),
-            self.day_text(self.period.last_day),
+            self.day_text(self.period.lower),
+            self.day_text(self.period.upper),
         )
 
 
@@ -729,8 +729,8 @@ class AnnualRelationship(RelationshipToTaxpayer):
             self.individual.name,
             self.taxpayer.name,
             self.year,
-            self.day_text(self.period.first_day),
-            self.day_text(self.period.last_day),
+            self.day_text(self.period.lower),
+            self.day_text(self.period.upper),
         )
 
 
@@ -797,8 +797,8 @@ class HouseholdMemberRelationship(AnnualRelationship):
             self.taxpayer.name,
             self.year,
             None if self.household is None else self.household.name,
-            self.day_text(self.period.first_day),
-            self.day_text(self.period.last_day),
+            self.day_text(self.period.lower),
+            self.day_text(self.period.upper),
         )
 
 
@@ -826,8 +826,8 @@ class SharedAbode(RelationshipToTaxpayer):
             self.individual.name,
             self.household.name,
             self.taxpayer.name,
-            self.day_text(self.period.first_day),
-            self.day_text(self.period.last_day),
+            self.day_text(self.period.lower),
+            self.day_text(self.period.upper),
             self.year,
         )
 
@@ -1375,7 +1375,7 @@ class RemarriedTaxpayer(SaraConclusion):
             self.taxpayer.name,
             self.remarriage.name,
             self.previous_marriage.name,
-            self.day_text(self.remarriage.period.first_day),
+            self.day_text(self.remarriage.period.lower),
             self.year,
         )
 

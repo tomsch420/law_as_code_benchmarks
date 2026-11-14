@@ -182,7 +182,7 @@ class ServiceOfHospitalPatient(ExcludedServiceOnDay):
     """
 
     def bounding_periods(self) -> list[Period]:
-        return [Period(first_day=self.stay.start, last_day=self.stay.end)]
+        return [Period(lower=self.stay.start, upper=self.stay.end)]
 
 
 @dataclass(eq=False)
@@ -234,8 +234,8 @@ class MarriedStudent(DayBoundConclusion):
         return self.student.bounding_periods() + [
             self.marriage.marriage.period,
             Period(
-                first_day=datetime.date(self.marriage.year, 1, 1),
-                last_day=datetime.date(self.marriage.year, 12, 31),
+                lower=datetime.date(self.marriage.year, 1, 1),
+                upper=datetime.date(self.marriage.year, 12, 31),
             ),
         ]
 
@@ -883,7 +883,7 @@ class ServiceForFamilyMemberTest(Provision[ServiceForFamilyMember]):
                     service.employer != service.employee,
                     in_(service.employer, marriage.spouses),
                     in_(service.employee, marriage.spouses),
-                    marriage.period.first_day != None,
+                    marriage.period.lower != None,
                 )
             )
         ).tolist()

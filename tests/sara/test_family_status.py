@@ -47,7 +47,7 @@ def world_of_alice_and_bob() -> World:
             Marriage(
                 name="alice_and_bob",
                 spouses=[alice, bob],
-                period=Period(first_day=datetime.date(2010, 6, 1)),
+                period=Period(lower=datetime.date(2010, 6, 1)),
             )
         ],
         calendar_years=[CalendarYear(number=2018)],
@@ -72,8 +72,8 @@ def test_spouses_making_a_joint_return_for_the_year_file_jointly() -> None:
             name="return_2018",
             filers=list(world.parties),
             period=Period(
-                first_day=datetime.date(2018, 1, 1),
-                last_day=datetime.date(2018, 12, 31),
+                lower=datetime.date(2018, 1, 1),
+                upper=datetime.date(2018, 12, 31),
             ),
         )
     ]
@@ -104,8 +104,8 @@ def test_spouses_stated_married_making_a_joint_return_file_jointly() -> None:
                 name="return_2018",
                 filers=[alice, bob],
                 period=Period(
-                    first_day=datetime.date(2018, 1, 1),
-                    last_day=datetime.date(2018, 12, 31),
+                    lower=datetime.date(2018, 1, 1),
+                    upper=datetime.date(2018, 12, 31),
                 ),
             )
         ],
@@ -156,7 +156,7 @@ def test_the_first_day_of_a_child_relation_counts_as_a_birthday() -> None:
         Kinship(
             parent=alice,
             child=charlie,
-            period=Period(first_day=datetime.date(2000, 10, 9)),
+            period=Period(lower=datetime.date(2000, 10, 9)),
         )
     ]
     assert AgeRequirementTest(world=world).holds(
@@ -185,7 +185,7 @@ def test_only_spouses_are_asked_whether_they_could_have_filed_jointly() -> None:
     alice, _ = world.parties
     world.nonresident_alien_statuses = [
         NonresidentAlienStatus(
-            person=alice, period=Period(first_day=datetime.date(1990, 3, 4))
+            person=alice, period=Period(lower=datetime.date(1990, 3, 4))
         )
     ]
     assert not SpousesWithoutNonresidentAlienTest(world=world).holds(
@@ -255,8 +255,8 @@ def test_spouses_filing_jointly_each_have_both_incomes_as_gross_income() -> None
             name="return_2018",
             filers=[alice, bob],
             period=Period(
-                first_day=datetime.date(2018, 1, 1),
-                last_day=datetime.date(2018, 12, 31),
+                lower=datetime.date(2018, 1, 1),
+                upper=datetime.date(2018, 12, 31),
             ),
         )
     ]

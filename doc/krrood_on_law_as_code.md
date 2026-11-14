@@ -60,7 +60,7 @@ overseas single-child rate falls for higher incomes. The README has the details.
 | [#949](https://github.com/cram2/cognitive_robot_abstract_machine/issues/949) | A second `alternative` inside a `refinement` attaches to the root. | Those exceptions are a top-level else-if chain. |
 | [#937](https://github.com/cram2/cognitive_robot_abstract_machine/issues/937) | A variable quantified by two `exists` in one query makes it return nothing. | One variable per `exists` (SARA). |
 | [#928](https://github.com/cram2/cognitive_robot_abstract_machine/issues/928) | A variable passed as an argument to a method call arrives as a symbolic attribute. | The method becomes a `symbolic_function`, which receives values. |
-| [#929](https://github.com/cram2/cognitive_robot_abstract_machine/issues/929) | A field named like a method of krrood's variables, such as `first`, resolves to the method. | The field is named otherwise (`first_day`). |
+| [#929](https://github.com/cram2/cognitive_robot_abstract_machine/issues/929) | A field named like a method of krrood's variables, such as `first`, resolves to the method. | The field is named otherwise (a period's first day is `lower`). |
 | [#971](https://github.com/cram2/cognitive_robot_abstract_machine/issues/971) | A module-level global named `cls` that is no class breaks importing the query language. | Scripts avoid the name. |
 | by design | A literal `True` or `False` is refused as a condition. | `RuleChain` builds an else-if chain from the branches that apply, leaving out those whose amounts are not in force. |
 

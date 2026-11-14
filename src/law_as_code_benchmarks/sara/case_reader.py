@@ -863,8 +863,8 @@ class WorldReader:
                     for spouse in self.facts.values(Relation.AGENT, event)
                 ],
                 period=Period(
-                    first_day=None if start is None else self.date(start),
-                    last_day=None if end is None else self.date(end),
+                    lower=None if start is None else self.date(start),
+                    upper=None if end is None else self.date(end),
                 ),
             )
             for start in self.facts.values(Relation.START, event) or [None]
@@ -969,8 +969,8 @@ class WorldReader:
         start = self.facts.value(Relation.START, event)
         end = self.facts.value(Relation.END, event)
         return Period(
-            first_day=None if start is None else self.date(start),
-            last_day=None if end is None else self.date(end),
+            lower=None if start is None else self.date(start),
+            upper=None if end is None else self.date(end),
         )
 
     def kinships(self) -> list[Kinship]:
@@ -1104,8 +1104,8 @@ class WorldReader:
                     individual=self.party(individual),
                     taxpayer=self.party(taxpayer),
                     period=Period(
-                        first_day=None if start is None else self.date(start),
-                        last_day=None if end is None else self.date(end),
+                        lower=None if start is None else self.date(start),
+                        upper=None if end is None else self.date(end),
                     ),
                 )
                 for individual, taxpayer, start, end in self.stated_arguments(
@@ -1150,8 +1150,8 @@ class WorldReader:
                     if household is None
                     else self.households.get(self.text(household)),
                     period=Period(
-                        first_day=None if start is None else self.date(start),
-                        last_day=None if end is None else self.date(end),
+                        lower=None if start is None else self.date(start),
+                        upper=None if end is None else self.date(end),
                     ),
                 )
                 for individual, taxpayer, year, household, start, end in (

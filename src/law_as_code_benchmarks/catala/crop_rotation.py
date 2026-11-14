@@ -799,7 +799,7 @@ class Crop(CatalaRecord):
             values
             | {
                 "période": Period(
-                    first_day=period.fields["début"], last_day=period.fields["fin"]
+                    lower=period.fields["début"], upper=period.fields["fin"]
                 )
             }
         )
@@ -822,19 +822,27 @@ class ParcelSystem(StrEnum):
 class RotationCalendar:
     """The days the criteria of the 2025 campaign look at."""
 
-    campaign: Period = Period(datetime.date(2025, 1, 1), datetime.date(2025, 12, 31))
+    campaign: Period = field(
+        default_factory=lambda: Period(
+            lower=datetime.date(2025, 1, 1), upper=datetime.date(2025, 12, 31)
+        )
+    )
     """The year assessed by the annual criterion."""
 
-    principal_crop_window: Period = Period(
-        datetime.date(2025, 3, 1), datetime.date(2025, 7, 15)
+    principal_crop_window: Period = field(
+        default_factory=lambda: Period(
+            lower=datetime.date(2025, 3, 1), upper=datetime.date(2025, 7, 15)
+        )
     )
     """The days a main crop of the campaign must be grown on some of."""
 
     secondary_crop_deadline: datetime.date = datetime.date(2025, 11, 15)
     """The day a secondary crop of the campaign must be sown by."""
 
-    multi_year_period: Period = Period(
-        datetime.date(2022, 1, 1), datetime.date(2025, 12, 31)
+    multi_year_period: Period = field(
+        default_factory=lambda: Period(
+            lower=datetime.date(2022, 1, 1), upper=datetime.date(2025, 12, 31)
+        )
     )
     """The four years the multi-year criterion looks back on."""
 
@@ -894,13 +902,13 @@ class Parcel(CatalaRecord):
         rotated = False
         for crop in parcel.crops:
             if (
-                crop.period.first_day < calendar.campaign.last_day
-                and crop.period.last_day > calendar.campaign.first_day
+                crop.period.lower < calendar.campaign.upper
+                and crop.period.upper > calendar.campaign.lower
             ):
                 match crop.qualification:
                     case CropQualification.SECONDARY:
                         in_place &= (
-                            crop.period.first_day <= calendar.secondary_crop_deadline
+                            crop.period.lower <= calendar.secondary_crop_deadline
                         )
                     case CropQualification.PRINCIPAL:
                         in_place &= crop.period.overlaps(calendar.principal_crop_window)
@@ -940,7 +948,7 @@ class Parcel(CatalaRecord):
         return all(
             any(
                 crop.qualification == CropQualification.SECONDARY
-                and crop.period.first_day <= datetime.date(year, 11, 15)
+                and crop.period.lower <= datetime.date(year, 11, 15)
                 for crop in parcel.crops
             )
             for year in calendar.secondary_crop_years
@@ -958,7 +966,7 @@ class Parcel(CatalaRecord):
         """
         return any(
             crop.code in {CropCode.SNE, CropCode.MIS}
-            or (crop.period.last_day - crop.period.first_day).days >= 365
+            or (crop.period.upper - crop.period.lower).days >= 365
             for crop in parcel.crops_grown_during(calendar.multi_year_period)
         )
 

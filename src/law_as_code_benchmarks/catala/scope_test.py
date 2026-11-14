@@ -37,6 +37,7 @@ from law_as_code_benchmarks.catala.reader import (
     ConstructorPattern,
     ConstructorWithContent,
     Definition,
+    FieldAccess,
     ListMap,
     Reference,
     ScopeBody,
@@ -45,6 +46,13 @@ from law_as_code_benchmarks.catala.reader import (
 )
 
 # %% tests
+
+
+class CatalaListFunction(StrEnum):
+    """The functions of Catala's standard library a test may assert of an output list."""
+
+    MONEY_SUM = "Argent.somme"
+    """The sum of a list of money."""
 
 
 class CatalaTest(ABC):
@@ -100,9 +108,10 @@ class CatalaRecord:
     @classmethod
     def converted(cls, value: CatalaValue, field_type: Any) -> Any:
         """
-        :return: *value* as *field_type*: a structure as its record, an enumeration's
-            constructor as the member of that name, each element of a list, a whole
-            number as a fraction where one is asked; any other value as it is.
+        :return: *value* as *field_type*: a structure as its record, or a call of an
+            interface scope filling the record's defaults; an enumeration's constructor
+            as the member of that name, each element of a list, a whole number as a
+            fraction where one is asked; any other value as it is.
         """
         origin = get_origin(field_type)
         if origin is list:
@@ -116,6 +125,12 @@ class CatalaRecord:
             ]
         if not inspect.isclass(field_type):
             return value
+        if (
+            issubclass(field_type, CatalaRecord)
+            and isinstance(value, FieldAccess)
+            and isinstance(value.value, ScopeCall)
+        ):
+            return field_type.from_catala(value.value.arguments)
         if issubclass(field_type, CatalaVariant) and isinstance(
             value, (ConstructorWithContent, Reference)
         ):
@@ -285,6 +300,12 @@ class OutputAssertion:
     argument_output: str | None = None
     """The output the output, a function, is applied to; None for an output that is no function."""
 
+    summed: bool = False
+    """Whether the assertion is of the sum of the output, a list of money."""
+
+    mapped_field: str | None = None
+    """The field of each element of the output, a list of structures, that the assertion is of; None for the elements themselves."""
+
     def is_reproduced(self) -> bool:
         """
         :return: Whether the provisions conclude the value for the output, applied to
@@ -295,6 +316,10 @@ class OutputAssertion:
         if self.argument_output is not None:
             argument = self.case.output(self.argument_output)
             concluded = None if argument is None else concluded(argument)
+        if self.mapped_field is not None and concluded is not None:
+            concluded = [element.fields[self.mapped_field] for element in concluded]
+        if self.summed and concluded is not None:
+            concluded = sum(concluded, Money.zero)
         if isinstance(self.expected, ConstructorPattern):
             return self.expected.is_matched_by(concluded)
         if isinstance(self.expected, Reference) and isinstance(concluded, StrEnum):
@@ -326,6 +351,39 @@ class ScopeTest(CatalaTest):
         return all(assertion.is_reproduced() for assertion in self.assertions) and all(
             case.concludes_every_output() for case in self.unasserted_cases
         )
+
+    @staticmethod
+    def interface_results_resolved(
+        arguments: dict[str, CatalaValue],
+        scope: ScopeBody,
+        inputs: dict[str, dict[str, CatalaValue]],
+    ) -> dict[str, CatalaValue]:
+        """
+        :return: *arguments* with each output of a subscope *scope* declares replaced by
+            the call of that subscope with the inputs the test gives it, which the
+            record it fills reads as its defaults.
+        """
+
+        def resolved(value: CatalaValue) -> CatalaValue:
+            """:return: *value*, each output of a declared subscope within it replaced."""
+            match value:
+                case Reference(parts=(subscope, output)) if subscope in scope.subscopes:
+                    return FieldAccess(
+                        value=ScopeCall(
+                            scope=Reference(parts=(scope.subscopes[subscope],)),
+                            arguments=inputs[subscope],
+                        ),
+                        field_name=output,
+                    )
+                case ConstructorWithContent():
+                    return ConstructorWithContent(
+                        constructor=value.constructor, content=resolved(value.content)
+                    )
+                case list():
+                    return [resolved(element) for element in value]
+            return value
+
+        return {name: resolved(argument) for name, argument in arguments.items()}
 
     @classmethod
     def from_scope(
@@ -388,14 +446,22 @@ class ScopeTest(CatalaTest):
             for expression, _ in asserted
             if isinstance(expression, Reference)
         }
-        for variable, _ in program.stated_results.get(scope.name, {}).items():
-            if variable in outputs and variable not in asserted_variables:
+        for variable in program.stated_results.get(scope.name, {}):
+            if variable in asserted_variables:
+                continue
+            if variable in outputs:
                 asserted.append(
                     (
                         Reference(parts=(variable,)),
                         program.stated_result(scope.name, variable),
                     )
                 )
+            elif variable in subscopes and variable not in scope.subscopes:
+                result = program.stated_result(scope.name, variable)
+                asserted += [
+                    (Reference(parts=(variable, output)), value)
+                    for output, value in result.fields.items()
+                ]
         case_types = {case.catala_scope: case for case in cases}
         built = {}
         assertions = []
@@ -403,6 +469,20 @@ class ScopeTest(CatalaTest):
             if isinstance(expression, Reference) and expression.parts[0] in outputs:
                 expression = outputs[expression.parts[0]]
             argument_output = None
+            summed = (
+                isinstance(expression, Application)
+                and ".".join(expression.function.parts) == CatalaListFunction.MONEY_SUM
+            )
+            mapped_field = None
+            if summed:
+                expression = expression.argument
+            match expression:
+                case ListMap(
+                    element=element,
+                    elements=Reference(parts=(_, _)) as elements,
+                    expression=Reference(parts=(mapped, field_name)),
+                ) if mapped == element:
+                    expression, mapped_field = elements, field_name
             if isinstance(expression, Application):
                 argument_output = expression.argument.last_part
                 expression = expression.function
@@ -413,13 +493,17 @@ class ScopeTest(CatalaTest):
             if scope_name not in case_types:
                 raise UnmodelledScope(scope=scope_name)
             if subscope not in built:
-                built[subscope] = case_types[scope_name].from_catala(inputs[subscope])
+                built[subscope] = case_types[scope_name].from_catala(
+                    cls.interface_results_resolved(inputs[subscope], scope, inputs)
+                )
             assertions.append(
                 OutputAssertion(
                     case=built[subscope],
                     variable=variable,
                     expected=program.resolve(expected),
                     argument_output=argument_output,
+                    summed=summed,
+                    mapped_field=mapped_field,
                 )
             )
         unasserted_cases = []
@@ -427,7 +511,9 @@ class ScopeTest(CatalaTest):
             if subscopes[result] not in case_types:
                 raise UnmodelledScope(scope=subscopes[result])
             unasserted_cases.append(
-                case_types[subscopes[result]].from_catala(inputs[result])
+                case_types[subscopes[result]].from_catala(
+                    cls.interface_results_resolved(inputs[result], scope, inputs)
+                )
             )
         return cls(
             file_name=file_name,

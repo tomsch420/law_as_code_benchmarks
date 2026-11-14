@@ -3,3 +3,4 @@ CLAUDE.local.md
 __pycache__/
 *.egg-info/
 resources/openfisca/
+resources/catala_impot_revenu/

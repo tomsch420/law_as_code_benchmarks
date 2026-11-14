@@ -5,12 +5,31 @@ Tests of mapping Catala structures onto domain dataclasses, and of tests about s
 from __future__ import annotations
 
 import datetime
+from dataclasses import dataclass
+from enum import StrEnum
 from fractions import Fraction
 from pathlib import Path
 
 import pytest
+from krrood.ormatic.utils import classproperty
 
-from law_as_code_benchmarks.catala.exceptions import UnmodelledScope
+from law_as_code_benchmarks.catala.exceptions import (
+    UnknownCatalaConstructor,
+    UnmodelledScope,
+)
+from law_as_code_benchmarks.catala.housing.domain import (
+    ChildCareSharing,
+    Dependant,
+    FamilySituation,
+    Married,
+    NoSharedResidence,
+    SharedResidence,
+    Single,
+)
+from law_as_code_benchmarks.catala.housing.eligibility import (
+    EligibilityOutput,
+    HousingAllowanceType,
+)
 from law_as_code_benchmarks.catala.money import Money
 from law_as_code_benchmarks.catala.new_south_wales_community_gaming import (
     ClubBingoCase,
@@ -26,11 +45,16 @@ from law_as_code_benchmarks.catala.reader import (
     CatalaLanguage,
     CatalaProgram,
     CatalaTestReader,
+    CatalaValue,
     ConstructorWithContent,
     Reference,
     StructureLiteral,
 )
-from law_as_code_benchmarks.catala.scope_test import ScopeTest
+from law_as_code_benchmarks.catala.scope_test import (
+    OutputAssertion,
+    ScopeCase,
+    ScopeTest,
+)
 from law_as_code_benchmarks.catala.united_states_tax_code import (
     Period,
     PersonalData,
@@ -105,6 +129,61 @@ def test_a_list_of_structures_and_an_enumeration_with_content_map_onto_a_record(
     )
 
 
+# %% enumerations whose constructors carry content
+
+
+def test_a_constructor_with_content_maps_onto_its_subclass_holding_the_content() -> (
+    None
+):
+    """
+    A constructor given its content becomes an instance of the subclass standing for it,
+    whatever module prefix leads to the constructor.
+    """
+    situation = FamilySituation.from_constructor(
+        ConstructorWithContent(
+            constructor=Reference(parts=("AL", "Mariés")),
+            content=datetime.date(2010, 11, 26),
+        )
+    )
+    assert isinstance(situation, Married)
+    assert situation.wedding_date == datetime.date(2010, 11, 26)
+
+
+def test_a_bare_constructor_maps_onto_its_subclass() -> None:
+    """
+    A constructor without content becomes an instance of its subclass.
+    """
+    assert isinstance(
+        FamilySituation.from_constructor(Reference(parts=("Célibataire",))), Single
+    )
+
+
+def test_a_whole_number_content_becomes_a_fraction_where_one_is_asked() -> None:
+    """
+    A coefficient written as a whole number becomes the fraction the field holds.
+    """
+    sharing = ChildCareSharing.from_constructor(
+        ConstructorWithContent(
+            constructor=Reference(parts=("GardeAlternéeCoefficientPriseEnCharge",)),
+            content=1,
+        )
+    )
+    assert isinstance(sharing, SharedResidence)
+    assert sharing.coefficient == Fraction(1)
+    assert isinstance(
+        ChildCareSharing.from_constructor(Reference(parts=("PasDeGardeAlternée",))),
+        NoSharedResidence,
+    )
+
+
+def test_a_constructor_no_subclass_stands_for_is_refused() -> None:
+    """
+    A constructor of no known subclass is refused, not mapped onto the base class.
+    """
+    with pytest.raises(UnknownCatalaConstructor):
+        Dependant.from_constructor(Reference(parts=("Inconnu",)))
+
+
 # %% scope tests
 
 
@@ -153,6 +232,64 @@ def test_a_scope_called_without_assertions_needs_every_output_concluded() -> Non
     )
     assert case.output(HiringGrantOutput.AMOUNT) is None
     assert not test.is_reproduced()
+
+
+def test_a_variable_defined_as_a_subscope_output_stands_for_that_output() -> None:
+    """
+    A test defining its own variable as a subscope's output and asserting the variable
+    asserts the output itself.
+    """
+    program = read_french_program("output_alias.catala_fr")
+    (scope,) = program.test_scopes
+    test = ScopeTest.from_scope("output_alias.catala_fr", scope, program, [HiringCase])
+    (assertion,) = test.assertions
+    assert (assertion.variable, assertion.expected) == (
+        HiringGrantOutput.ELIGIBILITY,
+        True,
+    )
+    assert assertion.case.contract_kind == ContractKind.PERMANENT
+
+
+@dataclass(eq=False)
+class ConstantAllowanceCase(ScopeCase):
+    """
+    A case whose one output is always the family housing allowance.
+    """
+
+    @classproperty
+    def catala_scope(cls) -> str:
+        """
+        A scope of no example.
+        """
+        return "Constante"
+
+    @classproperty
+    def catala_outputs(cls) -> type[StrEnum]:
+        """
+        :class:`EligibilityOutput`.
+        """
+        return EligibilityOutput
+
+    def output(self, variable: str) -> CatalaValue:
+        return HousingAllowanceType.FAMILY
+
+
+def test_an_enumeration_output_matches_a_qualified_constructor_of_its_name() -> None:
+    """
+    An output valued as an enumeration's member matches the constructor of that name
+    whatever module prefix leads to it, and no other constructor.
+    """
+    case = ConstantAllowanceCase()
+    family, social = (
+        Reference(parts=("AL", "TypeÉligibilitéAllocationLogement", allowance.value))
+        for allowance in (HousingAllowanceType.FAMILY, HousingAllowanceType.SOCIAL)
+    )
+    assert OutputAssertion(
+        case=case, variable=EligibilityOutput.ELIGIBILITY, expected=family
+    ).is_reproduced()
+    assert not OutputAssertion(
+        case=case, variable=EligibilityOutput.ELIGIBILITY, expected=social
+    ).is_reproduced()
 
 
 def test_a_call_of_a_scope_no_case_models_is_refused() -> None:

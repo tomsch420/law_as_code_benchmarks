@@ -12,6 +12,7 @@ from enum import StrEnum
 from law_as_code_benchmarks.catala.case import CatalaTestFile, FamilyBenefitsTest
 from law_as_code_benchmarks.catala.crop_rotation import CropRotationTestFile
 from law_as_code_benchmarks.catala.fibre_connection_grant import FibreGrantTestFile
+from law_as_code_benchmarks.catala.housing.eligibility import EligibilityTestFile
 from law_as_code_benchmarks.catala.inheritance import InheritanceTestFile
 from law_as_code_benchmarks.catala.new_south_wales_community_gaming import (
     NewSouthWalesCommunityGamingTestFile,
@@ -76,6 +77,11 @@ class CatalaExample(StrEnum):
     arts.
     """
 
+    HOUSING_AIDS = "aides_logement"
+    """
+    The French personal housing aids.
+    """
+
     def read_tests(self) -> list[CatalaTest]:
         """:return: The tests of every test file of the example, in order."""
         match self:
@@ -99,6 +105,8 @@ class CatalaExample(StrEnum):
                 test_files = list(FibreGrantTestFile)
             case CatalaExample.PERFORMING_ARTS_HIRING_GRANT:
                 test_files = list(HiringGrantTestFile)
+            case CatalaExample.HOUSING_AIDS:
+                test_files = list(EligibilityTestFile)
         return [test for test_file in test_files for test in test_file.read_tests()]
 
 

@@ -22,6 +22,7 @@ from law_as_code_benchmarks.catala.assessment import AssessedCase, CatalaConclus
 from law_as_code_benchmarks.catala.exceptions import (
     AmbiguousConclusion,
     UnexpectedCatalaStatement,
+    UnknownCatalaConstructor,
     UnmodelledScope,
 )
 from law_as_code_benchmarks.catala.money import Money
@@ -33,6 +34,7 @@ from law_as_code_benchmarks.catala.reader import (
     CatalaTestReader,
     CatalaValue,
     ConstructorPattern,
+    ConstructorWithContent,
     Definition,
     Reference,
     ScopeBody,
@@ -112,6 +114,10 @@ class CatalaRecord:
             ]
         if not inspect.isclass(field_type):
             return value
+        if issubclass(field_type, CatalaVariant) and isinstance(
+            value, (ConstructorWithContent, Reference)
+        ):
+            return field_type.from_constructor(value)
         if issubclass(field_type, CatalaRecord) and isinstance(value, StructureLiteral):
             return field_type.from_catala(value.fields)
         if issubclass(field_type, Enum) and isinstance(value, Reference):
@@ -119,6 +125,58 @@ class CatalaRecord:
         if field_type is Fraction and isinstance(value, int):
             return Fraction(value)
         return value
+
+
+@dataclass
+class CatalaVariant(CatalaRecord, ABC):
+    """
+    A Catala enumeration whose constructors carry content, mapped onto a class with one
+    subclass per constructor. A subclass holds the constructor's content in the field
+    :attr:`content_field` names.
+    """
+
+    @classproperty
+    def catala_constructor(cls) -> str | None:
+        """The constructor the class stands for; None for the class of the whole enumeration."""
+        return None
+
+    @classproperty
+    def content_field(cls) -> str | None:
+        """The field holding the constructor's content; None for a constructor without content."""
+        return None
+
+    @classmethod
+    def from_constructor(cls, value: ConstructorWithContent | Reference) -> Self:
+        """
+        :return: The instance of the subclass standing for *value*'s constructor, holding
+            its content.
+        :raises UnknownCatalaConstructor: Where no subclass stands for it.
+        """
+        constructor = (
+            value.constructor if isinstance(value, ConstructorWithContent) else value
+        ).last_part
+        variant = next(
+            (
+                subclass
+                for subclass in cls.subclasses()
+                if subclass.catala_constructor == constructor
+            ),
+            None,
+        )
+        if variant is None:
+            raise UnknownCatalaConstructor(enumeration=cls, constructor=constructor)
+        if isinstance(value, Reference):
+            return variant()
+        return variant.from_catala({variant.content_field: value.content})
+
+    @classmethod
+    def subclasses(cls) -> list[type[CatalaVariant]]:
+        """:return: The class and every class deriving from it."""
+        return [cls] + [
+            descendant
+            for subclass in cls.__subclasses__()
+            for descendant in subclass.subclasses()
+        ]
 
 
 # %% scope cases
@@ -223,10 +281,15 @@ class OutputAssertion:
     """Its value, or the constructor its value is of."""
 
     def is_reproduced(self) -> bool:
-        """:return: Whether the provisions conclude the value for the output, or one of the constructor."""
+        """
+        :return: Whether the provisions conclude the value for the output, or one of the
+            constructor; an enumeration's member matches a constructor of its name.
+        """
         concluded = self.case.output(self.variable)
         if isinstance(self.expected, ConstructorPattern):
             return self.expected.is_matched_by(concluded)
+        if isinstance(self.expected, Reference) and isinstance(concluded, StrEnum):
+            return concluded == self.expected.last_part
         return concluded == self.expected
 
 
@@ -268,7 +331,8 @@ class ScopeTest(CatalaTest):
         :param scope: A test scope.
         :param program: The file's scopes, which resolve variables of its data scopes.
         :param cases: The kinds of case the example models, one per scope.
-        :return: The test the scope states, about the subscopes the example models.
+        :return: The test the scope states, about the subscopes the example models; a
+            variable of the test defined as a subscope's output stands for that output.
         :raises UnmodelledScope: Where the test asserts something of a subscope, or
             calls a scope, that no case models.
         """
@@ -277,6 +341,7 @@ class ScopeTest(CatalaTest):
             subscope: {} for subscope in subscopes
         }
         asserted = []
+        outputs: dict[str, Reference] = {}
         for statement in scope.statements:
             match statement:
                 case Definition(target=Reference(parts=(subscope, variable))):
@@ -286,6 +351,11 @@ class ScopeTest(CatalaTest):
                 ):
                     subscopes[result] = call.scope.last_part
                     inputs[result] = program.resolve(call).arguments
+                case Definition(
+                    target=Reference(parts=(result,)),
+                    value=Reference(parts=(_, _)) as output,
+                ):
+                    outputs[result] = output
                 case Assertion():
                     asserted.append(statement.asserted_value())
                 case _:
@@ -296,6 +366,8 @@ class ScopeTest(CatalaTest):
         built = {}
         assertions = []
         for expression, expected in asserted:
+            if isinstance(expression, Reference) and expression.parts[0] in outputs:
+                expression = outputs[expression.parts[0]]
             if not (isinstance(expression, Reference) and len(expression.parts) == 2):
                 raise UnexpectedCatalaStatement(scope=scope.name, statement=expression)
             subscope, variable = expression.parts

@@ -243,9 +243,9 @@ class SchoolingStageProvision(ChildProvision[SchoolingStageOfChild]):
 class FamilyBenefitEntitlementProvision(ChildProvision[FamilyBenefitEntitlement]):
     """
     `L512-3 <https://www.legifrance.gouv.fr/codes/article_lc/LEGIARTI000041979743>`__: a child gives a right to family benefits until compulsory
-    schooling ends (1°), and after it, up to the age limit of `R512-2 <https://www.legifrance.gouv.fr/codes/article_lc/LEGIARTI000006750602>`__, while their
-    pay does not exceed the pay ceiling (2°). `L821-3 <https://www.legifrance.gouv.fr/codes/article_lc/LEGIARTI000038814972>`__ of the Code de la construction
-    et de l'habitation excepts a child receiving housing aid in their own name.
+    schooling ends (1°), and after it, up to the age limit of `R512-2 <https://www.legifrance.gouv.fr/codes/article_lc/LEGIARTI000006750602>`__, or the household's
+    stated one, while their pay does not exceed the pay ceiling (2°). `L821-3 <https://www.legifrance.gouv.fr/codes/article_lc/LEGIARTI000038814972>`__
+    excepts a child receiving housing aid in their own name.
     """
 
     @classproperty
@@ -262,6 +262,11 @@ class FamilyBenefitEntitlementProvision(ChildProvision[FamilyBenefitEntitlement]
         ceiling = variable(
             PayCeiling, domain=PayCeilingProvision(household=self.household).conclusions
         )
+        age_limit = (
+            self.age_limit
+            if self.household.stated_age_limit is None
+            else self.household.stated_age_limit
+        )
         entitlement = deduced_variable(FamilyBenefitEntitlement)
         query = an(
             entity(entitlement).where(
@@ -276,7 +281,7 @@ class FamilyBenefitEntitlementProvision(ChildProvision[FamilyBenefitEntitlement]
             with alternative(
                 stage.stage == SchoolingStage.AFTER,
                 stage.child.monthly_pay <= ceiling.amount,
-                Child.birthday(stage.child, self.age_limit) > household.assessment_date,
+                Child.birthday(stage.child, age_limit) > household.assessment_date,
             ):
                 add(
                     entitlement,

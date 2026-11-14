@@ -51,7 +51,9 @@ its Apache-2.0 license, all unchanged. The three family benefits files are in
 `allocations_familiales/tests/tests_allocations_familiales.catala_fr`,
 `allocations_familiales/tests/tests_ouverture_droits.catala_fr` and
 `prestations_familiales/tests/tests_ouverture_droits.catala_fr`. The other examples keep
-their own names, under `resources/catala/<example>/tests/`. The fibre connection grant
+their own names, under `resources/catala/<example>/tests/`. The housing aids reuse
+the family benefits model for the right a child gives to family benefits, with the age
+limit of 21, or 22 overseas, that article R823-4 of the Code de la construction sets. The fibre connection grant
 also keeps `asp/aide_fibre/ocaml/Eligibilite_commune.ml`. That file lists the postal codes
 of the communes in the decree's annex, which Catala declares as an external function.
 
@@ -83,6 +85,7 @@ python scripts/score_catala.py
 | `asp/bcae7` | crop rotation standard of the 2025 conditionality (BCAE 7), annual and multi-year criteria | 5 | 5 |
 | `asp/aide_fibre` | grant for private works connecting to optical fibre, décret n° 2025-674 | 1 | 1 |
 | `asp/fonpeps` | FONPEPS hiring grant in the performing arts, décret n° 2019-1011 | 1 | 1 |
+| `aides_logement` | French personal housing aids: eligibility | 3 | 3 |
 
 On one local run, answering a test scope in krrood took 7.6 ms at the median and 1,677 ms
 at most. The maximum is the first test scope, which pays krrood's warm-up. Catala's own

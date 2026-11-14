@@ -219,6 +219,12 @@ class Household(Symbol, AssessedCase):
     had_child_before_2012: bool = False
     """Whether the household had a child in its charge before January 1, 2012, which matters in Mayotte."""
 
+    stated_age_limit: int | None = None
+    """
+    The age limit of the right to family benefits another law sets in place of that of
+    R512-2, as the housing aids do; None where R512-2's holds.
+    """
+
     @property
     def number_of_children(self) -> int:
         """How many children are in the household's charge."""

@@ -471,6 +471,21 @@ class CatalaProgram:
     constants: list[Definition] = field(default_factory=list)
     """The values declared outside any scope, as ``declaration name content Type equals value``."""
 
+    stated_results: dict[str, dict[str, str]] = field(default_factory=dict)
+    """
+    The results Catala's command line prints for each test scope, by variable, as the
+    file's ``catala-test-cli`` blocks state them and Catala's own tests check them.
+    """
+
+    language: CatalaLanguage | None = None
+    """The language the file is written in; None for a program not read from a file."""
+
+    def stated_result(self, scope: str, variable: str) -> CatalaValue:
+        """:return: The value the command line prints for *variable* of the test scope *scope*."""
+        return CatalaTestReader.expression_grammar(self.language).parse_string(
+            self.stated_results[scope][variable], parse_all=True
+        )[0]
+
     @property
     def test_scopes(self) -> list[ScopeBody]:
         """The test scopes, in order."""
@@ -569,7 +584,19 @@ class CatalaTestReader:
             flags=re.MULTILINE,
         )
         parsed = self.program_grammar(self.language).parse_string(body, parse_all=True)
+        stated_results = {
+            scope: dict(
+                re.findall(r"^│ (\w+) = (.*?)\s*$", printed, flags=re.MULTILINE)
+            )
+            for scope, printed in re.findall(
+                r"```catala-test-cli\n\$ catala test-scope (\w+)[^\n]*\n(.*?)```",
+                text,
+                flags=re.DOTALL,
+            )
+        }
         return CatalaProgram(
+            stated_results=stated_results,
+            language=self.language,
             scopes=[
                 ScopeBody(
                     name=scope.name,

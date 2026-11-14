@@ -1,0 +1,1014 @@
+[
+ {
+  "computed_from": "1992-07-01",
+  "computed_before": "1994-07-01",
+  "francs": true,
+  "zones": {
+   "Zone1": {
+    "single": 158700,
+    "couple": 191300,
+    "by_dependants": [
+     205500,
+     211300,
+     217100,
+     222900,
+     228000
+    ],
+    "beyond_listed": 228000,
+    "each_further_dependant": 19800
+   },
+   "Zone2": {
+    "single": 139300,
+    "couple": 170600,
+    "by_dependants": [
+     184700,
+     191200,
+     197700,
+     204200,
+     218700
+    ],
+    "beyond_listed": 218700,
+    "each_further_dependant": 19100
+   },
+   "Zone3": {
+    "single": 130600,
+    "couple": 158400,
+    "by_dependants": [
+     172600,
+     179800,
+     187000,
+     194200,
+     208600
+    ],
+    "beyond_listed": 208600,
+    "each_further_dependant": 18200
+   }
+  }
+ },
+ {
+  "computed_from": "1994-07-01",
+  "computed_before": "1997-07-01",
+  "francs": true,
+  "zones": {
+   "Zone1": {
+    "single": 160400,
+    "couple": 193400,
+    "by_dependants": [
+     207800,
+     213700,
+     219600,
+     225500,
+     230500
+    ],
+    "beyond_listed": 230500,
+    "each_further_dependant": 20000
+   },
+   "Zone2": {
+    "single": 140800,
+    "couple": 172500,
+    "by_dependants": [
+     186700,
+     193300,
+     199900,
+     206500,
+     221100
+    ],
+    "beyond_listed": 221100,
+    "each_further_dependant": 19300
+   },
+   "Zone3": {
+    "single": 132000,
+    "couple": 180100,
+    "by_dependants": [
+     174500,
+     181800,
+     189100,
+     196400,
+     210900
+    ],
+    "beyond_listed": 210900,
+    "each_further_dependant": 18400
+   }
+  }
+ },
+ {
+  "computed_from": "1997-07-01",
+  "computed_before": "1998-07-01",
+  "francs": true,
+  "zones": {
+   "Zone1": {
+    "single": 163300,
+    "couple": 196900,
+    "by_dependants": [
+     211600,
+     217600,
+     223600,
+     229600,
+     234600
+    ],
+    "beyond_listed": 234600,
+    "each_further_dependant": 20400
+   },
+   "Zone2": {
+    "single": 143300,
+    "couple": 175600,
+    "by_dependants": [
+     190100,
+     196600,
+     203500,
+     210200,
+     225100
+    ],
+    "beyond_listed": 225100,
+    "each_further_dependant": 19600
+   },
+   "Zone3": {
+    "single": 134400,
+    "couple": 163000,
+    "by_dependants": [
+     177700,
+     185100,
+     192500,
+     199900,
+     214700
+    ],
+    "beyond_listed": 214700,
+    "each_further_dependant": 18700
+   }
+  }
+ },
+ {
+  "computed_from": "1998-07-01",
+  "computed_before": "1999-07-01",
+  "francs": true,
+  "zones": {
+   "Zone1": {
+    "single": 167200,
+    "couple": 201600,
+    "by_dependants": [
+     216700,
+     222800,
+     229000,
+     235100,
+     240200
+    ],
+    "beyond_listed": 240200,
+    "each_further_dependant": 20900
+   },
+   "Zone2": {
+    "single": 146700,
+    "couple": 179800,
+    "by_dependants": [
+     194700,
+     201500,
+     208400,
+     215200,
+     230500
+    ],
+    "beyond_listed": 230500,
+    "each_further_dependant": 20100
+   },
+   "Zone3": {
+    "single": 137600,
+    "couple": 166900,
+    "by_dependants": [
+     182000,
+     189500,
+     197100,
+     204700,
+     219900
+    ],
+    "beyond_listed": 219900,
+    "each_further_dependant": 19100
+   }
+  }
+ },
+ {
+  "computed_from": "1999-07-01",
+  "computed_before": "2000-07-01",
+  "francs": true,
+  "zones": {
+   "Zone1": {
+    "single": 167400,
+    "couple": 201800,
+    "by_dependants": [
+     216900,
+     223000,
+     229200,
+     235300,
+     240400
+    ],
+    "beyond_listed": 240400,
+    "each_further_dependant": 20900
+   },
+   "Zone2": {
+    "single": 146800,
+    "couple": 180000,
+    "by_dependants": [
+     194900,
+     201700,
+     208600,
+     215400,
+     230700
+    ],
+    "beyond_listed": 230700,
+    "each_further_dependant": 20100
+   },
+   "Zone3": {
+    "single": 137700,
+    "couple": 167100,
+    "by_dependants": [
+     182200,
+     189700,
+     197300,
+     204900,
+     220100
+    ],
+    "beyond_listed": 220100,
+    "each_further_dependant": 19100
+   }
+  }
+ },
+ {
+  "computed_from": "2000-07-01",
+  "computed_before": "2001-07-01",
+  "francs": true,
+  "zones": {
+   "Zone1": {
+    "single": 169100,
+    "couple": 203800,
+    "by_dependants": [
+     219100,
+     225200,
+     231500,
+     237700,
+     242800
+    ],
+    "beyond_listed": 242800,
+    "each_further_dependant": 21100
+   },
+   "Zone2": {
+    "single": 148300,
+    "couple": 181800,
+    "by_dependants": [
+     196800,
+     203700,
+     210700,
+     217600,
+     233000
+    ],
+    "beyond_listed": 233000,
+    "each_further_dependant": 20300
+   },
+   "Zone3": {
+    "single": 139100,
+    "couple": 168800,
+    "by_dependants": [
+     184000,
+     191600,
+     199300,
+     206900,
+     222300
+    ],
+    "beyond_listed": 222300,
+    "each_further_dependant": 19300
+   }
+  }
+ },
+ {
+  "computed_from": "2001-07-01",
+  "computed_before": "2002-01-01",
+  "francs": true,
+  "zones": {
+   "Zone1": {
+    "single": 171100,
+    "couple": 206200,
+    "by_dependants": [
+     221700,
+     227900,
+     234300,
+     240600,
+     245700
+    ],
+    "beyond_listed": 245700,
+    "each_further_dependant": 21400
+   },
+   "Zone2": {
+    "single": 150100,
+    "couple": 184000,
+    "by_dependants": [
+     199200,
+     206100,
+     213200,
+     220200,
+     235800
+    ],
+    "beyond_listed": 235800,
+    "each_further_dependant": 20500
+   },
+   "Zone3": {
+    "single": 140800,
+    "couple": 170800,
+    "by_dependants": [
+     186200,
+     193900,
+     201700,
+     209400,
+     225000
+    ],
+    "beyond_listed": 225000,
+    "each_further_dependant": 19500
+   }
+  }
+ },
+ {
+  "computed_from": "2002-01-01",
+  "computed_before": "2002-07-01",
+  "francs": false,
+  "zones": {
+   "Zone1": {
+    "single": 26084,
+    "couple": 31435,
+    "by_dependants": [
+     33798,
+     34743,
+     35719,
+     36679,
+     37457
+    ],
+    "beyond_listed": 37457,
+    "each_further_dependant": 3262
+   },
+   "Zone2": {
+    "single": 22883,
+    "couple": 28051,
+    "by_dependants": [
+     30368,
+     31420,
+     32502,
+     33569,
+     35947
+    ],
+    "beyond_listed": 35947,
+    "each_further_dependant": 3125
+   },
+   "Zone3": {
+    "single": 21465,
+    "couple": 26038,
+    "by_dependants": [
+     28386,
+     29560,
+     30749,
+     31923,
+     34301
+    ],
+    "beyond_listed": 34301,
+    "each_further_dependant": 2973
+   }
+  }
+ },
+ {
+  "computed_from": "2002-07-01",
+  "computed_before": "2003-07-01",
+  "francs": false,
+  "zones": {
+   "Zone1": {
+    "single": 26397,
+    "couple": 31812,
+    "by_dependants": [
+     34204,
+     35160,
+     36148,
+     37119,
+     37906
+    ],
+    "beyond_listed": 37906,
+    "each_further_dependant": 3301
+   },
+   "Zone2": {
+    "single": 23158,
+    "couple": 28388,
+    "by_dependants": [
+     30732,
+     31797,
+     32892,
+     33972,
+     36378
+    ],
+    "beyond_listed": 36378,
+    "each_further_dependant": 3163
+   },
+   "Zone3": {
+    "single": 21723,
+    "couple": 26350,
+    "by_dependants": [
+     28727,
+     29915,
+     31118,
+     32306,
+     34713
+    ],
+    "beyond_listed": 34713,
+    "each_further_dependant": 3009
+   }
+  }
+ },
+ {
+  "computed_from": "2003-07-01",
+  "computed_before": "2005-09-01",
+  "francs": false,
+  "zones": {
+   "Zone1": {
+    "single": 26714,
+    "couple": 32194,
+    "by_dependants": [
+     34614,
+     35582,
+     36582,
+     37564,
+     38361
+    ],
+    "beyond_listed": 38361,
+    "each_further_dependant": 3341
+   },
+   "Zone2": {
+    "single": 23436,
+    "couple": 28729,
+    "by_dependants": [
+     31101,
+     32179,
+     33287,
+     34380,
+     36815
+    ],
+    "beyond_listed": 36815,
+    "each_further_dependant": 3201
+   },
+   "Zone3": {
+    "single": 21984,
+    "couple": 26666,
+    "by_dependants": [
+     29072,
+     30274,
+     31491,
+     32694,
+     35130
+    ],
+    "beyond_listed": 35130,
+    "each_further_dependant": 3045
+   }
+  }
+ },
+ {
+  "computed_from": "2005-09-01",
+  "computed_before": "2007-01-01",
+  "francs": false,
+  "zones": {
+   "Zone1": {
+    "single": 27195,
+    "couple": 32773,
+    "by_dependants": [
+     35237,
+     36222,
+     37240,
+     38240,
+     39051
+    ],
+    "beyond_listed": 39051,
+    "each_further_dependant": 3401
+   },
+   "Zone2": {
+    "single": 23858,
+    "couple": 29246,
+    "by_dependants": [
+     31661,
+     32758,
+     33886,
+     34999,
+     37478
+    ],
+    "beyond_listed": 37478,
+    "each_further_dependant": 3259
+   },
+   "Zone3": {
+    "single": 22380,
+    "couple": 27146,
+    "by_dependants": [
+     29595,
+     30819,
+     32058,
+     33282,
+     35762
+    ],
+    "beyond_listed": 35762,
+    "each_further_dependant": 3100
+   }
+  }
+ },
+ {
+  "computed_from": "2007-01-01",
+  "computed_before": "2008-01-01",
+  "francs": false,
+  "zones": {
+   "Zone1": {
+    "single": 27956,
+    "couple": 33691,
+    "by_dependants": [
+     36224,
+     37236,
+     38283,
+     39311,
+     40144
+    ],
+    "beyond_listed": 40144,
+    "each_further_dependant": 3496
+   },
+   "Zone2": {
+    "single": 24526,
+    "couple": 30065,
+    "by_dependants": [
+     32548,
+     33675,
+     34865,
+     35979,
+     38527
+    ],
+    "beyond_listed": 38527,
+    "each_further_dependant": 3350
+   },
+   "Zone3": {
+    "single": 23007,
+    "couple": 27906,
+    "by_dependants": [
+     30424,
+     31682,
+     32956,
+     34214,
+     36733
+    ],
+    "beyond_listed": 36733,
+    "each_further_dependant": 3187
+   }
+  }
+ },
+ {
+  "computed_from": "2008-01-01",
+  "computed_before": "2009-01-01",
+  "francs": false,
+  "zones": {
+   "Zone1": {
+    "single": 28728,
+    "couple": 34621,
+    "by_dependants": [
+     37224,
+     38264,
+     39340,
+     40396,
+     41252
+    ],
+    "beyond_listed": 41252,
+    "each_further_dependant": 3592
+   },
+   "Zone2": {
+    "single": 25203,
+    "couple": 30895,
+    "by_dependants": [
+     33446,
+     34604,
+     35796,
+     36972,
+     39590
+    ],
+    "beyond_listed": 39590,
+    "each_further_dependant": 3442
+   },
+   "Zone3": {
+    "single": 23642,
+    "couple": 28676,
+    "by_dependants": [
+     31264,
+     32556,
+     33866,
+     35158,
+     37778
+    ],
+    "beyond_listed": 37778,
+    "each_further_dependant": 3275
+   }
+  }
+ },
+ {
+  "computed_from": "2009-01-01",
+  "computed_before": "2010-01-01",
+  "francs": false,
+  "zones": {
+   "Zone1": {
+    "single": 29575,
+    "couple": 35642,
+    "by_dependants": [
+     38322,
+     39393,
+     40501,
+     41588,
+     42469
+    ],
+    "beyond_listed": 42469,
+    "each_further_dependant": 3698
+   },
+   "Zone2": {
+    "single": 25946,
+    "couple": 31806,
+    "by_dependants": [
+     34433,
+     35625,
+     36852,
+     38063,
+     40758
+    ],
+    "beyond_listed": 40758,
+    "each_further_dependant": 3544
+   },
+   "Zone3": {
+    "single": 24339,
+    "couple": 29522,
+    "by_dependants": [
+     32186,
+     33516,
+     34865,
+     36195,
+     38892
+    ],
+    "beyond_listed": 38892,
+    "each_further_dependant": 3372
+   }
+  }
+ },
+ {
+  "computed_from": "2010-01-01",
+  "computed_before": "2011-01-01",
+  "francs": false,
+  "zones": {
+   "Zone1": {
+    "single": 29670,
+    "couple": 35757,
+    "by_dependants": [
+     38445,
+     39519,
+     40601,
+     41721,
+     42605
+    ],
+    "beyond_listed": 42605,
+    "each_further_dependant": 3710
+   },
+   "Zone2": {
+    "single": 26029,
+    "couple": 31908,
+    "by_dependants": [
+     34643,
+     35739,
+     36970,
+     38185,
+     40888
+    ],
+    "beyond_listed": 40888,
+    "each_further_dependant": 3555
+   },
+   "Zone3": {
+    "single": 24417,
+    "couple": 29616,
+    "by_dependants": [
+     32289,
+     33623,
+     34977,
+     36311,
+     39016
+    ],
+    "beyond_listed": 39016,
+    "each_further_dependant": 3383
+   }
+  }
+ },
+ {
+  "computed_from": "2011-01-01",
+  "computed_before": "2012-01-01",
+  "francs": false,
+  "zones": {
+   "Zone1": {
+    "single": 29996,
+    "couple": 36149,
+    "by_dependants": [
+     38868,
+     39954,
+     41078,
+     42180,
+     43074
+    ],
+    "beyond_listed": 43074,
+    "each_further_dependant": 3751
+   },
+   "Zone2": {
+    "single": 26315,
+    "couple": 32259,
+    "by_dependants": [
+     34923,
+     36132,
+     37373,
+     38605,
+     41338
+    ],
+    "beyond_listed": 41338,
+    "each_further_dependant": 3594
+   },
+   "Zone3": {
+    "single": 24686,
+    "couple": 29942,
+    "by_dependants": [
+     32644,
+     33993,
+     35362,
+     36710,
+     39445
+    ],
+    "beyond_listed": 39445,
+    "each_further_dependant": 3420
+   }
+  }
+ },
+ {
+  "computed_from": "2012-01-01",
+  "computed_before": "2013-01-01",
+  "francs": false,
+  "zones": {
+   "Zone1": {
+    "single": 30296,
+    "couple": 36510,
+    "by_dependants": [
+     39257,
+     40354,
+     41489,
+     42602,
+     43505
+    ],
+    "beyond_listed": 43505,
+    "each_further_dependant": 3789
+   },
+   "Zone2": {
+    "single": 26578,
+    "couple": 32582,
+    "by_dependants": [
+     35272,
+     36493,
+     37751,
+     38991,
+     41751
+    ],
+    "beyond_listed": 41751,
+    "each_further_dependant": 3630
+   },
+   "Zone3": {
+    "single": 24933,
+    "couple": 30241,
+    "by_dependants": [
+     32970,
+     34333,
+     35716,
+     37077,
+     39839
+    ],
+    "beyond_listed": 39839,
+    "each_further_dependant": 3454
+   }
+  }
+ },
+ {
+  "computed_from": "2013-01-01",
+  "computed_before": "2014-10-01",
+  "francs": false,
+  "zones": {
+   "Zone1": {
+    "single": 30947,
+    "couple": 37295,
+    "by_dependants": [
+     40101,
+     41222,
+     42381,
+     43518,
+     44440
+    ],
+    "beyond_listed": 44440,
+    "each_further_dependant": 3870
+   },
+   "Zone2": {
+    "single": 27149,
+    "couple": 33283,
+    "by_dependants": [
+     36030,
+     37278,
+     38563,
+     39829,
+     42649
+    ],
+    "beyond_listed": 42659,
+    "each_further_dependant": 3708
+   },
+   "Zone3": {
+    "single": 25469,
+    "couple": 30891,
+    "by_dependants": [
+     33679,
+     35071,
+     36484,
+     37874,
+     40696
+    ],
+    "beyond_listed": 40696,
+    "each_further_dependant": 3528
+   }
+  }
+ },
+ {
+  "computed_from": "2014-10-01",
+  "computed_before": "2015-10-01",
+  "francs": false,
+  "zones": {
+   "Zone1": {
+    "single": 31123,
+    "couple": 37508,
+    "by_dependants": [
+     40330,
+     41457,
+     42623,
+     43766,
+     44693
+    ],
+    "beyond_listed": 44693,
+    "each_further_dependant": 3892
+   },
+   "Zone2": {
+    "single": 27304,
+    "couple": 33473,
+    "by_dependants": [
+     36235,
+     37490,
+     38783,
+     40056,
+     42892
+    ],
+    "beyond_listed": 42892,
+    "each_further_dependant": 3729
+   },
+   "Zone3": {
+    "single": 25614,
+    "couple": 31067,
+    "by_dependants": [
+     33871,
+     35271,
+     36692,
+     38090,
+     40928
+    ],
+    "beyond_listed": 40928,
+    "each_further_dependant": 3548
+   }
+  }
+ },
+ {
+  "computed_from": "2015-10-01",
+  "computed_before": "2017-10-01",
+  "francs": false,
+  "zones": {
+   "Zone1": {
+    "single": 31148,
+    "couple": 37538,
+    "by_dependants": [
+     40362,
+     41490,
+     42657,
+     43801,
+     44729
+    ],
+    "beyond_listed": 44729,
+    "each_further_dependant": 3895
+   },
+   "Zone2": {
+    "single": 27326,
+    "couple": 33500,
+    "by_dependants": [
+     36264,
+     37520,
+     38814,
+     40088,
+     42926
+    ],
+    "beyond_listed": 42926,
+    "each_further_dependant": 3732
+   },
+   "Zone3": {
+    "single": 25634,
+    "couple": 31092,
+    "by_dependants": [
+     33898,
+     35299,
+     36721,
+     38120,
+     40961
+    ],
+    "beyond_listed": 40961,
+    "each_further_dependant": 3551
+   }
+  }
+ },
+ {
+  "computed_from": "2017-10-01",
+  "computed_before": "2019-10-01",
+  "francs": false,
+  "zones": {
+   "Zone1": {
+    "single": 31382,
+    "couple": 37820,
+    "by_dependants": [
+     40665,
+     41801,
+     42977,
+     44130,
+     45064
+    ],
+    "beyond_listed": 45064,
+    "each_further_dependant": 3924
+   },
+   "Zone2": {
+    "single": 27531,
+    "couple": 33751,
+    "by_dependants": [
+     36536,
+     37801,
+     39105,
+     40389,
+     43248
+    ],
+    "beyond_listed": 43248,
+    "each_further_dependant": 3760
+   },
+   "Zone3": {
+    "single": 25826,
+    "couple": 31325,
+    "by_dependants": [
+     34152,
+     35564,
+     36996,
+     38406,
+     41268
+    ],
+    "beyond_listed": 41268,
+    "each_further_dependant": 3578
+   }
+  }
+ },
+ {
+  "computed_from": "2019-10-01",
+  "computed_before": null,
+  "francs": false,
+  "zones": {
+   "Zone1": {
+    "single": 31476,
+    "couple": 37933,
+    "by_dependants": [
+     40787,
+     41927,
+     43106,
+     44262,
+     45200
+    ],
+    "beyond_listed": 45200,
+    "each_further_dependant": 3936
+   },
+   "Zone2": {
+    "single": 27614,
+    "couple": 33853,
+    "by_dependants": [
+     36646,
+     37915,
+     39222,
+     40510,
+     43378
+    ],
+    "beyond_listed": 43378,
+    "each_further_dependant": 3771
+   },
+   "Zone3": {
+    "single": 25904,
+    "couple": 31419,
+    "by_dependants": [
+     34255,
+     35670,
+     37107,
+     38521,
+     41392
+    ],
+    "beyond_listed": 41392,
+    "each_further_dependant": 3588
+   }
+  }
+ }
+]

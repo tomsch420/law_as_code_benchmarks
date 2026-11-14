@@ -510,6 +510,11 @@ class HousingAgencyAgreement(CatalaRecord):
 class Landlord(CatalaVariant):
     """Who lets the dwelling, Catala's ``TypeBailleur``."""
 
+    @property
+    def solidarity_rent_reduction(self) -> Money:
+        """The monthly reduction of rent for solidarity the landlord grants; nothing but for a social landlord."""
+        return Money.zero
+
 
 @dataclass(eq=False)
 class SocialLandlord(Landlord):
@@ -527,6 +532,11 @@ class SocialLandlord(Landlord):
     def content_field(cls) -> str:
         """The agreement."""
         return "agreement"
+
+    @property
+    def solidarity_rent_reduction(self) -> Money:
+        """Overrides :attr:`Landlord.solidarity_rent_reduction`: the reduction its agreement sets."""
+        return self.agreement.solidarity_rent_reduction
 
 
 @dataclass(eq=False)

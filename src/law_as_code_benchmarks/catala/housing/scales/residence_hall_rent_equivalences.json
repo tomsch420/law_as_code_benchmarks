@@ -1,0 +1,170 @@
+[
+ {
+  "assessed_from": "2025-10-01",
+  "assessed_before": null,
+  "category": "ÉtudiantLogéEnChambreCROUS",
+  "single": 9404,
+  "couple": 14643
+ },
+ {
+  "assessed_from": "2025-10-01",
+  "assessed_before": null,
+  "category": "ÉtudiantLogéEnChambreCROUSRéhabilitée",
+  "single": 19013,
+  "couple": 29550
+ },
+ {
+  "assessed_from": "2025-10-01",
+  "assessed_before": null,
+  "category": "PersonnesÂgéesSelon3DeD842_16",
+  "single": 23068,
+  "couple": 35847
+ },
+ {
+  "assessed_from": "2025-10-01",
+  "assessed_before": null,
+  "category": "AutresPersonnes",
+  "single": 19013,
+  "couple": 29550
+ },
+ {
+  "assessed_from": "2023-10-01",
+  "assessed_before": "2024-10-01",
+  "category": "ÉtudiantLogéEnChambreCROUS",
+  "single": 9013,
+  "couple": 14034
+ },
+ {
+  "assessed_from": "2023-10-01",
+  "assessed_before": "2024-10-01",
+  "category": "ÉtudiantLogéEnChambreCROUSRéhabilitée",
+  "single": 18223,
+  "couple": 28323
+ },
+ {
+  "assessed_from": "2023-10-01",
+  "assessed_before": "2024-10-01",
+  "category": "PersonnesÂgéesSelon3DeD842_16",
+  "single": 22110,
+  "couple": 34358
+ },
+ {
+  "assessed_from": "2023-10-01",
+  "assessed_before": "2024-10-01",
+  "category": "AutresPersonnes",
+  "single": 18223,
+  "couple": 28323
+ },
+ {
+  "assessed_from": "2022-07-01",
+  "assessed_before": "2023-10-01",
+  "category": "ÉtudiantLogéEnChambreCROUS",
+  "single": 8708,
+  "couple": 13559
+ },
+ {
+  "assessed_from": "2022-07-01",
+  "assessed_before": "2023-10-01",
+  "category": "ÉtudiantLogéEnChambreCROUSRéhabilitée",
+  "single": 17607,
+  "couple": 27365
+ },
+ {
+  "assessed_from": "2022-07-01",
+  "assessed_before": "2023-10-01",
+  "category": "PersonnesÂgéesSelon3DeD842_16",
+  "single": 21362,
+  "couple": 33196
+ },
+ {
+  "assessed_from": "2022-07-01",
+  "assessed_before": "2023-10-01",
+  "category": "AutresPersonnes",
+  "single": 17607,
+  "couple": 27365
+ },
+ {
+  "assessed_from": "2021-10-01",
+  "assessed_before": "2022-07-01",
+  "category": "ÉtudiantLogéEnChambreCROUS",
+  "single": 8414,
+  "couple": 13100
+ },
+ {
+  "assessed_from": "2021-10-01",
+  "assessed_before": "2022-07-01",
+  "category": "ÉtudiantLogéEnChambreCROUSRéhabilitée",
+  "single": 17012,
+  "couple": 26440
+ },
+ {
+  "assessed_from": "2021-10-01",
+  "assessed_before": "2022-07-01",
+  "category": "PersonnesÂgéesSelon3DeD842_16",
+  "single": 20640,
+  "couple": 32073
+ },
+ {
+  "assessed_from": "2021-10-01",
+  "assessed_before": "2022-07-01",
+  "category": "AutresPersonnes",
+  "single": 17012,
+  "couple": 26440
+ },
+ {
+  "assessed_from": "2020-10-01",
+  "assessed_before": "2021-10-01",
+  "category": "ÉtudiantLogéEnChambreCROUS",
+  "single": 8379,
+  "couple": 13045
+ },
+ {
+  "assessed_from": "2020-10-01",
+  "assessed_before": "2021-10-01",
+  "category": "ÉtudiantLogéEnChambreCROUSRéhabilitée",
+  "single": 16941,
+  "couple": 26329
+ },
+ {
+  "assessed_from": "2020-10-01",
+  "assessed_before": "2021-10-01",
+  "category": "PersonnesÂgéesSelon3DeD842_16",
+  "single": 20554,
+  "couple": 31939
+ },
+ {
+  "assessed_from": "2020-10-01",
+  "assessed_before": "2021-10-01",
+  "category": "AutresPersonnes",
+  "single": 16941,
+  "couple": 26329
+ },
+ {
+  "assessed_from": "2024-10-01",
+  "assessed_before": "2025-10-01",
+  "category": "ÉtudiantLogéEnChambreCROUS",
+  "single": 9307,
+  "couple": 14492
+ },
+ {
+  "assessed_from": "2024-10-01",
+  "assessed_before": "2025-10-01",
+  "category": "ÉtudiantLogéEnChambreCROUSRéhabilitée",
+  "single": 18817,
+  "couple": 29246
+ },
+ {
+  "assessed_from": "2024-10-01",
+  "assessed_before": "2025-10-01",
+  "category": "PersonnesÂgéesSelon3DeD842_16",
+  "single": 22831,
+  "couple": 35478
+ },
+ {
+  "assessed_from": "2024-10-01",
+  "assessed_before": "2025-10-01",
+  "category": "AutresPersonnes",
+  "single": 18817,
+  "couple": 29246
+ }
+]
